@@ -11,3 +11,6 @@ build/
 .pyright/
 .pytest_cache/
 .mypy_cache/
+
+# Reference projects
+/resources/
