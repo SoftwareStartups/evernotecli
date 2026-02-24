@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck check test serve
+.PHONY: install lint format typecheck check test serve clean
 
 install:
 	uv sync
@@ -19,3 +19,6 @@ test:
 
 serve:
 	uv run mcp dev evernote_mcp/server.py
+
+clean:
+	rm -rf .venv .mypy_cache .ruff_cache .pytest_cache .coverage dist build *.egg-info
