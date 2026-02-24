@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
@@ -35,6 +36,19 @@ def _ts_to_dt(ts: int | None) -> datetime | None:
     if ts is None:
         return None
     return datetime.fromtimestamp(ts / 1000, tz=UTC)
+
+
+def _to_note_metadata(note: Any) -> NoteMetadata:
+    """Convert a Thrift note object to a NoteMetadata model."""
+    return NoteMetadata(
+        guid=note.guid,
+        title=note.title or "Untitled",
+        notebook_guid=note.notebookGuid,
+        tag_guids=list(note.tagGuids or []),
+        created=_ts_to_dt(note.created),
+        updated=_ts_to_dt(note.updated),
+        content_length=getattr(note, "contentLength", None),
+    )
 
 
 def _resolve_notebook_guid(client: EvernoteClient, name: str) -> str | None:
@@ -81,18 +95,7 @@ def search_notes(
         offset=offset,
     )
 
-    notes = [
-        NoteMetadata(
-            guid=n.guid,
-            title=n.title or "Untitled",
-            notebook_guid=n.notebookGuid,
-            tag_guids=list(n.tagGuids or []),
-            created=_ts_to_dt(n.created),
-            updated=_ts_to_dt(n.updated),
-            content_length=n.contentLength,
-        )
-        for n in (result.notes or [])
-    ]
+    notes = [_to_note_metadata(n) for n in (result.notes or [])]
 
     return SearchResult(
         notes=notes,
@@ -111,15 +114,7 @@ def get_note(guid: str) -> NoteMetadata:
     """
     client = _get_client()
     note = client.get_note(guid)
-    return NoteMetadata(
-        guid=note.guid,
-        title=note.title or "Untitled",
-        notebook_guid=note.notebookGuid,
-        tag_guids=list(note.tagGuids or []),
-        created=_ts_to_dt(note.created),
-        updated=_ts_to_dt(note.updated),
-        content_length=note.contentLength,
-    )
+    return _to_note_metadata(note)
 
 
 @mcp.tool()
@@ -209,14 +204,7 @@ def tag_note(guid: str, tags: list[str]) -> NoteMetadata:
     """
     client = _get_client()
     note = client.tag_note(guid, tags)
-    return NoteMetadata(
-        guid=note.guid,
-        title=note.title or "Untitled",
-        notebook_guid=note.notebookGuid,
-        tag_guids=list(note.tagGuids or []),
-        created=_ts_to_dt(note.created),
-        updated=_ts_to_dt(note.updated),
-    )
+    return _to_note_metadata(note)
 
 
 @mcp.tool()
@@ -229,14 +217,7 @@ def untag_note(guid: str, tags: list[str]) -> NoteMetadata:
     """
     client = _get_client()
     note = client.untag_note(guid, tags)
-    return NoteMetadata(
-        guid=note.guid,
-        title=note.title or "Untitled",
-        notebook_guid=note.notebookGuid,
-        tag_guids=list(note.tagGuids or []),
-        created=_ts_to_dt(note.created),
-        updated=_ts_to_dt(note.updated),
-    )
+    return _to_note_metadata(note)
 
 
 @mcp.tool()
@@ -253,14 +234,7 @@ def move_note(guid: str, notebook_name: str) -> NoteMetadata:
         msg = f"Notebook not found: {notebook_name}"
         raise ValueError(msg)
     note = client.move_note(guid, notebook_guid)
-    return NoteMetadata(
-        guid=note.guid,
-        title=note.title or "Untitled",
-        notebook_guid=note.notebookGuid,
-        tag_guids=list(note.tagGuids or []),
-        created=_ts_to_dt(note.created),
-        updated=_ts_to_dt(note.updated),
-    )
+    return _to_note_metadata(note)
 
 
 def main() -> None:

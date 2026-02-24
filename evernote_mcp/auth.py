@@ -58,6 +58,20 @@ class _CallbackServer(HTTPServer):
 # --- OAuth flow ---
 
 
+def _wait_for_callback() -> str:
+    """Start local HTTP server and block until OAuth callback is received."""
+    server = _CallbackServer((CALLBACK_HOST, OAUTH_PORT), _CallbackHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        while not server.callback_response:
+            time.sleep(0.1)
+    finally:
+        server.shutdown()
+        thread.join()
+    return server.callback_response
+
+
 def _run_oauth_flow(consumer_key: str, consumer_secret: str) -> str:
     """Run full OAuth 1.0a flow with local callback server. Returns access token."""
     session = OAuth1Session(
@@ -75,20 +89,11 @@ def _run_oauth_flow(consumer_key: str, consumer_secret: str) -> str:
     webbrowser.open(auth_url)
 
     # Step 3: Wait for callback
-    server = _CallbackServer((CALLBACK_HOST, OAUTH_PORT), _CallbackHandler)
-    thread = threading.Thread(target=server.serve_forever)
-    thread.start()
-
-    try:
-        while not server.callback_response:
-            time.sleep(0.1)
-    finally:
-        server.shutdown()
-        thread.join()
+    callback_response = _wait_for_callback()
 
     # Step 4: Exchange for access token
     try:
-        session.parse_authorization_response(server.callback_response)
+        session.parse_authorization_response(callback_response)
     except TokenMissing as e:
         raise OAuthError("OAuth declined by user") from e
 

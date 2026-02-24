@@ -1,4 +1,4 @@
-"""Thrift client for Evernote API with Store proxy, retry, and hotfixes.
+"""Thrift client infrastructure: Store proxy, hotfixes, retry decorator.
 
 Ported from:
 - ragevernote: Store proxy with __getattr__ auto-token-injection
@@ -13,17 +13,8 @@ import time
 from http.client import HTTPConnection, HTTPException, HTTPSConnection
 from typing import Any, cast
 
-from evernote.edam.notestore import NoteStore
-from evernote.edam.notestore.ttypes import (
-    NoteFilter,
-    NotesMetadataResultSpec,
-)
-from evernote.edam.type.ttypes import Note
-from evernote.edam.userstore import UserStore
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
 from thrift.transport.THttpClient import THttpClient
-
-from evernote_mcp.enml import enml_to_markdown, markdown_to_enml
 
 # --- Retry defaults ---
 
@@ -151,133 +142,3 @@ class Store:
         )
         protocol = TBinaryProtocolHotfix(http_client)
         return client_class(protocol)
-
-
-# --- EvernoteClient ---
-
-
-class EvernoteClient:
-    """High-level Evernote API client."""
-
-    def __init__(self, token: str) -> None:
-        self.token = token
-        self.shard = get_token_shard(token)
-
-    @property
-    def note_store(self) -> Store:
-        url = f"https://www.evernote.com/edam/note/{self.shard}"
-        return Store(NoteStore.Client, url, token=self.token)
-
-    @property
-    def user_store(self) -> Store:
-        url = "https://www.evernote.com/edam/user"
-        return Store(UserStore.Client, url, token=self.token)
-
-    # --- Read operations ---
-
-    def list_notebooks(self) -> list[Any]:
-        return self.note_store.listNotebooks()
-
-    def list_tags(self) -> list[Any]:
-        return self.note_store.listTags()
-
-    def search_notes(
-        self,
-        query: str = "",
-        notebook_guid: str | None = None,
-        tag_names: list[str] | None = None,
-        max_results: int = 20,
-        offset: int = 0,
-    ) -> Any:
-        filter_ = NoteFilter()
-        filter_.words = query or None
-        filter_.inactive = False
-        if notebook_guid:
-            filter_.notebookGuid = notebook_guid
-        if tag_names:
-            # Tag names are embedded in the search query with Evernote grammar
-            tag_query = " ".join(f'tag:"{t}"' for t in tag_names)
-            if filter_.words:
-                filter_.words += " " + tag_query
-            else:
-                filter_.words = tag_query
-
-        spec = NotesMetadataResultSpec()
-        spec.includeTitle = True
-        spec.includeContentLength = True
-        spec.includeCreated = True
-        spec.includeUpdated = True
-        spec.includeNotebookGuid = True
-        spec.includeTagGuids = True
-
-        return self.note_store.findNotesMetadata(
-            filter_, offset, max_results, spec
-        )
-
-    def get_note(self, guid: str) -> Any:
-        return self.note_store.getNote(guid, False, False, False, False)
-
-    def get_note_content(self, guid: str) -> str:
-        enml = self.note_store.getNoteContent(guid)
-        return enml_to_markdown(enml)
-
-    # --- Write operations ---
-
-    def create_note(
-        self,
-        title: str,
-        markdown: str,
-        notebook_guid: str | None = None,
-        tag_names: list[str] | None = None,
-    ) -> Any:
-        note = Note()
-        note.title = title
-        note.content = markdown_to_enml(markdown)
-        if notebook_guid:
-            note.notebookGuid = notebook_guid
-        if tag_names:
-            note.tagNames = tag_names
-        return self.note_store.createNote(note)
-
-    def tag_note(self, guid: str, tag_names: list[str]) -> Any:
-        note = self.note_store.getNote(guid, False, False, False, False)
-        existing_guids = note.tagGuids or []
-
-        # Resolve tag names to guids
-        all_tags = {t.name: t.guid for t in self.list_tags()}
-        new_guids = [all_tags[name] for name in tag_names if name in all_tags]
-
-        # Create tags that don't exist yet
-        for name in tag_names:
-            if name not in all_tags:
-                from evernote.edam.type.ttypes import Tag
-
-                tag = Tag()
-                tag.name = name
-                created = self.note_store.createTag(tag)
-                new_guids.append(created.guid)
-
-        merged = list(set(existing_guids + new_guids))
-
-        update = Note()
-        update.guid = guid
-        update.tagGuids = merged
-        return self.note_store.updateNote(update)
-
-    def untag_note(self, guid: str, tag_names: list[str]) -> Any:
-        note = self.note_store.getNote(guid, False, False, False, False)
-        existing_guids = set(note.tagGuids or [])
-
-        all_tags = {t.name: t.guid for t in self.list_tags()}
-        remove_guids = {all_tags[name] for name in tag_names if name in all_tags}
-
-        update = Note()
-        update.guid = guid
-        update.tagGuids = list(existing_guids - remove_guids)
-        return self.note_store.updateNote(update)
-
-    def move_note(self, guid: str, notebook_guid: str) -> Any:
-        update = Note()
-        update.guid = guid
-        update.notebookGuid = notebook_guid
-        return self.note_store.updateNote(update)

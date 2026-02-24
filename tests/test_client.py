@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from evernote_mcp.client import (
+from evernote_mcp.client.thrift import (
     RETRY_DELAY,
     RETRY_MAX,
     Store,
@@ -27,7 +27,7 @@ class TestTokenParsing:
 
 
 class TestRetry:
-    @patch("evernote_mcp.client.time.sleep")
+    @patch("evernote_mcp.client.thrift.time.sleep")
     def test_retries_on_http_exception(self, mock_sleep: MagicMock) -> None:
         call_count = 0
 
@@ -43,7 +43,7 @@ class TestRetry:
         assert call_count == 3
         assert mock_sleep.call_count == 2
 
-    @patch("evernote_mcp.client.time.sleep")
+    @patch("evernote_mcp.client.thrift.time.sleep")
     def test_retries_on_connection_error(self, mock_sleep: MagicMock) -> None:
         call_count = 0
 
@@ -58,7 +58,7 @@ class TestRetry:
         assert flaky() == "ok"
         assert call_count == 2
 
-    @patch("evernote_mcp.client.time.sleep")
+    @patch("evernote_mcp.client.thrift.time.sleep")
     def test_raises_after_max_retries(self, mock_sleep: MagicMock) -> None:
         @retry_on_network_error
         def always_fails() -> str:
@@ -69,7 +69,7 @@ class TestRetry:
 
         assert mock_sleep.call_count == RETRY_MAX
 
-    @patch("evernote_mcp.client.time.sleep")
+    @patch("evernote_mcp.client.thrift.time.sleep")
     def test_exponential_backoff(self, mock_sleep: MagicMock) -> None:
         @retry_on_network_error
         def always_fails() -> str:
@@ -126,7 +126,10 @@ class TestStoreProxy:
             patch.object(
                 Store, "_get_thrift_client", return_value=mock_client_instance
             ),
-            patch("evernote_mcp.client.inspect.getfullargspec", return_value=mock_spec),
+            patch(
+                "evernote_mcp.client.thrift.inspect.getfullargspec",
+                return_value=mock_spec,
+            ),
         ):
             store = Store(
                 client_class=mock_client_class,
