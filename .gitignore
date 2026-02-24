@@ -12,5 +12,8 @@ build/
 .pytest_cache/
 .mypy_cache/
 
+# Claude
+/.claude/settings.local.json
+
 # Reference projects
 /resources/
