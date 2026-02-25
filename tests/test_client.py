@@ -122,9 +122,7 @@ def _patch_store(client: EvernoteClient, mock_store: MagicMock):  # type: ignore
     return patch.object(
         type(client),
         "note_store",
-        new_callable=lambda: property(
-            lambda self: mock_store
-        ),
+        new_callable=lambda: property(lambda self: mock_store),
     )
 
 
