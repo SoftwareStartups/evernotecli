@@ -74,7 +74,9 @@ class EvernoteClient:
         return self.note_store.findNotesMetadata(filter_, offset, max_results, spec)
 
     def get_note(self, guid: str) -> Any:
-        return self.note_store.getNote(guid, False, False, False, False)
+        note = self.note_store.getNote(guid, False, False, False, False)
+        note.tagGuids = self._get_note_tag_guids(guid)
+        return note
 
     def get_note_content(self, guid: str) -> str:
         enml = self.note_store.getNoteContent(guid)
@@ -98,6 +100,18 @@ class EvernoteClient:
             note.tagNames = tag_names
         return self.note_store.createNote(note)
 
+    def _get_note_tag_guids(self, guid: str) -> list[str]:
+        """Get tag GUIDs for a note.
+
+        getNote doesn't populate tagGuids, so we use getNoteTagNames
+        and map back to GUIDs via listTags.
+        """
+        tag_names = self.note_store.getNoteTagNames(guid)
+        if not tag_names:
+            return []
+        all_tags = {t.name: t.guid for t in self.list_tags()}
+        return [all_tags[n] for n in tag_names if n in all_tags]
+
     def _resolve_tag_guids(self, tag_names: list[str]) -> list[str]:
         """Resolve tag names to GUIDs, creating missing tags."""
         all_tags = {t.name: t.guid for t in self.list_tags()}
@@ -113,26 +127,41 @@ class EvernoteClient:
         return guids
 
     def _update_note(self, **fields: Any) -> Any:
-        """Update a note with the given fields."""
+        """Update a note with the given fields.
+
+        Evernote's updateNote requires title to be set. We fetch the
+        existing note to preserve required fields the caller didn't supply.
+        """
+        guid = fields.get("guid")
+        if guid and "title" not in fields:
+            existing = self.note_store.getNote(guid, False, False, False, False)
+            fields.setdefault("title", existing.title)
         update = Note()
         for key, value in fields.items():
             setattr(update, key, value)
         return self.note_store.updateNote(update)
 
     def tag_note(self, guid: str, tag_names: list[str]) -> Any:
-        note = self.note_store.getNote(guid, False, False, False, False)
-        existing_guids = note.tagGuids or []
+        existing_guids = self._get_note_tag_guids(guid)
         new_guids = self._resolve_tag_guids(tag_names)
         merged = list(set(existing_guids + new_guids))
-        return self._update_note(guid=guid, tagGuids=merged)
+        note = self.note_store.getNote(guid, False, False, False, False)
+        self._update_note(guid=guid, title=note.title, tagGuids=merged)
+        result = self.note_store.getNote(guid, False, False, False, False)
+        result.tagGuids = merged
+        return result
 
     def untag_note(self, guid: str, tag_names: list[str]) -> Any:
-        note = self.note_store.getNote(guid, False, False, False, False)
-        existing_guids = set(note.tagGuids or [])
+        existing_guids = set(self._get_note_tag_guids(guid))
         all_tags = {t.name: t.guid for t in self.list_tags()}
-        remove_guids = {all_tags[name] for name in tag_names if name in all_tags}
+        remove_guids = {all_tags[n] for n in tag_names if n in all_tags}
         remaining = list(existing_guids - remove_guids)
-        return self._update_note(guid=guid, tagGuids=remaining)
+        note = self.note_store.getNote(guid, False, False, False, False)
+        self._update_note(guid=guid, title=note.title, tagGuids=remaining)
+        result = self.note_store.getNote(guid, False, False, False, False)
+        result.tagGuids = remaining
+        return result
 
     def move_note(self, guid: str, notebook_guid: str) -> Any:
-        return self._update_note(guid=guid, notebookGuid=notebook_guid)
+        self._update_note(guid=guid, notebookGuid=notebook_guid)
+        return self.get_note(guid)

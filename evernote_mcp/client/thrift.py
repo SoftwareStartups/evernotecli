@@ -11,7 +11,7 @@ import functools
 import inspect
 import time
 from http.client import HTTPConnection, HTTPException, HTTPSConnection
-from typing import Any, cast
+from typing import Any
 
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
 from thrift.transport.THttpClient import THttpClient
@@ -35,34 +35,66 @@ def get_token_shard(token: str) -> str:
 
 
 class TBinaryProtocolHotfix(TBinaryProtocol):
-    """Prevent crash on bad UTF-8 data from server."""
+    """Sanitize bad UTF-8 from server while returning bytes.
 
-    def readString(self) -> str:
-        return cast(str, self.readBinary().decode("utf-8", errors="replace"))  # type: ignore[attr-defined]
+    The generated Thrift code expects readString() to return bytes — it calls
+    .decode('utf-8') on the result to produce str fields on Thrift objects.
+    We sanitize by round-tripping through decode/encode with replacement so
+    malformed sequences become U+FFFD rather than crashing the decode step.
+    """
+
+    def readString(self) -> bytes:  # type: ignore[override]
+        raw = super().readString()
+        if isinstance(raw, bytes):
+            return raw.decode("utf-8", errors="replace").encode("utf-8")
+        return raw.encode("utf-8")
 
 
 class THttpClientHotfix(THttpClient):
-    """Fix deprecated key_file/cert_file args in newer Python ssl."""
+    """Fix bugs in the evernote3-bundled THttpClient.
+
+    1. flush() — check HTTP status and raise on server errors instead of
+       letting the Thrift protocol try to parse HTML error pages as binary.
+
+    2. readAll() — the base class delegates to a single read(sz) call, but
+       HTTPResponse.read(sz) may return fewer than sz bytes for large
+       responses. We loop until all requested bytes are collected.
+
+    3. open() — the base class ignores setTimeout(); it only sets the global
+       default socket timeout during flush(). We pass the timeout directly
+       to HTTPConnection/HTTPSConnection.
+    """
+
+    def flush(self) -> None:
+        super().flush()
+        status = self.response.status  # type: ignore[attr-defined]
+        if status != 200:
+            body = self.response.read()  # type: ignore[attr-defined]
+            msg = f"Evernote HTTP {status}: {body[:500]!r}"
+            raise HTTPException(msg)
+
+    def readAll(self, sz: int) -> bytes:  # type: ignore[override]
+        buff = b""
+        while len(buff) < sz:
+            chunk = self.read(sz - len(buff))
+            if not chunk:
+                raise EOFError()
+            buff += chunk
+        return buff
 
     def open(self) -> None:  # type: ignore[override]
+        timeout = self._THttpClient__timeout  # type: ignore[attr-defined]
         if self.scheme == "http":  # type: ignore[attr-defined]
             self._THttpClient__http = HTTPConnection(  # type: ignore[attr-defined]
                 self.host,  # type: ignore[arg-type]
                 self.port,
-                timeout=self._THttpClient__timeout,  # type: ignore[attr-defined]
+                timeout=timeout,
             )
         elif self.scheme == "https":  # type: ignore[attr-defined]
             self._THttpClient__http = HTTPSConnection(  # type: ignore[attr-defined]
                 self.host,  # type: ignore[arg-type]
                 self.port,
-                timeout=self._THttpClient__timeout,  # type: ignore[attr-defined]
-                context=self.context,  # type: ignore[attr-defined]
-            )
-        if self.using_proxy():  # type: ignore[attr-defined]
-            self._THttpClient__http.set_tunnel(  # type: ignore[attr-defined]
-                self.realhost,  # type: ignore[attr-defined]
-                self.realport,  # type: ignore[attr-defined]
-                {"Proxy-Authorization": self.proxy_auth},  # type: ignore[attr-defined]
+                timeout=timeout,
             )
 
 
