@@ -80,6 +80,18 @@ class TestEnmlToMarkdown:
         assert "| Name | Age |" in md
         assert "| Alice | 30 |" in md
 
+    def test_pre_block(self) -> None:
+        enml = "<en-note><pre>some code</pre></en-note>"
+        md = enml_to_markdown(enml)
+        assert "```" in md
+        assert "some code" in md
+
+    def test_pre_with_code(self) -> None:
+        enml = "<en-note><pre><code>x = 1</code></pre></en-note>"
+        md = enml_to_markdown(enml)
+        assert "```" in md
+        assert "x = 1" in md
+
     def test_complex_note(self) -> None:
         enml = (
             '<?xml version="1.0" encoding="UTF-8"?>'
@@ -155,8 +167,44 @@ class TestMarkdownToEnml:
         assert "&amp;" in result
         assert "&gt;" in result
 
+    def test_code_block(self) -> None:
+        result = markdown_to_enml("```\nprint('hi')\n```")
+        assert "<pre><code>print(&apos;hi&apos;)</code></pre>" in result or (
+            "<pre><code>" in result and "</code></pre>" in result
+        )
+
+    def test_code_block_with_language(self) -> None:
+        result = markdown_to_enml("```python\nx = 1\n```")
+        assert "<pre><code>x = 1</code></pre>" in result
+
+    def test_table(self) -> None:
+        md = "| Name | Age |\n| --- | --- |\n| Alice | 30 |"
+        result = markdown_to_enml(md)
+        assert "<table>" in result
+        assert "<th>Name</th>" in result
+        assert "<th>Age</th>" in result
+        assert "<td>Alice</td>" in result
+        assert "<td>30</td>" in result
+        assert "</table>" in result
+
     def test_valid_enml_structure(self) -> None:
         result = markdown_to_enml("test")
         assert result.startswith('<?xml version="1.0" encoding="UTF-8"?>')
         assert "<!DOCTYPE en-note" in result
         assert result.endswith("</en-note>")
+
+
+class TestRoundTrip:
+    def test_code_block_round_trip(self) -> None:
+        md = "```\nx = 1\n```"
+        enml = markdown_to_enml(md)
+        result = enml_to_markdown(enml)
+        assert "```" in result
+        assert "x = 1" in result
+
+    def test_table_round_trip(self) -> None:
+        md = "| Name | Age |\n| --- | --- |\n| Alice | 30 |"
+        enml = markdown_to_enml(md)
+        result = enml_to_markdown(enml)
+        assert "| Name | Age |" in result
+        assert "| Alice | 30 |" in result

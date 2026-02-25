@@ -120,6 +120,15 @@ def _handle_en_note(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None
         lines.append(text.strip())
 
 
+def _handle_pre(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+    code_el = el.find("code")
+    content = _get_all_text(code_el) if code_el is not None else _get_all_text(el)
+    lines.append("```")
+    lines.append(content)
+    lines.append("```")
+    lines.append("")
+
+
 def _handle_anchor(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
     href = el.get("href", "")
     link_text = _get_all_text(el)
@@ -145,6 +154,7 @@ _BLOCK_HANDLERS: dict[str, _BlockHandler] = {
     "en-media": _handle_media,
     "en-crypt": _handle_crypt,
     "en-note": _handle_en_note,
+    "pre": _handle_pre,
     "a": _handle_anchor,
 }
 
@@ -191,7 +201,6 @@ _INLINE_HANDLERS: dict[str, _InlineHandler] = {
     "en-todo-checked": _inline_todo_checked,
     "en-todo-unchecked": _inline_todo_unchecked,
     "code": _inline_code,
-    "pre": _inline_code,
 }
 
 

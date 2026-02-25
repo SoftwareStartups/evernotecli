@@ -122,7 +122,52 @@ def _parse_ol(lines: list[str], i: int) -> tuple[str | None, int]:
     return "".join(parts), i - start
 
 
+def _parse_code_block(lines: list[str], i: int) -> tuple[str | None, int]:
+    if not re.match(r"^```", lines[i]):
+        return None, 0
+    start = i
+    i += 1
+    content_lines: list[str] = []
+    while i < len(lines):
+        if re.match(r"^```\s*$", lines[i]):
+            i += 1
+            break
+        content_lines.append(lines[i])
+        i += 1
+    content = _escape_xml("\n".join(content_lines))
+    return f"<pre><code>{content}</code></pre>", i - start
+
+
+def _parse_table(lines: list[str], i: int) -> tuple[str | None, int]:
+    if not re.match(r"^\|.+\|", lines[i]):
+        return None, 0
+    start = i
+    rows: list[list[str]] = []
+    while i < len(lines) and re.match(r"^\|.+\|", lines[i]):
+        line = lines[i].strip()
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        # Skip separator row
+        if all(re.match(r"^:?-+:?$", c) for c in cells):
+            i += 1
+            continue
+        rows.append(cells)
+        i += 1
+    if not rows:
+        return None, 0
+    parts = ["<table>"]
+    for idx, row in enumerate(rows):
+        tag = "th" if idx == 0 else "td"
+        cells_html = "".join(
+            f"<{tag}>{_inline_md_to_enml(_escape_xml(c))}</{tag}>" for c in row
+        )
+        parts.append(f"<tr>{cells_html}</tr>")
+    parts.append("</table>")
+    return "".join(parts), i - start
+
+
 _BLOCK_PARSERS: list[Callable[[list[str], int], tuple[str | None, int]]] = [
+    _parse_code_block,
+    _parse_table,
     _single(_parse_heading),
     _single(_parse_hr),
     _single(_parse_checkbox),
