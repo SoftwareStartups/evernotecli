@@ -9,6 +9,7 @@ dependencies = [
     "requests-oauthlib>=2.0.0",
     "pydantic>=2.12.0",
     "pydantic-settings>=2.9.0",
+    "tenacity>=9.0.0",
 ]
 
 [dependency-groups]

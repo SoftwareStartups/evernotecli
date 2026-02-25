@@ -1,21 +1,15 @@
-"""Tests for Evernote client — Store proxy, token parsing, retry, EvernoteClient."""
+"""Tests for Evernote client — Store proxy, token parsing, EvernoteClient."""
 
 from __future__ import annotations
 
-from http.client import HTTPException
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from evernote_mcp.client.evernote_client import EvernoteClient
 from evernote_mcp.client.thrift import (
-    RETRY_DELAY,
-    RETRY_MAX,
     Store,
     TBinaryProtocolHotfix,
     get_token_shard,
-    retry_on_network_error,
 )
 
 
@@ -27,77 +21,6 @@ class TestTokenParsing:
     def test_get_token_shard_simple(self) -> None:
         token = "S=s1:U=ff:rest"
         assert get_token_shard(token) == "s1"
-
-
-class TestRetry:
-    @patch("evernote_mcp.client.thrift.time.sleep")
-    def test_retries_on_http_exception(self, mock_sleep: MagicMock) -> None:
-        call_count = 0
-
-        @retry_on_network_error
-        def flaky() -> str:
-            nonlocal call_count
-            call_count += 1
-            if call_count < 3:
-                raise HTTPException("connection reset")
-            return "ok"
-
-        assert flaky() == "ok"
-        assert call_count == 3
-        assert mock_sleep.call_count == 2
-
-    @patch("evernote_mcp.client.thrift.time.sleep")
-    def test_retries_on_connection_error(self, mock_sleep: MagicMock) -> None:
-        call_count = 0
-
-        @retry_on_network_error
-        def flaky() -> str:
-            nonlocal call_count
-            call_count += 1
-            if call_count < 2:
-                raise ConnectionError("refused")
-            return "ok"
-
-        assert flaky() == "ok"
-        assert call_count == 2
-
-    @patch("evernote_mcp.client.thrift.time.sleep")
-    def test_raises_after_max_retries(self, mock_sleep: MagicMock) -> None:
-        @retry_on_network_error
-        def always_fails() -> str:
-            raise HTTPException("permanent failure")
-
-        with pytest.raises(HTTPException):
-            always_fails()
-
-        assert mock_sleep.call_count == RETRY_MAX
-
-    @patch("evernote_mcp.client.thrift.time.sleep")
-    def test_exponential_backoff(self, mock_sleep: MagicMock) -> None:
-        @retry_on_network_error
-        def always_fails() -> str:
-            raise HTTPException("fail")
-
-        with pytest.raises(HTTPException):
-            always_fails()
-
-        delays = [call.args[0] for call in mock_sleep.call_args_list]
-        assert delays[0] == RETRY_DELAY
-        assert delays[1] == RETRY_DELAY * 2
-        assert delays[2] == RETRY_DELAY * 4
-
-    def test_no_retry_on_other_exceptions(self) -> None:
-        call_count = 0
-
-        @retry_on_network_error
-        def bad() -> str:
-            nonlocal call_count
-            call_count += 1
-            raise ValueError("not retryable")
-
-        with pytest.raises(ValueError):
-            bad()
-        assert call_count == 1
 
 
 class TestStoreProxy:

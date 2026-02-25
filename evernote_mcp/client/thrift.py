@@ -9,19 +9,17 @@ from __future__ import annotations
 
 import functools
 import inspect
-import time
 from http.client import HTTPException
 from typing import Any
 
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
 from thrift.transport.THttpClient import THttpClient
-
-# --- Retry defaults ---
-
-RETRY_MAX = 3
-RETRY_DELAY = 0.5
-RETRY_BACKOFF = 2.0
-RETRY_EXCEPTIONS = (HTTPException, ConnectionError)
 
 # --- Token parsing ---
 
@@ -66,29 +64,6 @@ class THttpClientHotfix(THttpClient):
             raise HTTPException(msg)
 
 
-# --- Retry decorator ---
-
-
-def retry_on_network_error(func: Any) -> Any:
-    """Exponential backoff retry on HTTPException/ConnectionError."""
-
-    @functools.wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        delay = RETRY_DELAY
-        last_exception: Exception | None = None
-        for attempt in range(RETRY_MAX + 1):
-            try:
-                return func(*args, **kwargs)
-            except RETRY_EXCEPTIONS as e:
-                last_exception = e
-                if attempt < RETRY_MAX:
-                    time.sleep(delay)
-                    delay *= RETRY_BACKOFF
-        raise last_exception  # type: ignore[misc]
-
-    return wrapper
-
-
 # --- Store proxy ---
 
 
@@ -113,7 +88,12 @@ class Store:
         if not callable(target_method):
             return target_method
 
-        @retry_on_network_error
+        @retry(
+            retry=retry_if_exception_type((HTTPException, ConnectionError)),
+            stop=stop_after_attempt(4),  # 1 initial + 3 retries
+            wait=wait_exponential(multiplier=0.25, exp_base=2),  # 0.5, 1.0, 2.0
+            reraise=True,
+        )
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             org_args = inspect.getfullargspec(target_method).args
             if len(org_args) == len(args) + 1:
