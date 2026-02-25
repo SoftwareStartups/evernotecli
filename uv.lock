@@ -262,11 +262,11 @@ name = "evernote-mcp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "evernote3" },
     { name = "mcp", extra = ["cli"] },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "requests-oauthlib" },
+    { name = "thrift" },
 ]
 
 [package.dev-dependencies]
@@ -280,11 +280,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "evernote3", specifier = ">=1.25.14" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.12.0" },
     { name = "pydantic-settings", specifier = ">=2.9.0" },
     { name = "requests-oauthlib", specifier = ">=2.0.0" },
+    { name = "thrift", specifier = ">=0.22.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -294,19 +294,6 @@ dev = [
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.25.0" },
     { name = "ruff", specifier = ">=0.15.0" },
-]
-
-[[package]]
-name = "evernote3"
-version = "1.25.14"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "oauthlib" },
-    { name = "requests-oauthlib" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/7c/7e/2da47f29c4b1a14945ef143a3b784d50dd9d73595a4c397f34fa481a4e5c/evernote3-1.25.14.tar.gz", hash = "sha256:e7914bb7cefb30e0ea509e82e1f176670359a154e30006f5160a0bcfd936cfd0", size = 128787, upload-time = "2020-06-15T18:44:35.278Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/9c/6df56bc6faacde6d1eafcadb5cf731bc9dc2bf911609d94f4446f780f083/evernote3-1.25.14-py3-none-any.whl", hash = "sha256:568619ee47a6467785d83768b9b78ac99c913088f5fd20e66ce93dbad05c5326", size = 143719, upload-time = "2020-06-15T18:44:34.118Z" },
 ]
 
 [[package]]
@@ -980,6 +967,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/c4/68/79977123bb7be889a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/0d/13d1d239a25cbfb19e740db83143e95c772a1fe10202dda4b76792b114dd/starlette-0.52.1-py3-none-any.whl", hash = "sha256:0029d43eb3d273bc4f83a08720b4912ea4b071087a3b48db01b7c839f7954d74", size = 74272, upload-time = "2026-01-18T13:34:09.188Z" },
 ]
+
+[[package]]
+name = "thrift"
+version = "0.22.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b2/c2/db648cc10dd7d15560f2eafd92a27cd280811924696e0b4a87175fb28c94/thrift-0.22.0.tar.gz", hash = "sha256:42e8276afbd5f54fe1d364858b6877bc5e5a4a5ed69f6a005b94ca4918fe1466", size = 62303, upload-time = "2025-05-23T20:49:33.309Z" }
 
 [[package]]
 name = "typer"

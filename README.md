@@ -22,6 +22,7 @@ Common commands:
 - **Lint & Type check**: `make check`
 - **Tests**: `make test`
 - **Run MCP server (dev)**: `make serve`
+- **Regenerate Thrift clients**: `make thrift` (requires the `thrift` compiler, e.g. `brew install thrift`)
 
 ### Using the MCP Inspector (`make serve`)
 

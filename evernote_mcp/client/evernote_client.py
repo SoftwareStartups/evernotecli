@@ -4,15 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from evernote.edam.notestore import NoteStore
-from evernote.edam.notestore.ttypes import (
+from evernote_mcp.client.thrift import Store, get_token_shard
+from evernote_mcp.edam.notestore import NoteStore
+from evernote_mcp.edam.notestore.ttypes import (
     NoteFilter,
     NotesMetadataResultSpec,
 )
-from evernote.edam.type.ttypes import Note, Tag
-from evernote.edam.userstore import UserStore
-
-from evernote_mcp.client.thrift import Store, get_token_shard
+from evernote_mcp.edam.type.ttypes import Note, Tag
+from evernote_mcp.edam.userstore import UserStore
 from evernote_mcp.enml.to_enml import markdown_to_enml
 from evernote_mcp.enml.to_markdown import enml_to_markdown
 

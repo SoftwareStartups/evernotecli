@@ -10,7 +10,7 @@ from __future__ import annotations
 import functools
 import inspect
 import time
-from http.client import HTTPConnection, HTTPException, HTTPSConnection
+from http.client import HTTPException
 from typing import Any
 
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
@@ -51,51 +51,19 @@ class TBinaryProtocolHotfix(TBinaryProtocol):
 
 
 class THttpClientHotfix(THttpClient):
-    """Fix bugs in the evernote3-bundled THttpClient.
+    """Raise on HTTP errors instead of letting the Thrift binary parser
+    try to decode HTML error pages from the Evernote API.
 
-    1. flush() — check HTTP status and raise on server errors instead of
-       letting the Thrift protocol try to parse HTML error pages as binary.
-
-    2. readAll() — the base class delegates to a single read(sz) call, but
-       HTTPResponse.read(sz) may return fewer than sz bytes for large
-       responses. We loop until all requested bytes are collected.
-
-    3. open() — the base class ignores setTimeout(); it only sets the global
-       default socket timeout during flush(). We pass the timeout directly
-       to HTTPConnection/HTTPSConnection.
+    The upstream THttpClient stores status/message but never raises on
+    non-200 responses.
     """
 
     def flush(self) -> None:
         super().flush()
-        status = self.response.status  # type: ignore[attr-defined]
-        if status != 200:
-            body = self.response.read()  # type: ignore[attr-defined]
-            msg = f"Evernote HTTP {status}: {body[:500]!r}"
+        if self.code != 200:  # type: ignore[attr-defined]
+            body = self._THttpClient__http_response.read()  # type: ignore[attr-defined]
+            msg = f"Evernote HTTP {self.code}: {body[:500]!r}"  # type: ignore[attr-defined]
             raise HTTPException(msg)
-
-    def readAll(self, sz: int) -> bytes:  # type: ignore[override]
-        buff = b""
-        while len(buff) < sz:
-            chunk = self.read(sz - len(buff))
-            if not chunk:
-                raise EOFError()
-            buff += chunk
-        return buff
-
-    def open(self) -> None:  # type: ignore[override]
-        timeout = self._THttpClient__timeout  # type: ignore[attr-defined]
-        if self.scheme == "http":  # type: ignore[attr-defined]
-            self._THttpClient__http = HTTPConnection(  # type: ignore[attr-defined]
-                self.host,  # type: ignore[arg-type]
-                self.port,
-                timeout=timeout,
-            )
-        elif self.scheme == "https":  # type: ignore[attr-defined]
-            self._THttpClient__http = HTTPSConnection(  # type: ignore[attr-defined]
-                self.host,  # type: ignore[arg-type]
-                self.port,
-                timeout=timeout,
-            )
 
 
 # --- Retry decorator ---

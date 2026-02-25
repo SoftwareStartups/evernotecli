@@ -13,6 +13,7 @@ uv run ruff format .                 # Format
 uv run pyright                       # Type check
 uv run pytest                        # Run tests
 uv run mcp dev evernote_mcp/server.py  # Start MCP dev server
+make thrift                          # Regenerate Thrift clients (requires thrift compiler)
 ```
 
 ## Architecture
@@ -24,14 +25,22 @@ evernote_mcp/
 ├── server.py            # FastMCP server + tool registration
 ├── config.py            # Pydantic Settings
 ├── auth.py              # OAuth 1.0a flow
-├── client.py            # Thrift client (Store proxy, retry, hotfixes)
-├── enml.py              # ENML ↔ Markdown conversion
+├── client/
+│   ├── evernote_client.py  # High-level API client
+│   └── thrift.py           # Store proxy, retry, TBinaryProtocol/THttpClient hotfixes
+├── edam/                # Generated Thrift clients (do not edit — run `make thrift`)
+│   ├── notestore/       # NoteStore service + types
+│   ├── userstore/       # UserStore service + types
+│   ├── type/            # Core types (Note, Tag, Notebook, etc.)
+│   ├── error/           # EDAMUserException, etc.
+│   └── limits/          # Account limits constants
+├── enml/                # ENML ↔ Markdown conversion
 └── models.py            # Pydantic response models
 ```
 
 ## Key Design Decisions
 
-- Bypasses SDK client wrapper; constructs Thrift clients directly
+- Generated Thrift clients from local IDL files (`evernote_mcp/thrift/*.thrift`) via `make thrift`; no evernote3 SDK dependency
 - Uses ragevernote's `Store` proxy pattern with `__getattr__` auto-token-injection
 - Includes evernote-backup's hotfixes for bad UTF-8 and deprecated TLS args
 - Token contains shard ID — note store URL constructed from it
