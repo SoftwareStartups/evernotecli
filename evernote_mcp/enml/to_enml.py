@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 
 ENML_HEADER = (
     '<?xml version="1.0" encoding="UTF-8"?>'
@@ -24,49 +25,36 @@ def markdown_to_enml(md: str) -> str:
     while i < len(lines):
         line = lines[i]
 
-        result = _parse_heading(line)
-        if result is not None:
-            enml_parts.append(result)
+        for parser in _BLOCK_PARSERS:
+            result, consumed = parser(lines, i)
+            if result is not None:
+                enml_parts.append(result)
+                i += consumed
+                break
+        else:
+            if line.strip():
+                text = _escape_xml(line)
+                text = _inline_md_to_enml(text)
+                enml_parts.append(f"<div>{text}</div>")
             i += 1
-            continue
-
-        result = _parse_hr(line)
-        if result is not None:
-            enml_parts.append(result)
-            i += 1
-            continue
-
-        result = _parse_checkbox(line)
-        if result is not None:
-            enml_parts.append(result)
-            i += 1
-            continue
-
-        parsed, consumed = _parse_ul(lines, i)
-        if parsed is not None:
-            enml_parts.append(parsed)
-            i += consumed
-            continue
-
-        parsed, consumed = _parse_ol(lines, i)
-        if parsed is not None:
-            enml_parts.append(parsed)
-            i += consumed
-            continue
-
-        # Empty line
-        if not line.strip():
-            i += 1
-            continue
-
-        # Regular paragraph
-        text = _escape_xml(line)
-        text = _inline_md_to_enml(text)
-        enml_parts.append(f"<div>{text}</div>")
-        i += 1
 
     enml_parts.append(ENML_FOOTER)
     return "".join(enml_parts)
+
+
+# --- Block parser infrastructure ---
+
+
+def _single(
+    fn: Callable[[str], str | None],
+) -> Callable[[list[str], int], tuple[str | None, int]]:
+    """Adapt a single-line parser to the multi-line ``(lines, i)`` signature."""
+
+    def wrapper(lines: list[str], i: int) -> tuple[str | None, int]:
+        result = fn(lines[i])
+        return (result, 1) if result is not None else (None, 0)
+
+    return wrapper
 
 
 # --- Block parsers ---
@@ -132,6 +120,15 @@ def _parse_ol(lines: list[str], i: int) -> tuple[str | None, int]:
         parts.append(f"<li>{_inline_md_to_enml(item)}</li>")
     parts.append("</ol>")
     return "".join(parts), i - start
+
+
+_BLOCK_PARSERS: list[Callable[[list[str], int], tuple[str | None, int]]] = [
+    _single(_parse_heading),
+    _single(_parse_hr),
+    _single(_parse_checkbox),
+    _parse_ul,
+    _parse_ol,
+]
 
 
 # --- Helpers ---
