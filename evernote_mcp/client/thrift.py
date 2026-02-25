@@ -1,4 +1,4 @@
-"""Thrift client infrastructure: Store proxy, hotfixes, retry decorator.
+"""Thrift client infrastructure: Store proxy, hotfixes.
 
 Ported from:
 - ragevernote: Store proxy with __getattr__ auto-token-injection
@@ -68,10 +68,7 @@ class THttpClientHotfix(THttpClient):
 
 
 class Store:
-    """Proxy that auto-injects authenticationToken into Thrift calls.
-
-    Ported from ragevernote's Store class.
-    """
+    """Proxy that auto-injects authenticationToken into Thrift calls."""
 
     def __init__(
         self,
