@@ -6,8 +6,8 @@ import json
 import stat
 from pathlib import Path
 
-from evernote_mcp.auth.token_store import load_cached_token, save_token
-from evernote_mcp.config import Settings
+from evernote_client.auth.token_store import load_cached_token, save_token
+from evernote_client.config import Settings
 
 
 def _make_settings(tmp_path: Path) -> Settings:

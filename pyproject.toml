@@ -1,10 +1,11 @@
 [project]
-name = "evernote-mcp"
+name = "evernote-client"
 version = "0.1.0"
-description = "Evernote MCP server — read access + create/tag/move notes"
+description = "Evernote client — MCP server + CLI for Evernote"
 requires-python = ">=3.12"
 
 dependencies = [
+    "click>=8.1.0",
     "mcp[cli]>=1.26.0",
     "pydantic-settings>=2.13.1",
     "pydantic>=2.12.5",
@@ -12,6 +13,9 @@ dependencies = [
     "tenacity>=9.1.4",
     "thrift>=0.22.0",
 ]
+
+[project.scripts]
+encl = "evernote_client.cli:main"
 
 [dependency-groups]
 dev = [
@@ -27,12 +31,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-evernote-mcp = { path = "." }
+evernote-client = { path = "." }
 
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-extend-exclude = ["resources", "evernote_mcp/edam"]
+extend-exclude = ["resources", "evernote_client/edam"]
 
 [tool.ruff.lint]
 select = [
@@ -50,7 +54,7 @@ select = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["evernote_mcp"]
+known-first-party = ["evernote_client"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -61,8 +65,8 @@ typeCheckingMode = "standard"
 pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"
-include = ["evernote_mcp", "tests"]
-exclude = ["resources", "evernote_mcp/edam"]
+include = ["evernote_client", "tests"]
+exclude = ["resources", "evernote_client/edam"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

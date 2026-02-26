@@ -5,8 +5,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from evernote_mcp.client.evernote_client import EvernoteClient
-from evernote_mcp.client.thrift import (
+from evernote_client.client.evernote_client import EvernoteClient
+from evernote_client.client.thrift import (
     Store,
     TBinaryProtocolHotfix,
     get_token_shard,

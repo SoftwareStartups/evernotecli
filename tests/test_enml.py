@@ -2,7 +2,7 @@
 
 import logging
 
-from evernote_mcp.enml import enml_to_markdown, markdown_to_enml
+from evernote_client.enml import enml_to_markdown, markdown_to_enml
 
 
 class TestEnmlToMarkdown:
@@ -141,7 +141,8 @@ class TestEnmlToMarkdown:
         import _pytest.logging
 
         assert isinstance(caplog, _pytest.logging.LogCaptureFixture)
-        with caplog.at_level(logging.WARNING, logger="evernote_mcp.enml.to_markdown"):
+        logger = "evernote_client.enml.to_markdown"
+        with caplog.at_level(logging.WARNING, logger=logger):
             result = enml_to_markdown("<en-note><unclosed>hello</en-note>")
         assert "hello" in result
         assert "Failed to parse ENML" in caplog.text
