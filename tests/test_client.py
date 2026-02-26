@@ -23,53 +23,56 @@ class TestTokenParsing:
         assert get_token_shard(token) == "s1"
 
 
+class _FakeThriftClient:
+    """Mimics a Thrift-generated client with bound methods and real signatures."""
+
+    def __init__(self) -> None:
+        self.call_log: list[dict[str, object]] = []
+
+    def getNote(self, authenticationToken: str, guid: str) -> str:
+        self.call_log.append({"authenticationToken": authenticationToken, "guid": guid})
+        return "result"
+
+    def checkVersion(self, clientName: str, edamVersionMajor: int) -> bool:
+        self.call_log.append(
+            {"clientName": clientName, "edamVersionMajor": edamVersionMajor}
+        )
+        return True
+
+
 class TestStoreProxy:
     def test_auto_injects_token(self) -> None:
         """Store should auto-inject authenticationToken into Thrift calls."""
-        mock_client_class = MagicMock()
-        mock_client_instance = MagicMock()
-        mock_client_class.return_value = mock_client_instance
+        fake_client = _FakeThriftClient()
 
-        # Simulate a Thrift method that takes (self, authenticationToken, guid)
-        mock_method = MagicMock(return_value="result")
-        mock_method.__name__ = "getNote"
-        import inspect
-
-        # Create a fake argspec
-        mock_spec = inspect.FullArgSpec(
-            args=["self", "authenticationToken", "guid"],
-            varargs=None,
-            varkw=None,
-            defaults=None,
-            kwonlyargs=[],
-            kwonlydefaults=None,
-            annotations={},
-        )
-
-        mock_client_instance.getNote = mock_method
-
-        with (
-            patch.object(
-                Store, "_get_thrift_client", return_value=mock_client_instance
-            ),
-            patch(
-                "evernote_mcp.client.thrift.inspect.getfullargspec",
-                return_value=mock_spec,
-            ),
-        ):
+        with patch.object(Store, "_get_thrift_client", return_value=fake_client):
             store = Store(
-                client_class=mock_client_class,
+                client_class=MagicMock(),
                 store_url="https://example.com",
                 token="test-token",
             )
             result = store.getNote("note-guid-123")
 
         assert result == "result"
-        # Verify the token was injected
-        mock_method.assert_called_once()
-        call_kwargs = mock_method.call_args
-        # The call should have authenticationToken=test-token
-        assert call_kwargs[1]["authenticationToken"] == "test-token"
+        assert len(fake_client.call_log) == 1
+        assert fake_client.call_log[0]["authenticationToken"] == "test-token"
+        assert fake_client.call_log[0]["guid"] == "note-guid-123"
+
+    def test_skips_token_when_not_in_signature(self) -> None:
+        """Skip token injection when method lacks authenticationToken."""
+        fake_client = _FakeThriftClient()
+
+        with patch.object(Store, "_get_thrift_client", return_value=fake_client):
+            store = Store(
+                client_class=MagicMock(),
+                store_url="https://example.com",
+                token="test-token",
+            )
+            result = store.checkVersion("evernote-mcp", 2)
+
+        assert result is True
+        assert len(fake_client.call_log) == 1
+        assert fake_client.call_log[0]["clientName"] == "evernote-mcp"
 
 
 class TestTBinaryProtocolHotfix:
@@ -118,7 +121,7 @@ def _make_client() -> tuple[EvernoteClient, MagicMock]:
 
 
 def _patch_store(client: EvernoteClient, mock_store: MagicMock):  # type: ignore[type-arg]
-    """Patch note_store property to return mock_store."""
+    """Patch note_store cached_property to return mock_store."""
     return patch.object(
         type(client),
         "note_store",
@@ -165,17 +168,22 @@ class TestResolveTagGuids:
         assert guids == ["tag-new"]
         mock_store.createTag.assert_called_once()
 
+    def test_uses_provided_tag_map(self) -> None:
+        client, mock_store = _make_client()
+        with _patch_store(client, mock_store):
+            guids = client._resolve_tag_guids(["python"], tag_map={"python": "tag-1"})
+        assert guids == ["tag-1"]
+        mock_store.listTags.assert_not_called()
+
 
 class TestTagNote:
     def test_merges_guids(self) -> None:
         client, mock_store = _make_client()
         tags = [_make_tag("existing", "tag-1"), _make_tag("newtag", "tag-2")]
         mock_store.listTags.return_value = tags
-        # getNoteTagNames returns existing tag names
         mock_store.getNoteTagNames.return_value = ["existing"]
         note = _make_note()
-        refetched = _make_note()
-        mock_store.getNote.side_effect = [note, refetched]
+        mock_store.getNote.return_value = note
         mock_store.updateNote.return_value = _make_note()
 
         with _patch_store(client, mock_store):
@@ -183,23 +191,38 @@ class TestTagNote:
 
         update_call = mock_store.updateNote.call_args[0][0]
         assert set(update_call.tagGuids) == {"tag-1", "tag-2"}
+        assert result.tagGuids is not None
         assert set(result.tagGuids) == {"tag-1", "tag-2"}
 
-    def test_refetches_after_update(self) -> None:
+    def test_api_call_count(self) -> None:
+        """tag_note should call getNote once and listTags once."""
         client, mock_store = _make_client()
         mock_store.listTags.return_value = [_make_tag("t", "tag-1")]
         mock_store.getNoteTagNames.return_value = []
         note = _make_note()
-        refetched = _make_note()
-        mock_store.getNote.side_effect = [note, refetched]
+        mock_store.getNote.return_value = note
         mock_store.updateNote.return_value = _make_note()
 
         with _patch_store(client, mock_store):
             result = client.tag_note("note-1", ["t"])
 
-        # getNote called twice: once for title, once for re-fetch
-        assert mock_store.getNote.call_count == 2
+        assert mock_store.getNote.call_count == 1
+        assert mock_store.listTags.call_count == 1
         assert result.tagGuids == ["tag-1"]
+
+    def test_listTags_called_once(self) -> None:
+        """listTags should be called exactly once even with existing + new tags."""
+        client, mock_store = _make_client()
+        tags = [_make_tag("old", "tag-1"), _make_tag("new", "tag-2")]
+        mock_store.listTags.return_value = tags
+        mock_store.getNoteTagNames.return_value = ["old"]
+        mock_store.getNote.return_value = _make_note()
+        mock_store.updateNote.return_value = _make_note()
+
+        with _patch_store(client, mock_store):
+            client.tag_note("note-1", ["new"])
+
+        mock_store.listTags.assert_called_once()
 
 
 class TestUntagNote:
@@ -209,8 +232,7 @@ class TestUntagNote:
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["keep", "remove"]
         note = _make_note()
-        refetched = _make_note()
-        mock_store.getNote.side_effect = [note, refetched]
+        mock_store.getNote.return_value = note
         mock_store.updateNote.return_value = _make_note()
 
         with _patch_store(client, mock_store):
@@ -219,6 +241,21 @@ class TestUntagNote:
         update_call = mock_store.updateNote.call_args[0][0]
         assert update_call.tagGuids == ["tag-1"]
         assert result.tagGuids == ["tag-1"]
+
+    def test_listTags_called_once(self) -> None:
+        """listTags should be called exactly once in untag_note."""
+        client, mock_store = _make_client()
+        tags = [_make_tag("keep", "tag-1"), _make_tag("remove", "tag-2")]
+        mock_store.listTags.return_value = tags
+        mock_store.getNoteTagNames.return_value = ["keep", "remove"]
+        mock_store.getNote.return_value = _make_note()
+        mock_store.updateNote.return_value = _make_note()
+
+        with _patch_store(client, mock_store):
+            client.untag_note("note-1", ["remove"])
+
+        mock_store.listTags.assert_called_once()
+        assert mock_store.getNote.call_count == 1
 
 
 class TestUpdateNote:
@@ -230,8 +267,27 @@ class TestUpdateNote:
         mock_store.updateNote.return_value = existing
 
         with _patch_store(client, mock_store):
-            client._update_note(guid="note-1", notebookGuid="nb-2")
+            client._update_note(guid="note-1", notebook_guid="nb-2")
 
         update_call = mock_store.updateNote.call_args[0][0]
         assert update_call.title == "Original Title"
+        assert update_call.notebookGuid == "nb-2"
+
+    def test_explicit_kwargs(self) -> None:
+        """_update_note accepts explicit keyword arguments."""
+        client, mock_store = _make_client()
+        mock_store.updateNote.return_value = _make_note()
+
+        with _patch_store(client, mock_store):
+            client._update_note(
+                guid="note-1",
+                title="My Title",
+                tag_guids=["tag-1"],
+                notebook_guid="nb-2",
+            )
+
+        update_call = mock_store.updateNote.call_args[0][0]
+        assert update_call.guid == "note-1"
+        assert update_call.title == "My Title"
+        assert update_call.tagGuids == ["tag-1"]
         assert update_call.notebookGuid == "nb-2"

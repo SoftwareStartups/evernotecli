@@ -35,8 +35,8 @@ def create_note(
         tag_names=tags,
     )
     return CreatedNote(
-        guid=note.guid,
-        title=note.title,
+        guid=note.guid,  # type: ignore[arg-type]  # Thrift types are untyped
+        title=note.title,  # type: ignore[arg-type]
         notebook_guid=note.notebookGuid,
     )
 
@@ -77,8 +77,5 @@ def move_note(guid: str, notebook_name: str) -> NoteMetadata:
     """
     client = _get_client()
     notebook_guid = _resolve_notebook_guid(client, notebook_name)
-    if not notebook_guid:
-        msg = f"Notebook not found: {notebook_name}"
-        raise ValueError(msg)
     note = client.move_note(guid, notebook_guid)
     return _to_note_metadata(note)

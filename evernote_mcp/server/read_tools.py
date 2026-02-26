@@ -78,7 +78,7 @@ def get_note_content(guid: str) -> NoteContent:
     note = client.get_note(guid)
     content = client.get_note_content(guid)
     return NoteContent(
-        guid=note.guid,
+        guid=note.guid,  # type: ignore[arg-type]  # Thrift types are untyped
         title=note.title or "Untitled",
         content=content,
     )
@@ -91,8 +91,8 @@ def list_notebooks() -> list[NotebookInfo]:
     notebooks = client.list_notebooks()
     return [
         NotebookInfo(
-            guid=nb.guid,
-            name=nb.name,
+            guid=nb.guid,  # type: ignore[arg-type]  # Thrift types are untyped
+            name=nb.name,  # type: ignore[arg-type]
             stack=nb.stack,
         )
         for nb in notebooks
@@ -104,4 +104,10 @@ def list_tags() -> list[TagInfo]:
     """List all tags with guid and name."""
     client = _get_client()
     tags = client.list_tags()
-    return [TagInfo(guid=t.guid, name=t.name) for t in tags]
+    return [
+        TagInfo(
+            guid=t.guid,  # type: ignore[arg-type]  # Thrift types are untyped
+            name=t.name,  # type: ignore[arg-type]
+        )
+        for t in tags
+    ]

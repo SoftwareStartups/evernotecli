@@ -19,6 +19,7 @@ def load_cached_token(settings: Settings) -> str | None:
 
 
 def save_token(settings: Settings, token: str) -> None:
-    """Save token to cache file."""
+    """Save token to cache file with restricted permissions."""
     settings.token_path.parent.mkdir(parents=True, exist_ok=True)
     settings.token_path.write_text(json.dumps({"token": token}))
+    settings.token_path.chmod(0o600)

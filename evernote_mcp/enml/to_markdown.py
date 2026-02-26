@@ -9,13 +9,15 @@ ENML (Evernote Markup Language) is a subset of XHTML with custom tags:
 
 from __future__ import annotations
 
+import logging
 import re
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 
-_WalkContext = dict[str, bool]
-_BlockHandler = Callable[[ET.Element, list[str], _WalkContext], None]
+_BlockHandler = Callable[[ET.Element, list[str]], None]
 _InlineHandler = Callable[[ET.Element], str]
+
+logger = logging.getLogger(__name__)
 
 
 def enml_to_markdown(enml: str) -> str:
@@ -43,11 +45,11 @@ def enml_to_markdown(enml: str) -> str:
     try:
         root = ET.fromstring(enml)
     except ET.ParseError:
-        # Fallback: strip all tags
+        logger.warning("Failed to parse ENML as XML, falling back to tag stripping")
         return _strip_tags(enml)
 
     lines: list[str] = []
-    _walk(root, lines, context={})
+    _walk(root, lines)
     result = "\n".join(lines)
     # Clean up excessive blank lines
     result = re.sub(r"\n{3,}", "\n\n", result)
@@ -57,70 +59,72 @@ def enml_to_markdown(enml: str) -> str:
 # --- Block handlers ---
 
 
-def _handle_heading(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_heading(el: ET.Element, lines: list[str]) -> None:
     level = int(_local_tag(el.tag)[1])
     inner = _inline_text(el)
     lines.append(f"{'#' * level} {inner}")
     lines.append("")
 
 
-def _handle_paragraph(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_paragraph(el: ET.Element, lines: list[str]) -> None:
     inner = _inline_text(el)
     if inner.strip():
         lines.append(inner)
         lines.append("")
 
 
-def _handle_br(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_br(el: ET.Element, lines: list[str]) -> None:
     lines.append("")
 
 
-def _handle_hr(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_hr(el: ET.Element, lines: list[str]) -> None:
     lines.append("---")
     lines.append("")
 
 
-def _handle_list(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_list(el: ET.Element, lines: list[str]) -> None:
     tag = _local_tag(el.tag)
-    for i, child in enumerate(el):
+    li_index = 0
+    for child in el:
         if _local_tag(child.tag) == "li":
-            prefix = f"{i + 1}. " if tag == "ol" else "- "
+            li_index += 1
+            prefix = f"{li_index}. " if tag == "ol" else "- "
             inner = _inline_text(child)
             lines.append(f"{prefix}{inner}")
     lines.append("")
 
 
-def _handle_table(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_table(el: ET.Element, lines: list[str]) -> None:
     _convert_table(el, lines)
 
 
-def _handle_todo_checked(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_todo_checked(el: ET.Element, lines: list[str]) -> None:
     lines.append("- [x] ")
 
 
-def _handle_todo_unchecked(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_todo_unchecked(el: ET.Element, lines: list[str]) -> None:
     lines.append("- [ ] ")
 
 
-def _handle_media(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_media(el: ET.Element, lines: list[str]) -> None:
     hash_val = el.get("hash", "")
     mime = el.get("type", "")
     lines.append(f"![attachment:{mime}]({hash_val})")
 
 
-def _handle_crypt(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_crypt(el: ET.Element, lines: list[str]) -> None:
     lines.append("[Encrypted Content]")
 
 
-def _handle_en_note(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_en_note(el: ET.Element, lines: list[str]) -> None:
     for child in el:
-        _walk(child, lines, ctx)
+        _walk(child, lines)
     text = el.text or ""
     if text.strip():
         lines.append(text.strip())
 
 
-def _handle_pre(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_pre(el: ET.Element, lines: list[str]) -> None:
     code_el = el.find("code")
     content = _get_all_text(code_el) if code_el is not None else _get_all_text(el)
     lines.append("```")
@@ -129,7 +133,7 @@ def _handle_pre(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
     lines.append("")
 
 
-def _handle_anchor(el: ET.Element, lines: list[str], ctx: _WalkContext) -> None:
+def _handle_anchor(el: ET.Element, lines: list[str]) -> None:
     href = el.get("href", "")
     link_text = _get_all_text(el)
     lines.append(f"[{link_text}]({href})")
@@ -210,7 +214,6 @@ _INLINE_HANDLERS: dict[str, _InlineHandler] = {
 def _walk(
     el: ET.Element,
     lines: list[str],
-    context: _WalkContext,
 ) -> None:
     """Recursively walk ENML element tree and build markdown lines."""
     tag = _local_tag(el.tag)
@@ -218,14 +221,14 @@ def _walk(
 
     handler = _BLOCK_HANDLERS.get(tag)
     if handler:
-        handler(el, lines, context)
+        handler(el, lines)
     else:
         # Unknown block element — recurse
         text = el.text or ""
         if text.strip():
             lines.append(text.strip())
         for child in el:
-            _walk(child, lines, context)
+            _walk(child, lines)
 
     # Append tail text
     if tail.strip():

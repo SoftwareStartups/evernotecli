@@ -38,14 +38,26 @@ class _CallbackServer(HTTPServer):
         self.callback_response: str = ""
 
 
+CALLBACK_TIMEOUT = 300  # 5 minutes
+
+
 def wait_for_callback() -> str:
-    """Start local HTTP server and block until OAuth callback is received."""
+    """Start local HTTP server and block until OAuth callback is received.
+
+    Raises TimeoutError if no callback arrives within CALLBACK_TIMEOUT seconds.
+    """
     server = _CallbackServer((CALLBACK_HOST, OAUTH_PORT), _CallbackHandler)
     thread = threading.Thread(target=server.serve_forever)
     thread.start()
     try:
+        elapsed = 0.0
         while not server.callback_response:
+            if elapsed >= CALLBACK_TIMEOUT:
+                raise TimeoutError(
+                    f"OAuth callback not received within {CALLBACK_TIMEOUT}s"
+                )
             time.sleep(0.1)
+            elapsed += 0.1
     finally:
         server.shutdown()
         thread.join()

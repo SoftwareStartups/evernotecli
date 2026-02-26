@@ -12,6 +12,24 @@ ENML_HEADER = (
 )
 ENML_FOOTER = "</en-note>"
 
+# --- Compiled regex patterns ---
+
+_RE_HEADING = re.compile(r"^(#{1,6})\s+(.+)$")
+_RE_HR = re.compile(r"^---+\s*$")
+_RE_CHECKBOX = re.compile(r"^-\s+\[([ xX])\]\s+(.+)$")
+_RE_UL_ITEM = re.compile(r"^[-*]\s+(.+)$")
+_RE_UL_PREFIX = re.compile(r"^[-*]\s+")
+_RE_OL_ITEM = re.compile(r"^\d+\.\s+(.+)$")
+_RE_OL_PREFIX = re.compile(r"^\d+\.\s+")
+_RE_CODE_FENCE_OPEN = re.compile(r"^```")
+_RE_CODE_FENCE_CLOSE = re.compile(r"^```\s*$")
+_RE_TABLE_ROW = re.compile(r"^\|.+\|")
+_RE_TABLE_SEPARATOR = re.compile(r"^:?-+:?$")
+_RE_BOLD = re.compile(r"\*\*(.+?)\*\*")
+_RE_ITALIC = re.compile(r"\*(.+?)\*")
+_RE_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+_RE_INLINE_CODE = re.compile(r"`([^`]+)`")
+
 
 def markdown_to_enml(md: str) -> str:
     """Convert Markdown to valid ENML for note creation."""
@@ -61,7 +79,7 @@ def _single(
 
 
 def _parse_heading(line: str) -> str | None:
-    heading_match = re.match(r"^(#{1,6})\s+(.+)$", line)
+    heading_match = _RE_HEADING.match(line)
     if not heading_match:
         return None
     level = len(heading_match.group(1))
@@ -71,13 +89,13 @@ def _parse_heading(line: str) -> str | None:
 
 
 def _parse_hr(line: str) -> str | None:
-    if re.match(r"^---+\s*$", line):
+    if _RE_HR.match(line):
         return "<hr/>"
     return None
 
 
 def _parse_checkbox(line: str) -> str | None:
-    checkbox_match = re.match(r"^-\s+\[([ xX])\]\s+(.+)$", line)
+    checkbox_match = _RE_CHECKBOX.match(line)
     if not checkbox_match:
         return None
     checked = checkbox_match.group(1).lower() == "x"
@@ -88,48 +106,45 @@ def _parse_checkbox(line: str) -> str | None:
     return f"<div><en-todo/>{text}</div>"
 
 
-def _parse_ul(lines: list[str], i: int) -> tuple[str | None, int]:
-    if not re.match(r"^[-*]\s+(.+)$", lines[i]):
+def _parse_list(
+    tag: str,
+    item_re: re.Pattern[str],
+    prefix_re: re.Pattern[str],
+    lines: list[str],
+    i: int,
+) -> tuple[str | None, int]:
+    if not item_re.match(lines[i]):
         return None, 0
     items: list[str] = []
     start = i
-    while i < len(lines) and re.match(r"^[-*]\s+", lines[i]):
-        m = re.match(r"^[-*]\s+(.+)$", lines[i])
+    while i < len(lines) and prefix_re.match(lines[i]):
+        m = item_re.match(lines[i])
         if m:
             items.append(_escape_xml(m.group(1)))
         i += 1
-    parts = ["<ul>"]
+    parts = [f"<{tag}>"]
     for item in items:
         parts.append(f"<li>{_inline_md_to_enml(item)}</li>")
-    parts.append("</ul>")
+    parts.append(f"</{tag}>")
     return "".join(parts), i - start
+
+
+def _parse_ul(lines: list[str], i: int) -> tuple[str | None, int]:
+    return _parse_list("ul", _RE_UL_ITEM, _RE_UL_PREFIX, lines, i)
 
 
 def _parse_ol(lines: list[str], i: int) -> tuple[str | None, int]:
-    if not re.match(r"^\d+\.\s+(.+)$", lines[i]):
-        return None, 0
-    items: list[str] = []
-    start = i
-    while i < len(lines) and re.match(r"^\d+\.\s+", lines[i]):
-        m = re.match(r"^\d+\.\s+(.+)$", lines[i])
-        if m:
-            items.append(_escape_xml(m.group(1)))
-        i += 1
-    parts = ["<ol>"]
-    for item in items:
-        parts.append(f"<li>{_inline_md_to_enml(item)}</li>")
-    parts.append("</ol>")
-    return "".join(parts), i - start
+    return _parse_list("ol", _RE_OL_ITEM, _RE_OL_PREFIX, lines, i)
 
 
 def _parse_code_block(lines: list[str], i: int) -> tuple[str | None, int]:
-    if not re.match(r"^```", lines[i]):
+    if not _RE_CODE_FENCE_OPEN.match(lines[i]):
         return None, 0
     start = i
     i += 1
     content_lines: list[str] = []
     while i < len(lines):
-        if re.match(r"^```\s*$", lines[i]):
+        if _RE_CODE_FENCE_CLOSE.match(lines[i]):
             i += 1
             break
         content_lines.append(lines[i])
@@ -139,15 +154,15 @@ def _parse_code_block(lines: list[str], i: int) -> tuple[str | None, int]:
 
 
 def _parse_table(lines: list[str], i: int) -> tuple[str | None, int]:
-    if not re.match(r"^\|.+\|", lines[i]):
+    if not _RE_TABLE_ROW.match(lines[i]):
         return None, 0
     start = i
     rows: list[list[str]] = []
-    while i < len(lines) and re.match(r"^\|.+\|", lines[i]):
+    while i < len(lines) and _RE_TABLE_ROW.match(lines[i]):
         line = lines[i].strip()
         cells = [c.strip() for c in line.strip("|").split("|")]
         # Skip separator row
-        if all(re.match(r"^:?-+:?$", c) for c in cells):
+        if all(_RE_TABLE_SEPARATOR.match(c) for c in cells):
             i += 1
             continue
         rows.append(cells)
@@ -180,7 +195,11 @@ _BLOCK_PARSERS: list[Callable[[list[str], int], tuple[str | None, int]]] = [
 
 
 def _escape_xml(text: str) -> str:
-    """Escape XML special characters (but not already-escaped ones)."""
+    """Escape XML special characters.
+
+    Note: this does not handle already-escaped entities — passing ``&amp;``
+    will produce ``&amp;amp;``.  Callers are expected to provide raw text.
+    """
     text = text.replace("&", "&amp;")
     text = text.replace("<", "&lt;")
     text = text.replace(">", "&gt;")
@@ -193,14 +212,10 @@ def _inline_md_to_enml(text: str) -> str:
     Operates on already XML-escaped text, so we match escaped markers.
     """
     # Bold: **text**
-    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+    text = _RE_BOLD.sub(r"<b>\1</b>", text)
     # Italic: *text*
-    text = re.sub(r"\*(.+?)\*", r"<i>\1</i>", text)
+    text = _RE_ITALIC.sub(r"<i>\1</i>", text)
     # Links: [text](url) — url is XML-escaped so ( and ) are literal
-    text = re.sub(
-        r"\[([^\]]+)\]\(([^)]+)\)",
-        r'<a href="\2">\1</a>',
-        text,
-    )
+    text = _RE_LINK.sub(r'<a href="\2">\1</a>', text)
     # Inline code: `text`
-    return re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    return _RE_INLINE_CODE.sub(r"<code>\1</code>", text)
