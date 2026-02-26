@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import functools
-from typing import cast
 
 from evernote_client.client.thrift import Store, get_token_shard
 from evernote_client.edam.notestore import NoteStore
@@ -104,7 +103,7 @@ class EvernoteClient:
     def _build_tag_map(self) -> dict[str, str]:
         """Build a name→guid map from all tags."""
         return {
-            cast(str, t.name): cast(str, t.guid)
+            t.name: t.guid
             for t in self.list_tags()
             if t.name and t.guid
         }

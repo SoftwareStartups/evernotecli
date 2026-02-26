@@ -22,12 +22,13 @@ serve:
 
 thrift:
 	rm -rf evernote_client/edam
-	thrift --gen py -out . evernote_client/thrift/NoteStore.thrift
-	thrift --gen py -out . evernote_client/thrift/UserStore.thrift
-	thrift --gen py -out . evernote_client/thrift/Types.thrift
-	thrift --gen py -out . evernote_client/thrift/Errors.thrift
-	thrift --gen py -out . evernote_client/thrift/Limits.thrift
-	rm -f evernote_client/edam/notestore/NoteStore-remote evernote_client/edam/userstore/UserStore-remote __init__.py
+	thrift --gen py:enum,type_hints -out . evernote_client/thrift/NoteStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true;
+	thrift --gen py:enum,type_hints -out . evernote_client/thrift/UserStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true;
+	thrift --gen py:enum,type_hints -out . evernote_client/thrift/Types.thrift | grep -vE "64-bit constant|No generator named|^$$" || true;
+	thrift --gen py:enum,type_hints -out . evernote_client/thrift/Errors.thrift | grep -vE "64-bit constant|No generator named|^$$" || true;
+	thrift --gen py:enum,type_hints -out . evernote_client/thrift/Limits.thrift | grep -vE "64-bit constant|No generator named|^$$" || true;
+	rm -f evernote_client/edam/notestore/NoteStore-remote \
+	      evernote_client/edam/userstore/UserStore-remote __init__.py
 
 clean:
 	rm -rf .venv .mypy_cache .ruff_cache .pytest_cache .coverage dist build *.egg-info

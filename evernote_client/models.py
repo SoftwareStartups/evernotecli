@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from pydantic import BaseModel
+
+from evernote_client.edam.notestore.ttypes import NoteMetadata as ThriftNoteMetadata
+from evernote_client.edam.type.ttypes import Note
 
 
 def _ts_to_dt(ts: int | None) -> datetime | None:
@@ -36,8 +38,9 @@ class NoteMetadata(BaseModel):
     content_length: int | None = None
 
     @classmethod
-    def from_thrift(cls, note: Any) -> NoteMetadata:
+    def from_thrift(cls, note: Note | ThriftNoteMetadata) -> NoteMetadata:
         """Convert a Thrift Note object to NoteMetadata."""
+        assert note.guid is not None, "Note returned without GUID"
         return cls(
             guid=note.guid,
             title=note.title or "Untitled",
@@ -45,7 +48,7 @@ class NoteMetadata(BaseModel):
             tag_guids=list(note.tagGuids or []),
             created=_ts_to_dt(note.created),
             updated=_ts_to_dt(note.updated),
-            content_length=getattr(note, "contentLength", None),
+            content_length=note.contentLength,
         )
 
 

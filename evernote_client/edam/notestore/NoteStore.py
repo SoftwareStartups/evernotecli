@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import logging
@@ -47,7 +50,7 @@ class Iface(object):
     </ul>
 
     """
-    def getSyncState(self, authenticationToken):
+    def getSyncState(self, authenticationToken: str) -> SyncState:
         """
         Asks the NoteStore to provide information about the status of the user
         account corresponding to the provided authentication token.
@@ -58,7 +61,7 @@ class Iface(object):
         """
         pass
 
-    def getFilteredSyncChunk(self, authenticationToken, afterUSN, maxEntries, filter):
+    def getFilteredSyncChunk(self, authenticationToken: str, afterUSN: int, maxEntries: int, filter: SyncChunkFilter) -> SyncChunk:
         """
         Asks the NoteStore to provide the state of the account in order of
         last modification.  This request retrieves one block of the server's
@@ -101,7 +104,7 @@ class Iface(object):
         """
         pass
 
-    def getLinkedNotebookSyncState(self, authenticationToken, linkedNotebook):
+    def getLinkedNotebookSyncState(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> SyncState:
         """
         Asks the NoteStore to provide information about the status of a linked
         notebook that has been shared with the caller, or that is public to the
@@ -150,7 +153,7 @@ class Iface(object):
         """
         pass
 
-    def getLinkedNotebookSyncChunk(self, authenticationToken, linkedNotebook, afterUSN, maxEntries, fullSyncOnly):
+    def getLinkedNotebookSyncChunk(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook, afterUSN: int, maxEntries: int, fullSyncOnly: bool) -> SyncChunk:
         """
         Asks the NoteStore to provide information about the contents of a linked
         notebook that has been shared with the caller, or that is public to the
@@ -225,7 +228,7 @@ class Iface(object):
         """
         pass
 
-    def listNotebooks(self, authenticationToken):
+    def listNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Notebook]:
         """
         Returns a list of all of the notebooks in the account.
 
@@ -235,7 +238,7 @@ class Iface(object):
         """
         pass
 
-    def listAccessibleBusinessNotebooks(self, authenticationToken):
+    def listAccessibleBusinessNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Notebook]:
         """
         Returns a list of all the notebooks in a business that the user has permission to access,
         regardless of whether the user has joined them. This includes notebooks that have been shared
@@ -255,7 +258,7 @@ class Iface(object):
         """
         pass
 
-    def getNotebook(self, authenticationToken, guid):
+    def getNotebook(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Returns the current state of the notebook with the provided GUID.
         The notebook may be active or deleted (but not expunged).
@@ -282,7 +285,7 @@ class Iface(object):
         """
         pass
 
-    def getDefaultNotebook(self, authenticationToken):
+    def getDefaultNotebook(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Returns the notebook that should be used to store new notes in the
         user's account when no other notebooks are specified.
@@ -293,7 +296,7 @@ class Iface(object):
         """
         pass
 
-    def createNotebook(self, authenticationToken, notebook):
+    def createNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Asks the service to make a notebook with the provided name.
 
@@ -335,7 +338,7 @@ class Iface(object):
         """
         pass
 
-    def updateNotebook(self, authenticationToken, notebook):
+    def updateNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook) -> int:
         """
         Submits notebook changes to the service. The provided data must include the
         notebook's guid field for identification.
@@ -382,7 +385,7 @@ class Iface(object):
         """
         pass
 
-    def expungeNotebook(self, authenticationToken, guid):
+    def expungeNotebook(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently removes the notebook from the user's account.
         After this action, the notebook is no longer available for undeletion, etc.
@@ -415,7 +418,7 @@ class Iface(object):
         """
         pass
 
-    def listTags(self, authenticationToken):
+    def listTags(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Tag]:
         """
         Returns a list of the tags in the account.  Evernote does not support
         the undeletion of tags, so this will only include active tags.
@@ -426,7 +429,7 @@ class Iface(object):
         """
         pass
 
-    def listTagsByNotebook(self, authenticationToken, notebookGuid):
+    def listTagsByNotebook(self, authenticationToken: str, notebookGuid: str) -> list[evernote_client.edam.type.ttypes.Tag]:
         """
         Returns a list of the tags that are applied to at least one note within
         the provided notebook.  If the notebook is public, the authenticationToken
@@ -447,7 +450,7 @@ class Iface(object):
         """
         pass
 
-    def getTag(self, authenticationToken, guid):
+    def getTag(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.Tag:
         """
         Returns the current state of the Tag with the provided GUID.
 
@@ -473,7 +476,7 @@ class Iface(object):
         """
         pass
 
-    def createTag(self, authenticationToken, tag):
+    def createTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag) -> evernote_client.edam.type.ttypes.Tag:
         """
         Asks the service to make a tag with a set of information.
 
@@ -509,7 +512,7 @@ class Iface(object):
         """
         pass
 
-    def updateTag(self, authenticationToken, tag):
+    def updateTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag) -> int:
         """
         Submits tag changes to the service.  The provided data must include
         the tag's guid field for identification.  The service will apply
@@ -548,7 +551,7 @@ class Iface(object):
         """
         pass
 
-    def untagAll(self, authenticationToken, guid):
+    def untagAll(self, authenticationToken: str, guid: str) -> None:
         """
         Removes the provided tag from every note that is currently tagged with
         this tag.  If this operation is successful, the tag will still be in
@@ -582,7 +585,7 @@ class Iface(object):
         """
         pass
 
-    def expungeTag(self, authenticationToken, guid):
+    def expungeTag(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently deletes the tag with the provided GUID, if present.
         <p/>
@@ -615,7 +618,7 @@ class Iface(object):
         """
         pass
 
-    def listSearches(self, authenticationToken):
+    def listSearches(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.SavedSearch]:
         """
         Returns a list of the searches in the account.  Evernote does not support
         the undeletion of searches, so this will only include active searches.
@@ -626,7 +629,7 @@ class Iface(object):
         """
         pass
 
-    def getSearch(self, authenticationToken, guid):
+    def getSearch(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.SavedSearch:
         """
         Returns the current state of the search with the provided GUID.
 
@@ -651,7 +654,7 @@ class Iface(object):
         """
         pass
 
-    def createSearch(self, authenticationToken, search):
+    def createSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch) -> evernote_client.edam.type.ttypes.SavedSearch:
         """
         Asks the service to make a saved search with a set of information.
 
@@ -683,7 +686,7 @@ class Iface(object):
         """
         pass
 
-    def updateSearch(self, authenticationToken, search):
+    def updateSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch) -> int:
         """
         Submits search changes to the service. The provided data must include
         the search's guid field for identification. The service will apply
@@ -718,7 +721,7 @@ class Iface(object):
         """
         pass
 
-    def expungeSearch(self, authenticationToken, guid):
+    def expungeSearch(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently deletes the saved search with the provided GUID, if present.
         <p/>
@@ -751,7 +754,7 @@ class Iface(object):
         """
         pass
 
-    def findNoteOffset(self, authenticationToken, filter, guid):
+    def findNoteOffset(self, authenticationToken: str, filter: NoteFilter, guid: str) -> int:
         """
         Finds the position of a note within a sorted subset of all of the user's
         notes. This may be useful for thin clients that are displaying a paginated
@@ -801,7 +804,7 @@ class Iface(object):
         """
         pass
 
-    def findNotesMetadata(self, authenticationToken, filter, offset, maxNotes, resultSpec):
+    def findNotesMetadata(self, authenticationToken: str, filter: NoteFilter, offset: int, maxNotes: int, resultSpec: NotesMetadataResultSpec) -> NotesMetadataList:
         """
         Used to find the high-level information about a set of the notes from a
         user's account based on various criteria specified via a NoteFilter object.
@@ -869,7 +872,7 @@ class Iface(object):
         """
         pass
 
-    def findNoteCounts(self, authenticationToken, filter, withTrash):
+    def findNoteCounts(self, authenticationToken: str, filter: NoteFilter, withTrash: bool) -> NoteCollectionCounts:
         """
         This function is used to determine how many notes are found for each
         notebook and tag in the user's account, given a current set of filter
@@ -909,7 +912,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteWithResultSpec(self, authenticationToken, guid, resultSpec):
+    def getNoteWithResultSpec(self, authenticationToken: str, guid: str, resultSpec: NoteResultSpec) -> evernote_client.edam.type.ttypes.Note:
         """
         Returns the current state of the note in the service with the provided
         GUID.  The ENML contents of the note will only be provided if the
@@ -949,7 +952,7 @@ class Iface(object):
         """
         pass
 
-    def getNote(self, authenticationToken, guid, withContent, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def getNote(self, authenticationToken: str, guid: str, withContent: bool, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool) -> evernote_client.edam.type.ttypes.Note:
         """
         DEPRECATED. See getNoteWithResultSpec.
 
@@ -968,7 +971,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteApplicationData(self, authenticationToken, guid):
+    def getNoteApplicationData(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.LazyMap:
         """
         Get all of the application data for the note identified by GUID,
         with values returned within the LazyMap fullMap field.
@@ -984,7 +987,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def getNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> str:
         """
         Get the value of a single entry in the applicationData map
         for the note identified by GUID.
@@ -1002,7 +1005,7 @@ class Iface(object):
         """
         pass
 
-    def setNoteApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def setNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str) -> int:
         """
         Update, or create, an entry in the applicationData map for
         the note identified by guid.
@@ -1016,7 +1019,7 @@ class Iface(object):
         """
         pass
 
-    def unsetNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def unsetNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> int:
         """
         Remove an entry identified by 'key' from the applicationData map for
         the note identified by 'guid'. Silently ignores an unset of a
@@ -1030,7 +1033,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteContent(self, authenticationToken, guid):
+    def getNoteContent(self, authenticationToken: str, guid: str) -> str:
         """
         Returns XHTML contents of the note with the provided GUID.
         If the Note is found in a public notebook, the authenticationToken
@@ -1058,7 +1061,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteSearchText(self, authenticationToken, guid, noteOnly, tokenizeForIndexing):
+    def getNoteSearchText(self, authenticationToken: str, guid: str, noteOnly: bool, tokenizeForIndexing: bool) -> str:
         """
         Returns a block of the extracted plain text contents of the note with the
         provided GUID.  This text can be indexed for search purposes by a light
@@ -1102,7 +1105,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceSearchText(self, authenticationToken, guid):
+    def getResourceSearchText(self, authenticationToken: str, guid: str) -> str:
         """
         Returns a block of the extracted plain text contents of the resource with
         the provided GUID.  This text can be indexed for search purposes by a light
@@ -1134,7 +1137,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteTagNames(self, authenticationToken, guid):
+    def getNoteTagNames(self, authenticationToken: str, guid: str) -> list[str]:
         """
         Returns a list of the names of the tags for the note with the provided
         guid.  This can be used with authentication to get the tags for a
@@ -1160,7 +1163,7 @@ class Iface(object):
         """
         pass
 
-    def createNote(self, authenticationToken, note):
+    def createNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> evernote_client.edam.type.ttypes.Note:
         """
         Asks the service to make a note with the provided set of information.
 
@@ -1231,7 +1234,7 @@ class Iface(object):
         """
         pass
 
-    def updateNote(self, authenticationToken, note):
+    def updateNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> evernote_client.edam.type.ttypes.Note:
         """
         Submit a set of changes to a note to the service.  The provided data
         must include the note's guid field for identification. The note's
@@ -1310,7 +1313,7 @@ class Iface(object):
         """
         pass
 
-    def deleteNote(self, authenticationToken, guid):
+    def deleteNote(self, authenticationToken: str, guid: str) -> int:
         """
         Moves the note into the trash. The note may still be undeleted, unless it
         is expunged.  This is equivalent to calling updateNote() after setting
@@ -1344,7 +1347,7 @@ class Iface(object):
         """
         pass
 
-    def expungeNote(self, authenticationToken, guid):
+    def expungeNote(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently removes a Note, and all of its Resources,
         from the service.
@@ -1376,7 +1379,7 @@ class Iface(object):
         """
         pass
 
-    def copyNote(self, authenticationToken, noteGuid, toNotebookGuid):
+    def copyNote(self, authenticationToken: str, noteGuid: str, toNotebookGuid: str) -> evernote_client.edam.type.ttypes.Note:
         """
         Performs a deep copy of the Note with the provided GUID 'noteGuid' into
         the Notebook with the provided GUID 'toNotebookGuid'.
@@ -1427,7 +1430,7 @@ class Iface(object):
         """
         pass
 
-    def listNoteVersions(self, authenticationToken, noteGuid):
+    def listNoteVersions(self, authenticationToken: str, noteGuid: str) -> list[NoteVersionId]:
         """
         Returns a list of the prior versions of a particular note that are
         saved within the service.  These prior versions are stored to provide a
@@ -1457,7 +1460,7 @@ class Iface(object):
         """
         pass
 
-    def getNoteVersion(self, authenticationToken, noteGuid, updateSequenceNum, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def getNoteVersion(self, authenticationToken: str, noteGuid: str, updateSequenceNum: int, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool) -> evernote_client.edam.type.ttypes.Note:
         """
         This can be used to retrieve a previous version of a Note after it has been
         updated within the service.  The caller must identify the note (via its
@@ -1512,7 +1515,7 @@ class Iface(object):
         """
         pass
 
-    def getResource(self, authenticationToken, guid, withData, withRecognition, withAttributes, withAlternateData):
+    def getResource(self, authenticationToken: str, guid: str, withData: bool, withRecognition: bool, withAttributes: bool, withAlternateData: bool) -> evernote_client.edam.type.ttypes.Resource:
         """
         Returns the current state of the resource in the service with the
         provided GUID.
@@ -1561,7 +1564,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceApplicationData(self, authenticationToken, guid):
+    def getResourceApplicationData(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.LazyMap:
         """
         Get all of the application data for the Resource identified by GUID,
         with values returned within the LazyMap fullMap field.
@@ -1577,7 +1580,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def getResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> str:
         """
         Get the value of a single entry in the applicationData map
         for the Resource identified by GUID.
@@ -1595,7 +1598,7 @@ class Iface(object):
         """
         pass
 
-    def setResourceApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def setResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str) -> int:
         """
         Update, or create, an entry in the applicationData map for
         the Resource identified by guid.
@@ -1609,7 +1612,7 @@ class Iface(object):
         """
         pass
 
-    def unsetResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def unsetResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> int:
         """
         Remove an entry identified by 'key' from the applicationData map for
         the Resource identified by 'guid'.
@@ -1622,7 +1625,7 @@ class Iface(object):
         """
         pass
 
-    def updateResource(self, authenticationToken, resource):
+    def updateResource(self, authenticationToken: str, resource: evernote_client.edam.type.ttypes.Resource) -> int:
         """
         Submit a set of changes to a resource to the service.  This can be used
         to update the meta-data about the resource, but cannot be used to change
@@ -1679,7 +1682,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceData(self, authenticationToken, guid):
+    def getResourceData(self, authenticationToken: str, guid: str) -> bytes:
         """
         Returns binary data of the resource with the provided GUID.  For
         example, if this were an image resource, this would contain the
@@ -1709,7 +1712,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceByHash(self, authenticationToken, noteGuid, contentHash, withData, withRecognition, withAlternateData):
+    def getResourceByHash(self, authenticationToken: str, noteGuid: str, contentHash: bytes, withData: bool, withRecognition: bool, withAlternateData: bool) -> evernote_client.edam.type.ttypes.Resource:
         """
         Returns the current state of a resource, referenced by containing
         note GUID and resource content hash.
@@ -1762,7 +1765,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceRecognition(self, authenticationToken, guid):
+    def getResourceRecognition(self, authenticationToken: str, guid: str) -> bytes:
         """
         Returns the binary contents of the recognition index for the resource
         with the provided GUID.  If the caller asks about a resource that has
@@ -1794,7 +1797,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceAlternateData(self, authenticationToken, guid):
+    def getResourceAlternateData(self, authenticationToken: str, guid: str) -> bytes:
         """
         If the Resource with the provided GUID has an alternate data representation
         (indicated via the Resource.alternateData field), then this request can
@@ -1826,7 +1829,7 @@ class Iface(object):
         """
         pass
 
-    def getResourceAttributes(self, authenticationToken, guid):
+    def getResourceAttributes(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.ResourceAttributes:
         """
         Returns the set of attributes for the Resource with the provided GUID.
         If the Resource is found in a public notebook, the authenticationToken
@@ -1854,7 +1857,7 @@ class Iface(object):
         """
         pass
 
-    def getPublicNotebook(self, userId, publicUri):
+    def getPublicNotebook(self, userId: int, publicUri: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         <p>
         Looks for a user account with the provided userId on this NoteStore
@@ -1896,7 +1899,7 @@ class Iface(object):
         """
         pass
 
-    def shareNotebook(self, authenticationToken, sharedNotebook, message):
+    def shareNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook, message: str) -> evernote_client.edam.type.ttypes.SharedNotebook:
         """
         * @Deprecated for first-party clients. See createOrUpdateNotebookShares.
         *
@@ -1982,7 +1985,7 @@ class Iface(object):
         """
         pass
 
-    def createOrUpdateNotebookShares(self, authenticationToken, shareTemplate):
+    def createOrUpdateNotebookShares(self, authenticationToken: str, shareTemplate: NotebookShareTemplate) -> CreateOrUpdateNotebookSharesResult:
         """
         Share a notebook by a messaging thread ID or a list of contacts. This function is
         intended to be used in conjunction with Evernote messaging, and as such does not
@@ -2044,7 +2047,7 @@ class Iface(object):
         """
         pass
 
-    def updateSharedNotebook(self, authenticationToken, sharedNotebook):
+    def updateSharedNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook) -> int:
         """
         @Deprecated See createOrUpdateNotebookShares and manageNotebookShares.
 
@@ -2055,7 +2058,7 @@ class Iface(object):
         """
         pass
 
-    def setNotebookRecipientSettings(self, authenticationToken, notebookGuid, recipientSettings):
+    def setNotebookRecipientSettings(self, authenticationToken: str, notebookGuid: str, recipientSettings: evernote_client.edam.type.ttypes.NotebookRecipientSettings) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Set values for the recipient settings associated with a notebook share. Only the
         recipient of the share can update their recipient settings.
@@ -2100,7 +2103,7 @@ class Iface(object):
         """
         pass
 
-    def listSharedNotebooks(self, authenticationToken):
+    def listSharedNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.SharedNotebook]:
         """
         Lists the collection of shared notebooks for all notebooks in the
         users account.
@@ -2114,7 +2117,7 @@ class Iface(object):
         """
         pass
 
-    def createLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def createLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> evernote_client.edam.type.ttypes.LinkedNotebook:
         """
         Asks the service to make a linked notebook with the provided name, username
         of the owner and identifiers provided. A linked notebook can be either a
@@ -2159,7 +2162,7 @@ class Iface(object):
         """
         pass
 
-    def updateLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def updateLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> int:
         """
         @param linkedNotebook
           Updates the name of a linked notebook.
@@ -2183,7 +2186,7 @@ class Iface(object):
         """
         pass
 
-    def listLinkedNotebooks(self, authenticationToken):
+    def listLinkedNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.LinkedNotebook]:
         """
         Returns a list of linked notebooks
 
@@ -2193,7 +2196,7 @@ class Iface(object):
         """
         pass
 
-    def expungeLinkedNotebook(self, authenticationToken, guid):
+    def expungeLinkedNotebook(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently expunges the linked notebook from the account.
         <p/>
@@ -2212,7 +2215,7 @@ class Iface(object):
         """
         pass
 
-    def authenticateToSharedNotebook(self, shareKeyOrGlobalId, authenticationToken):
+    def authenticateToSharedNotebook(self, shareKeyOrGlobalId: str, authenticationToken: str) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         """
         Asks the service to produce an authentication token that can be used to
         access the contents of a shared notebook from someone else's account.
@@ -2270,7 +2273,7 @@ class Iface(object):
         """
         pass
 
-    def getSharedNotebookByAuth(self, authenticationToken):
+    def getSharedNotebookByAuth(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.SharedNotebook:
         """
         This function is used to retrieve extended information about a shared
         notebook by a guest who has already authenticated to access that notebook.
@@ -2302,7 +2305,7 @@ class Iface(object):
         """
         pass
 
-    def emailNote(self, authenticationToken, parameters):
+    def emailNote(self, authenticationToken: str, parameters: NoteEmailParameters) -> None:
         """
         Attempts to send a single note to one or more email recipients.
         <p/>
@@ -2359,7 +2362,7 @@ class Iface(object):
         """
         pass
 
-    def shareNote(self, authenticationToken, guid):
+    def shareNote(self, authenticationToken: str, guid: str) -> str:
         """
         If this note is not already shared publicly (via its own direct URL), then this
         will start sharing that note.
@@ -2390,7 +2393,7 @@ class Iface(object):
         """
         pass
 
-    def stopSharingNote(self, authenticationToken, guid):
+    def stopSharingNote(self, authenticationToken: str, guid: str) -> None:
         """
         If this note is shared publicly then this will stop sharing that note
         and invalidate its "Note Key", so any existing URLs to access that Note
@@ -2420,7 +2423,7 @@ class Iface(object):
         """
         pass
 
-    def authenticateToSharedNote(self, guid, noteKey, authenticationToken):
+    def authenticateToSharedNote(self, guid: str, noteKey: str, authenticationToken: str) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         """
         Asks the service to produce an authentication token that can be used to
         access the contents of a single Note which was individually shared
@@ -2471,7 +2474,7 @@ class Iface(object):
         """
         pass
 
-    def findRelated(self, authenticationToken, query, resultSpec):
+    def findRelated(self, authenticationToken: str, query: RelatedQuery, resultSpec: RelatedResultSpec) -> RelatedResult:
         """
         Identify related entities on the service, such as notes,
         notebooks, tags and users in a business related to notes or content.
@@ -2529,7 +2532,7 @@ class Iface(object):
         """
         pass
 
-    def updateNoteIfUsnMatches(self, authenticationToken, note):
+    def updateNoteIfUsnMatches(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> UpdateNoteIfUsnMatchesResult:
         """
         Perform the same operation as updateNote() would provided that the update
         sequence number on the parameter Note object matches the current update sequence
@@ -2564,7 +2567,7 @@ class Iface(object):
         """
         pass
 
-    def manageNotebookShares(self, authenticationToken, parameters):
+    def manageNotebookShares(self, authenticationToken: str, parameters: ManageNotebookSharesParameters) -> ManageNotebookSharesResult:
         """
         Manage invitations and memberships associated with a given notebook.
 
@@ -2588,7 +2591,7 @@ class Iface(object):
         """
         pass
 
-    def getNotebookShares(self, authenticationToken, notebookGuid):
+    def getNotebookShares(self, authenticationToken: str, notebookGuid: str) -> ShareRelationships:
         """
         Return the share relationships for the given notebook, including
         both the invitations and the memberships.
@@ -2639,7 +2642,7 @@ class Client(Iface):
             self._oprot = oprot
         self._seqid = 0
 
-    def getSyncState(self, authenticationToken):
+    def getSyncState(self, authenticationToken: str) -> SyncState:
         """
         Asks the NoteStore to provide information about the status of the user
         account corresponding to the provided authentication token.
@@ -2651,7 +2654,7 @@ class Client(Iface):
         self.send_getSyncState(authenticationToken)
         return self.recv_getSyncState()
 
-    def send_getSyncState(self, authenticationToken):
+    def send_getSyncState(self, authenticationToken: str):
         self._oprot.writeMessageBegin('getSyncState', TMessageType.CALL, self._seqid)
         args = getSyncState_args()
         args.authenticationToken = authenticationToken
@@ -2659,7 +2662,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getSyncState(self):
+    def recv_getSyncState(self) -> SyncState:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -2678,7 +2681,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getSyncState failed: unknown result")
 
-    def getFilteredSyncChunk(self, authenticationToken, afterUSN, maxEntries, filter):
+    def getFilteredSyncChunk(self, authenticationToken: str, afterUSN: int, maxEntries: int, filter: SyncChunkFilter) -> SyncChunk:
         """
         Asks the NoteStore to provide the state of the account in order of
         last modification.  This request retrieves one block of the server's
@@ -2722,7 +2725,7 @@ class Client(Iface):
         self.send_getFilteredSyncChunk(authenticationToken, afterUSN, maxEntries, filter)
         return self.recv_getFilteredSyncChunk()
 
-    def send_getFilteredSyncChunk(self, authenticationToken, afterUSN, maxEntries, filter):
+    def send_getFilteredSyncChunk(self, authenticationToken: str, afterUSN: int, maxEntries: int, filter: SyncChunkFilter):
         self._oprot.writeMessageBegin('getFilteredSyncChunk', TMessageType.CALL, self._seqid)
         args = getFilteredSyncChunk_args()
         args.authenticationToken = authenticationToken
@@ -2733,7 +2736,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getFilteredSyncChunk(self):
+    def recv_getFilteredSyncChunk(self) -> SyncChunk:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -2752,7 +2755,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getFilteredSyncChunk failed: unknown result")
 
-    def getLinkedNotebookSyncState(self, authenticationToken, linkedNotebook):
+    def getLinkedNotebookSyncState(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> SyncState:
         """
         Asks the NoteStore to provide information about the status of a linked
         notebook that has been shared with the caller, or that is public to the
@@ -2802,7 +2805,7 @@ class Client(Iface):
         self.send_getLinkedNotebookSyncState(authenticationToken, linkedNotebook)
         return self.recv_getLinkedNotebookSyncState()
 
-    def send_getLinkedNotebookSyncState(self, authenticationToken, linkedNotebook):
+    def send_getLinkedNotebookSyncState(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook):
         self._oprot.writeMessageBegin('getLinkedNotebookSyncState', TMessageType.CALL, self._seqid)
         args = getLinkedNotebookSyncState_args()
         args.authenticationToken = authenticationToken
@@ -2811,7 +2814,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getLinkedNotebookSyncState(self):
+    def recv_getLinkedNotebookSyncState(self) -> SyncState:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -2832,7 +2835,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getLinkedNotebookSyncState failed: unknown result")
 
-    def getLinkedNotebookSyncChunk(self, authenticationToken, linkedNotebook, afterUSN, maxEntries, fullSyncOnly):
+    def getLinkedNotebookSyncChunk(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook, afterUSN: int, maxEntries: int, fullSyncOnly: bool) -> SyncChunk:
         """
         Asks the NoteStore to provide information about the contents of a linked
         notebook that has been shared with the caller, or that is public to the
@@ -2908,7 +2911,7 @@ class Client(Iface):
         self.send_getLinkedNotebookSyncChunk(authenticationToken, linkedNotebook, afterUSN, maxEntries, fullSyncOnly)
         return self.recv_getLinkedNotebookSyncChunk()
 
-    def send_getLinkedNotebookSyncChunk(self, authenticationToken, linkedNotebook, afterUSN, maxEntries, fullSyncOnly):
+    def send_getLinkedNotebookSyncChunk(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook, afterUSN: int, maxEntries: int, fullSyncOnly: bool):
         self._oprot.writeMessageBegin('getLinkedNotebookSyncChunk', TMessageType.CALL, self._seqid)
         args = getLinkedNotebookSyncChunk_args()
         args.authenticationToken = authenticationToken
@@ -2920,7 +2923,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getLinkedNotebookSyncChunk(self):
+    def recv_getLinkedNotebookSyncChunk(self) -> SyncChunk:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -2941,7 +2944,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getLinkedNotebookSyncChunk failed: unknown result")
 
-    def listNotebooks(self, authenticationToken):
+    def listNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Notebook]:
         """
         Returns a list of all of the notebooks in the account.
 
@@ -2952,7 +2955,7 @@ class Client(Iface):
         self.send_listNotebooks(authenticationToken)
         return self.recv_listNotebooks()
 
-    def send_listNotebooks(self, authenticationToken):
+    def send_listNotebooks(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listNotebooks', TMessageType.CALL, self._seqid)
         args = listNotebooks_args()
         args.authenticationToken = authenticationToken
@@ -2960,7 +2963,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listNotebooks(self):
+    def recv_listNotebooks(self) -> list[evernote_client.edam.type.ttypes.Notebook]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -2979,7 +2982,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listNotebooks failed: unknown result")
 
-    def listAccessibleBusinessNotebooks(self, authenticationToken):
+    def listAccessibleBusinessNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Notebook]:
         """
         Returns a list of all the notebooks in a business that the user has permission to access,
         regardless of whether the user has joined them. This includes notebooks that have been shared
@@ -3000,7 +3003,7 @@ class Client(Iface):
         self.send_listAccessibleBusinessNotebooks(authenticationToken)
         return self.recv_listAccessibleBusinessNotebooks()
 
-    def send_listAccessibleBusinessNotebooks(self, authenticationToken):
+    def send_listAccessibleBusinessNotebooks(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listAccessibleBusinessNotebooks', TMessageType.CALL, self._seqid)
         args = listAccessibleBusinessNotebooks_args()
         args.authenticationToken = authenticationToken
@@ -3008,7 +3011,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listAccessibleBusinessNotebooks(self):
+    def recv_listAccessibleBusinessNotebooks(self) -> list[evernote_client.edam.type.ttypes.Notebook]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3027,7 +3030,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listAccessibleBusinessNotebooks failed: unknown result")
 
-    def getNotebook(self, authenticationToken, guid):
+    def getNotebook(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Returns the current state of the notebook with the provided GUID.
         The notebook may be active or deleted (but not expunged).
@@ -3055,7 +3058,7 @@ class Client(Iface):
         self.send_getNotebook(authenticationToken, guid)
         return self.recv_getNotebook()
 
-    def send_getNotebook(self, authenticationToken, guid):
+    def send_getNotebook(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getNotebook', TMessageType.CALL, self._seqid)
         args = getNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3064,7 +3067,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNotebook(self):
+    def recv_getNotebook(self) -> evernote_client.edam.type.ttypes.Notebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3085,7 +3088,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNotebook failed: unknown result")
 
-    def getDefaultNotebook(self, authenticationToken):
+    def getDefaultNotebook(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Returns the notebook that should be used to store new notes in the
         user's account when no other notebooks are specified.
@@ -3097,7 +3100,7 @@ class Client(Iface):
         self.send_getDefaultNotebook(authenticationToken)
         return self.recv_getDefaultNotebook()
 
-    def send_getDefaultNotebook(self, authenticationToken):
+    def send_getDefaultNotebook(self, authenticationToken: str):
         self._oprot.writeMessageBegin('getDefaultNotebook', TMessageType.CALL, self._seqid)
         args = getDefaultNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3105,7 +3108,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getDefaultNotebook(self):
+    def recv_getDefaultNotebook(self) -> evernote_client.edam.type.ttypes.Notebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3124,7 +3127,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getDefaultNotebook failed: unknown result")
 
-    def createNotebook(self, authenticationToken, notebook):
+    def createNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Asks the service to make a notebook with the provided name.
 
@@ -3167,7 +3170,7 @@ class Client(Iface):
         self.send_createNotebook(authenticationToken, notebook)
         return self.recv_createNotebook()
 
-    def send_createNotebook(self, authenticationToken, notebook):
+    def send_createNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook):
         self._oprot.writeMessageBegin('createNotebook', TMessageType.CALL, self._seqid)
         args = createNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3176,7 +3179,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createNotebook(self):
+    def recv_createNotebook(self) -> evernote_client.edam.type.ttypes.Notebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3197,7 +3200,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createNotebook failed: unknown result")
 
-    def updateNotebook(self, authenticationToken, notebook):
+    def updateNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook) -> int:
         """
         Submits notebook changes to the service. The provided data must include the
         notebook's guid field for identification.
@@ -3245,7 +3248,7 @@ class Client(Iface):
         self.send_updateNotebook(authenticationToken, notebook)
         return self.recv_updateNotebook()
 
-    def send_updateNotebook(self, authenticationToken, notebook):
+    def send_updateNotebook(self, authenticationToken: str, notebook: evernote_client.edam.type.ttypes.Notebook):
         self._oprot.writeMessageBegin('updateNotebook', TMessageType.CALL, self._seqid)
         args = updateNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3254,7 +3257,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateNotebook(self):
+    def recv_updateNotebook(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3275,7 +3278,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateNotebook failed: unknown result")
 
-    def expungeNotebook(self, authenticationToken, guid):
+    def expungeNotebook(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently removes the notebook from the user's account.
         After this action, the notebook is no longer available for undeletion, etc.
@@ -3309,7 +3312,7 @@ class Client(Iface):
         self.send_expungeNotebook(authenticationToken, guid)
         return self.recv_expungeNotebook()
 
-    def send_expungeNotebook(self, authenticationToken, guid):
+    def send_expungeNotebook(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('expungeNotebook', TMessageType.CALL, self._seqid)
         args = expungeNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3318,7 +3321,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_expungeNotebook(self):
+    def recv_expungeNotebook(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3339,7 +3342,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "expungeNotebook failed: unknown result")
 
-    def listTags(self, authenticationToken):
+    def listTags(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.Tag]:
         """
         Returns a list of the tags in the account.  Evernote does not support
         the undeletion of tags, so this will only include active tags.
@@ -3351,7 +3354,7 @@ class Client(Iface):
         self.send_listTags(authenticationToken)
         return self.recv_listTags()
 
-    def send_listTags(self, authenticationToken):
+    def send_listTags(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listTags', TMessageType.CALL, self._seqid)
         args = listTags_args()
         args.authenticationToken = authenticationToken
@@ -3359,7 +3362,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listTags(self):
+    def recv_listTags(self) -> list[evernote_client.edam.type.ttypes.Tag]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3378,7 +3381,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listTags failed: unknown result")
 
-    def listTagsByNotebook(self, authenticationToken, notebookGuid):
+    def listTagsByNotebook(self, authenticationToken: str, notebookGuid: str) -> list[evernote_client.edam.type.ttypes.Tag]:
         """
         Returns a list of the tags that are applied to at least one note within
         the provided notebook.  If the notebook is public, the authenticationToken
@@ -3400,7 +3403,7 @@ class Client(Iface):
         self.send_listTagsByNotebook(authenticationToken, notebookGuid)
         return self.recv_listTagsByNotebook()
 
-    def send_listTagsByNotebook(self, authenticationToken, notebookGuid):
+    def send_listTagsByNotebook(self, authenticationToken: str, notebookGuid: str):
         self._oprot.writeMessageBegin('listTagsByNotebook', TMessageType.CALL, self._seqid)
         args = listTagsByNotebook_args()
         args.authenticationToken = authenticationToken
@@ -3409,7 +3412,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listTagsByNotebook(self):
+    def recv_listTagsByNotebook(self) -> list[evernote_client.edam.type.ttypes.Tag]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3430,7 +3433,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listTagsByNotebook failed: unknown result")
 
-    def getTag(self, authenticationToken, guid):
+    def getTag(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.Tag:
         """
         Returns the current state of the Tag with the provided GUID.
 
@@ -3457,7 +3460,7 @@ class Client(Iface):
         self.send_getTag(authenticationToken, guid)
         return self.recv_getTag()
 
-    def send_getTag(self, authenticationToken, guid):
+    def send_getTag(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getTag', TMessageType.CALL, self._seqid)
         args = getTag_args()
         args.authenticationToken = authenticationToken
@@ -3466,7 +3469,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getTag(self):
+    def recv_getTag(self) -> evernote_client.edam.type.ttypes.Tag:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3487,7 +3490,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getTag failed: unknown result")
 
-    def createTag(self, authenticationToken, tag):
+    def createTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag) -> evernote_client.edam.type.ttypes.Tag:
         """
         Asks the service to make a tag with a set of information.
 
@@ -3524,7 +3527,7 @@ class Client(Iface):
         self.send_createTag(authenticationToken, tag)
         return self.recv_createTag()
 
-    def send_createTag(self, authenticationToken, tag):
+    def send_createTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag):
         self._oprot.writeMessageBegin('createTag', TMessageType.CALL, self._seqid)
         args = createTag_args()
         args.authenticationToken = authenticationToken
@@ -3533,7 +3536,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createTag(self):
+    def recv_createTag(self) -> evernote_client.edam.type.ttypes.Tag:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3554,7 +3557,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createTag failed: unknown result")
 
-    def updateTag(self, authenticationToken, tag):
+    def updateTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag) -> int:
         """
         Submits tag changes to the service.  The provided data must include
         the tag's guid field for identification.  The service will apply
@@ -3594,7 +3597,7 @@ class Client(Iface):
         self.send_updateTag(authenticationToken, tag)
         return self.recv_updateTag()
 
-    def send_updateTag(self, authenticationToken, tag):
+    def send_updateTag(self, authenticationToken: str, tag: evernote_client.edam.type.ttypes.Tag):
         self._oprot.writeMessageBegin('updateTag', TMessageType.CALL, self._seqid)
         args = updateTag_args()
         args.authenticationToken = authenticationToken
@@ -3603,7 +3606,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateTag(self):
+    def recv_updateTag(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3624,7 +3627,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateTag failed: unknown result")
 
-    def untagAll(self, authenticationToken, guid):
+    def untagAll(self, authenticationToken: str, guid: str) -> None:
         """
         Removes the provided tag from every note that is currently tagged with
         this tag.  If this operation is successful, the tag will still be in
@@ -3659,7 +3662,7 @@ class Client(Iface):
         self.send_untagAll(authenticationToken, guid)
         self.recv_untagAll()
 
-    def send_untagAll(self, authenticationToken, guid):
+    def send_untagAll(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('untagAll', TMessageType.CALL, self._seqid)
         args = untagAll_args()
         args.authenticationToken = authenticationToken
@@ -3668,7 +3671,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_untagAll(self):
+    def recv_untagAll(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3687,7 +3690,7 @@ class Client(Iface):
             raise result.notFoundException
         return
 
-    def expungeTag(self, authenticationToken, guid):
+    def expungeTag(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently deletes the tag with the provided GUID, if present.
         <p/>
@@ -3721,7 +3724,7 @@ class Client(Iface):
         self.send_expungeTag(authenticationToken, guid)
         return self.recv_expungeTag()
 
-    def send_expungeTag(self, authenticationToken, guid):
+    def send_expungeTag(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('expungeTag', TMessageType.CALL, self._seqid)
         args = expungeTag_args()
         args.authenticationToken = authenticationToken
@@ -3730,7 +3733,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_expungeTag(self):
+    def recv_expungeTag(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3751,7 +3754,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "expungeTag failed: unknown result")
 
-    def listSearches(self, authenticationToken):
+    def listSearches(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.SavedSearch]:
         """
         Returns a list of the searches in the account.  Evernote does not support
         the undeletion of searches, so this will only include active searches.
@@ -3763,7 +3766,7 @@ class Client(Iface):
         self.send_listSearches(authenticationToken)
         return self.recv_listSearches()
 
-    def send_listSearches(self, authenticationToken):
+    def send_listSearches(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listSearches', TMessageType.CALL, self._seqid)
         args = listSearches_args()
         args.authenticationToken = authenticationToken
@@ -3771,7 +3774,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listSearches(self):
+    def recv_listSearches(self) -> list[evernote_client.edam.type.ttypes.SavedSearch]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3790,7 +3793,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listSearches failed: unknown result")
 
-    def getSearch(self, authenticationToken, guid):
+    def getSearch(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.SavedSearch:
         """
         Returns the current state of the search with the provided GUID.
 
@@ -3816,7 +3819,7 @@ class Client(Iface):
         self.send_getSearch(authenticationToken, guid)
         return self.recv_getSearch()
 
-    def send_getSearch(self, authenticationToken, guid):
+    def send_getSearch(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getSearch', TMessageType.CALL, self._seqid)
         args = getSearch_args()
         args.authenticationToken = authenticationToken
@@ -3825,7 +3828,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getSearch(self):
+    def recv_getSearch(self) -> evernote_client.edam.type.ttypes.SavedSearch:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3846,7 +3849,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getSearch failed: unknown result")
 
-    def createSearch(self, authenticationToken, search):
+    def createSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch) -> evernote_client.edam.type.ttypes.SavedSearch:
         """
         Asks the service to make a saved search with a set of information.
 
@@ -3879,7 +3882,7 @@ class Client(Iface):
         self.send_createSearch(authenticationToken, search)
         return self.recv_createSearch()
 
-    def send_createSearch(self, authenticationToken, search):
+    def send_createSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch):
         self._oprot.writeMessageBegin('createSearch', TMessageType.CALL, self._seqid)
         args = createSearch_args()
         args.authenticationToken = authenticationToken
@@ -3888,7 +3891,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createSearch(self):
+    def recv_createSearch(self) -> evernote_client.edam.type.ttypes.SavedSearch:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3907,7 +3910,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createSearch failed: unknown result")
 
-    def updateSearch(self, authenticationToken, search):
+    def updateSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch) -> int:
         """
         Submits search changes to the service. The provided data must include
         the search's guid field for identification. The service will apply
@@ -3943,7 +3946,7 @@ class Client(Iface):
         self.send_updateSearch(authenticationToken, search)
         return self.recv_updateSearch()
 
-    def send_updateSearch(self, authenticationToken, search):
+    def send_updateSearch(self, authenticationToken: str, search: evernote_client.edam.type.ttypes.SavedSearch):
         self._oprot.writeMessageBegin('updateSearch', TMessageType.CALL, self._seqid)
         args = updateSearch_args()
         args.authenticationToken = authenticationToken
@@ -3952,7 +3955,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateSearch(self):
+    def recv_updateSearch(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -3973,7 +3976,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateSearch failed: unknown result")
 
-    def expungeSearch(self, authenticationToken, guid):
+    def expungeSearch(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently deletes the saved search with the provided GUID, if present.
         <p/>
@@ -4007,7 +4010,7 @@ class Client(Iface):
         self.send_expungeSearch(authenticationToken, guid)
         return self.recv_expungeSearch()
 
-    def send_expungeSearch(self, authenticationToken, guid):
+    def send_expungeSearch(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('expungeSearch', TMessageType.CALL, self._seqid)
         args = expungeSearch_args()
         args.authenticationToken = authenticationToken
@@ -4016,7 +4019,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_expungeSearch(self):
+    def recv_expungeSearch(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4037,7 +4040,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "expungeSearch failed: unknown result")
 
-    def findNoteOffset(self, authenticationToken, filter, guid):
+    def findNoteOffset(self, authenticationToken: str, filter: NoteFilter, guid: str) -> int:
         """
         Finds the position of a note within a sorted subset of all of the user's
         notes. This may be useful for thin clients that are displaying a paginated
@@ -4088,7 +4091,7 @@ class Client(Iface):
         self.send_findNoteOffset(authenticationToken, filter, guid)
         return self.recv_findNoteOffset()
 
-    def send_findNoteOffset(self, authenticationToken, filter, guid):
+    def send_findNoteOffset(self, authenticationToken: str, filter: NoteFilter, guid: str):
         self._oprot.writeMessageBegin('findNoteOffset', TMessageType.CALL, self._seqid)
         args = findNoteOffset_args()
         args.authenticationToken = authenticationToken
@@ -4098,7 +4101,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_findNoteOffset(self):
+    def recv_findNoteOffset(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4119,7 +4122,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "findNoteOffset failed: unknown result")
 
-    def findNotesMetadata(self, authenticationToken, filter, offset, maxNotes, resultSpec):
+    def findNotesMetadata(self, authenticationToken: str, filter: NoteFilter, offset: int, maxNotes: int, resultSpec: NotesMetadataResultSpec) -> NotesMetadataList:
         """
         Used to find the high-level information about a set of the notes from a
         user's account based on various criteria specified via a NoteFilter object.
@@ -4188,7 +4191,7 @@ class Client(Iface):
         self.send_findNotesMetadata(authenticationToken, filter, offset, maxNotes, resultSpec)
         return self.recv_findNotesMetadata()
 
-    def send_findNotesMetadata(self, authenticationToken, filter, offset, maxNotes, resultSpec):
+    def send_findNotesMetadata(self, authenticationToken: str, filter: NoteFilter, offset: int, maxNotes: int, resultSpec: NotesMetadataResultSpec):
         self._oprot.writeMessageBegin('findNotesMetadata', TMessageType.CALL, self._seqid)
         args = findNotesMetadata_args()
         args.authenticationToken = authenticationToken
@@ -4200,7 +4203,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_findNotesMetadata(self):
+    def recv_findNotesMetadata(self) -> NotesMetadataList:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4221,7 +4224,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "findNotesMetadata failed: unknown result")
 
-    def findNoteCounts(self, authenticationToken, filter, withTrash):
+    def findNoteCounts(self, authenticationToken: str, filter: NoteFilter, withTrash: bool) -> NoteCollectionCounts:
         """
         This function is used to determine how many notes are found for each
         notebook and tag in the user's account, given a current set of filter
@@ -4262,7 +4265,7 @@ class Client(Iface):
         self.send_findNoteCounts(authenticationToken, filter, withTrash)
         return self.recv_findNoteCounts()
 
-    def send_findNoteCounts(self, authenticationToken, filter, withTrash):
+    def send_findNoteCounts(self, authenticationToken: str, filter: NoteFilter, withTrash: bool):
         self._oprot.writeMessageBegin('findNoteCounts', TMessageType.CALL, self._seqid)
         args = findNoteCounts_args()
         args.authenticationToken = authenticationToken
@@ -4272,7 +4275,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_findNoteCounts(self):
+    def recv_findNoteCounts(self) -> NoteCollectionCounts:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4293,7 +4296,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "findNoteCounts failed: unknown result")
 
-    def getNoteWithResultSpec(self, authenticationToken, guid, resultSpec):
+    def getNoteWithResultSpec(self, authenticationToken: str, guid: str, resultSpec: NoteResultSpec) -> evernote_client.edam.type.ttypes.Note:
         """
         Returns the current state of the note in the service with the provided
         GUID.  The ENML contents of the note will only be provided if the
@@ -4334,7 +4337,7 @@ class Client(Iface):
         self.send_getNoteWithResultSpec(authenticationToken, guid, resultSpec)
         return self.recv_getNoteWithResultSpec()
 
-    def send_getNoteWithResultSpec(self, authenticationToken, guid, resultSpec):
+    def send_getNoteWithResultSpec(self, authenticationToken: str, guid: str, resultSpec: NoteResultSpec):
         self._oprot.writeMessageBegin('getNoteWithResultSpec', TMessageType.CALL, self._seqid)
         args = getNoteWithResultSpec_args()
         args.authenticationToken = authenticationToken
@@ -4344,7 +4347,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteWithResultSpec(self):
+    def recv_getNoteWithResultSpec(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4365,7 +4368,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteWithResultSpec failed: unknown result")
 
-    def getNote(self, authenticationToken, guid, withContent, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def getNote(self, authenticationToken: str, guid: str, withContent: bool, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool) -> evernote_client.edam.type.ttypes.Note:
         """
         DEPRECATED. See getNoteWithResultSpec.
 
@@ -4385,7 +4388,7 @@ class Client(Iface):
         self.send_getNote(authenticationToken, guid, withContent, withResourcesData, withResourcesRecognition, withResourcesAlternateData)
         return self.recv_getNote()
 
-    def send_getNote(self, authenticationToken, guid, withContent, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def send_getNote(self, authenticationToken: str, guid: str, withContent: bool, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool):
         self._oprot.writeMessageBegin('getNote', TMessageType.CALL, self._seqid)
         args = getNote_args()
         args.authenticationToken = authenticationToken
@@ -4398,7 +4401,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNote(self):
+    def recv_getNote(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4419,7 +4422,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNote failed: unknown result")
 
-    def getNoteApplicationData(self, authenticationToken, guid):
+    def getNoteApplicationData(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.LazyMap:
         """
         Get all of the application data for the note identified by GUID,
         with values returned within the LazyMap fullMap field.
@@ -4436,7 +4439,7 @@ class Client(Iface):
         self.send_getNoteApplicationData(authenticationToken, guid)
         return self.recv_getNoteApplicationData()
 
-    def send_getNoteApplicationData(self, authenticationToken, guid):
+    def send_getNoteApplicationData(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getNoteApplicationData', TMessageType.CALL, self._seqid)
         args = getNoteApplicationData_args()
         args.authenticationToken = authenticationToken
@@ -4445,7 +4448,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteApplicationData(self):
+    def recv_getNoteApplicationData(self) -> evernote_client.edam.type.ttypes.LazyMap:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4466,7 +4469,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteApplicationData failed: unknown result")
 
-    def getNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def getNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> str:
         """
         Get the value of a single entry in the applicationData map
         for the note identified by GUID.
@@ -4485,7 +4488,7 @@ class Client(Iface):
         self.send_getNoteApplicationDataEntry(authenticationToken, guid, key)
         return self.recv_getNoteApplicationDataEntry()
 
-    def send_getNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def send_getNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str):
         self._oprot.writeMessageBegin('getNoteApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = getNoteApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -4495,7 +4498,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteApplicationDataEntry(self):
+    def recv_getNoteApplicationDataEntry(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4516,7 +4519,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteApplicationDataEntry failed: unknown result")
 
-    def setNoteApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def setNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str) -> int:
         """
         Update, or create, an entry in the applicationData map for
         the note identified by guid.
@@ -4531,7 +4534,7 @@ class Client(Iface):
         self.send_setNoteApplicationDataEntry(authenticationToken, guid, key, value)
         return self.recv_setNoteApplicationDataEntry()
 
-    def send_setNoteApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def send_setNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str):
         self._oprot.writeMessageBegin('setNoteApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = setNoteApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -4542,7 +4545,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_setNoteApplicationDataEntry(self):
+    def recv_setNoteApplicationDataEntry(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4563,7 +4566,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "setNoteApplicationDataEntry failed: unknown result")
 
-    def unsetNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def unsetNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> int:
         """
         Remove an entry identified by 'key' from the applicationData map for
         the note identified by 'guid'. Silently ignores an unset of a
@@ -4578,7 +4581,7 @@ class Client(Iface):
         self.send_unsetNoteApplicationDataEntry(authenticationToken, guid, key)
         return self.recv_unsetNoteApplicationDataEntry()
 
-    def send_unsetNoteApplicationDataEntry(self, authenticationToken, guid, key):
+    def send_unsetNoteApplicationDataEntry(self, authenticationToken: str, guid: str, key: str):
         self._oprot.writeMessageBegin('unsetNoteApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = unsetNoteApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -4588,7 +4591,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_unsetNoteApplicationDataEntry(self):
+    def recv_unsetNoteApplicationDataEntry(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4609,7 +4612,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "unsetNoteApplicationDataEntry failed: unknown result")
 
-    def getNoteContent(self, authenticationToken, guid):
+    def getNoteContent(self, authenticationToken: str, guid: str) -> str:
         """
         Returns XHTML contents of the note with the provided GUID.
         If the Note is found in a public notebook, the authenticationToken
@@ -4638,7 +4641,7 @@ class Client(Iface):
         self.send_getNoteContent(authenticationToken, guid)
         return self.recv_getNoteContent()
 
-    def send_getNoteContent(self, authenticationToken, guid):
+    def send_getNoteContent(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getNoteContent', TMessageType.CALL, self._seqid)
         args = getNoteContent_args()
         args.authenticationToken = authenticationToken
@@ -4647,7 +4650,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteContent(self):
+    def recv_getNoteContent(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4668,7 +4671,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteContent failed: unknown result")
 
-    def getNoteSearchText(self, authenticationToken, guid, noteOnly, tokenizeForIndexing):
+    def getNoteSearchText(self, authenticationToken: str, guid: str, noteOnly: bool, tokenizeForIndexing: bool) -> str:
         """
         Returns a block of the extracted plain text contents of the note with the
         provided GUID.  This text can be indexed for search purposes by a light
@@ -4713,7 +4716,7 @@ class Client(Iface):
         self.send_getNoteSearchText(authenticationToken, guid, noteOnly, tokenizeForIndexing)
         return self.recv_getNoteSearchText()
 
-    def send_getNoteSearchText(self, authenticationToken, guid, noteOnly, tokenizeForIndexing):
+    def send_getNoteSearchText(self, authenticationToken: str, guid: str, noteOnly: bool, tokenizeForIndexing: bool):
         self._oprot.writeMessageBegin('getNoteSearchText', TMessageType.CALL, self._seqid)
         args = getNoteSearchText_args()
         args.authenticationToken = authenticationToken
@@ -4724,7 +4727,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteSearchText(self):
+    def recv_getNoteSearchText(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4745,7 +4748,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteSearchText failed: unknown result")
 
-    def getResourceSearchText(self, authenticationToken, guid):
+    def getResourceSearchText(self, authenticationToken: str, guid: str) -> str:
         """
         Returns a block of the extracted plain text contents of the resource with
         the provided GUID.  This text can be indexed for search purposes by a light
@@ -4778,7 +4781,7 @@ class Client(Iface):
         self.send_getResourceSearchText(authenticationToken, guid)
         return self.recv_getResourceSearchText()
 
-    def send_getResourceSearchText(self, authenticationToken, guid):
+    def send_getResourceSearchText(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceSearchText', TMessageType.CALL, self._seqid)
         args = getResourceSearchText_args()
         args.authenticationToken = authenticationToken
@@ -4787,7 +4790,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceSearchText(self):
+    def recv_getResourceSearchText(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4808,7 +4811,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceSearchText failed: unknown result")
 
-    def getNoteTagNames(self, authenticationToken, guid):
+    def getNoteTagNames(self, authenticationToken: str, guid: str) -> list[str]:
         """
         Returns a list of the names of the tags for the note with the provided
         guid.  This can be used with authentication to get the tags for a
@@ -4835,7 +4838,7 @@ class Client(Iface):
         self.send_getNoteTagNames(authenticationToken, guid)
         return self.recv_getNoteTagNames()
 
-    def send_getNoteTagNames(self, authenticationToken, guid):
+    def send_getNoteTagNames(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getNoteTagNames', TMessageType.CALL, self._seqid)
         args = getNoteTagNames_args()
         args.authenticationToken = authenticationToken
@@ -4844,7 +4847,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteTagNames(self):
+    def recv_getNoteTagNames(self) -> list[str]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4865,7 +4868,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteTagNames failed: unknown result")
 
-    def createNote(self, authenticationToken, note):
+    def createNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> evernote_client.edam.type.ttypes.Note:
         """
         Asks the service to make a note with the provided set of information.
 
@@ -4937,7 +4940,7 @@ class Client(Iface):
         self.send_createNote(authenticationToken, note)
         return self.recv_createNote()
 
-    def send_createNote(self, authenticationToken, note):
+    def send_createNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note):
         self._oprot.writeMessageBegin('createNote', TMessageType.CALL, self._seqid)
         args = createNote_args()
         args.authenticationToken = authenticationToken
@@ -4946,7 +4949,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createNote(self):
+    def recv_createNote(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -4967,7 +4970,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createNote failed: unknown result")
 
-    def updateNote(self, authenticationToken, note):
+    def updateNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> evernote_client.edam.type.ttypes.Note:
         """
         Submit a set of changes to a note to the service.  The provided data
         must include the note's guid field for identification. The note's
@@ -5047,7 +5050,7 @@ class Client(Iface):
         self.send_updateNote(authenticationToken, note)
         return self.recv_updateNote()
 
-    def send_updateNote(self, authenticationToken, note):
+    def send_updateNote(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note):
         self._oprot.writeMessageBegin('updateNote', TMessageType.CALL, self._seqid)
         args = updateNote_args()
         args.authenticationToken = authenticationToken
@@ -5056,7 +5059,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateNote(self):
+    def recv_updateNote(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5077,7 +5080,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateNote failed: unknown result")
 
-    def deleteNote(self, authenticationToken, guid):
+    def deleteNote(self, authenticationToken: str, guid: str) -> int:
         """
         Moves the note into the trash. The note may still be undeleted, unless it
         is expunged.  This is equivalent to calling updateNote() after setting
@@ -5112,7 +5115,7 @@ class Client(Iface):
         self.send_deleteNote(authenticationToken, guid)
         return self.recv_deleteNote()
 
-    def send_deleteNote(self, authenticationToken, guid):
+    def send_deleteNote(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('deleteNote', TMessageType.CALL, self._seqid)
         args = deleteNote_args()
         args.authenticationToken = authenticationToken
@@ -5121,7 +5124,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_deleteNote(self):
+    def recv_deleteNote(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5142,7 +5145,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "deleteNote failed: unknown result")
 
-    def expungeNote(self, authenticationToken, guid):
+    def expungeNote(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently removes a Note, and all of its Resources,
         from the service.
@@ -5175,7 +5178,7 @@ class Client(Iface):
         self.send_expungeNote(authenticationToken, guid)
         return self.recv_expungeNote()
 
-    def send_expungeNote(self, authenticationToken, guid):
+    def send_expungeNote(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('expungeNote', TMessageType.CALL, self._seqid)
         args = expungeNote_args()
         args.authenticationToken = authenticationToken
@@ -5184,7 +5187,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_expungeNote(self):
+    def recv_expungeNote(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5205,7 +5208,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "expungeNote failed: unknown result")
 
-    def copyNote(self, authenticationToken, noteGuid, toNotebookGuid):
+    def copyNote(self, authenticationToken: str, noteGuid: str, toNotebookGuid: str) -> evernote_client.edam.type.ttypes.Note:
         """
         Performs a deep copy of the Note with the provided GUID 'noteGuid' into
         the Notebook with the provided GUID 'toNotebookGuid'.
@@ -5257,7 +5260,7 @@ class Client(Iface):
         self.send_copyNote(authenticationToken, noteGuid, toNotebookGuid)
         return self.recv_copyNote()
 
-    def send_copyNote(self, authenticationToken, noteGuid, toNotebookGuid):
+    def send_copyNote(self, authenticationToken: str, noteGuid: str, toNotebookGuid: str):
         self._oprot.writeMessageBegin('copyNote', TMessageType.CALL, self._seqid)
         args = copyNote_args()
         args.authenticationToken = authenticationToken
@@ -5267,7 +5270,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_copyNote(self):
+    def recv_copyNote(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5288,7 +5291,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "copyNote failed: unknown result")
 
-    def listNoteVersions(self, authenticationToken, noteGuid):
+    def listNoteVersions(self, authenticationToken: str, noteGuid: str) -> list[NoteVersionId]:
         """
         Returns a list of the prior versions of a particular note that are
         saved within the service.  These prior versions are stored to provide a
@@ -5319,7 +5322,7 @@ class Client(Iface):
         self.send_listNoteVersions(authenticationToken, noteGuid)
         return self.recv_listNoteVersions()
 
-    def send_listNoteVersions(self, authenticationToken, noteGuid):
+    def send_listNoteVersions(self, authenticationToken: str, noteGuid: str):
         self._oprot.writeMessageBegin('listNoteVersions', TMessageType.CALL, self._seqid)
         args = listNoteVersions_args()
         args.authenticationToken = authenticationToken
@@ -5328,7 +5331,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listNoteVersions(self):
+    def recv_listNoteVersions(self) -> list[NoteVersionId]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5349,7 +5352,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listNoteVersions failed: unknown result")
 
-    def getNoteVersion(self, authenticationToken, noteGuid, updateSequenceNum, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def getNoteVersion(self, authenticationToken: str, noteGuid: str, updateSequenceNum: int, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool) -> evernote_client.edam.type.ttypes.Note:
         """
         This can be used to retrieve a previous version of a Note after it has been
         updated within the service.  The caller must identify the note (via its
@@ -5405,7 +5408,7 @@ class Client(Iface):
         self.send_getNoteVersion(authenticationToken, noteGuid, updateSequenceNum, withResourcesData, withResourcesRecognition, withResourcesAlternateData)
         return self.recv_getNoteVersion()
 
-    def send_getNoteVersion(self, authenticationToken, noteGuid, updateSequenceNum, withResourcesData, withResourcesRecognition, withResourcesAlternateData):
+    def send_getNoteVersion(self, authenticationToken: str, noteGuid: str, updateSequenceNum: int, withResourcesData: bool, withResourcesRecognition: bool, withResourcesAlternateData: bool):
         self._oprot.writeMessageBegin('getNoteVersion', TMessageType.CALL, self._seqid)
         args = getNoteVersion_args()
         args.authenticationToken = authenticationToken
@@ -5418,7 +5421,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNoteVersion(self):
+    def recv_getNoteVersion(self) -> evernote_client.edam.type.ttypes.Note:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5439,7 +5442,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getNoteVersion failed: unknown result")
 
-    def getResource(self, authenticationToken, guid, withData, withRecognition, withAttributes, withAlternateData):
+    def getResource(self, authenticationToken: str, guid: str, withData: bool, withRecognition: bool, withAttributes: bool, withAlternateData: bool) -> evernote_client.edam.type.ttypes.Resource:
         """
         Returns the current state of the resource in the service with the
         provided GUID.
@@ -5489,7 +5492,7 @@ class Client(Iface):
         self.send_getResource(authenticationToken, guid, withData, withRecognition, withAttributes, withAlternateData)
         return self.recv_getResource()
 
-    def send_getResource(self, authenticationToken, guid, withData, withRecognition, withAttributes, withAlternateData):
+    def send_getResource(self, authenticationToken: str, guid: str, withData: bool, withRecognition: bool, withAttributes: bool, withAlternateData: bool):
         self._oprot.writeMessageBegin('getResource', TMessageType.CALL, self._seqid)
         args = getResource_args()
         args.authenticationToken = authenticationToken
@@ -5502,7 +5505,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResource(self):
+    def recv_getResource(self) -> evernote_client.edam.type.ttypes.Resource:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5523,7 +5526,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResource failed: unknown result")
 
-    def getResourceApplicationData(self, authenticationToken, guid):
+    def getResourceApplicationData(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.LazyMap:
         """
         Get all of the application data for the Resource identified by GUID,
         with values returned within the LazyMap fullMap field.
@@ -5540,7 +5543,7 @@ class Client(Iface):
         self.send_getResourceApplicationData(authenticationToken, guid)
         return self.recv_getResourceApplicationData()
 
-    def send_getResourceApplicationData(self, authenticationToken, guid):
+    def send_getResourceApplicationData(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceApplicationData', TMessageType.CALL, self._seqid)
         args = getResourceApplicationData_args()
         args.authenticationToken = authenticationToken
@@ -5549,7 +5552,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceApplicationData(self):
+    def recv_getResourceApplicationData(self) -> evernote_client.edam.type.ttypes.LazyMap:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5570,7 +5573,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceApplicationData failed: unknown result")
 
-    def getResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def getResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> str:
         """
         Get the value of a single entry in the applicationData map
         for the Resource identified by GUID.
@@ -5589,7 +5592,7 @@ class Client(Iface):
         self.send_getResourceApplicationDataEntry(authenticationToken, guid, key)
         return self.recv_getResourceApplicationDataEntry()
 
-    def send_getResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def send_getResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str):
         self._oprot.writeMessageBegin('getResourceApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = getResourceApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -5599,7 +5602,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceApplicationDataEntry(self):
+    def recv_getResourceApplicationDataEntry(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5620,7 +5623,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceApplicationDataEntry failed: unknown result")
 
-    def setResourceApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def setResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str) -> int:
         """
         Update, or create, an entry in the applicationData map for
         the Resource identified by guid.
@@ -5635,7 +5638,7 @@ class Client(Iface):
         self.send_setResourceApplicationDataEntry(authenticationToken, guid, key, value)
         return self.recv_setResourceApplicationDataEntry()
 
-    def send_setResourceApplicationDataEntry(self, authenticationToken, guid, key, value):
+    def send_setResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str, value: str):
         self._oprot.writeMessageBegin('setResourceApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = setResourceApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -5646,7 +5649,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_setResourceApplicationDataEntry(self):
+    def recv_setResourceApplicationDataEntry(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5667,7 +5670,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "setResourceApplicationDataEntry failed: unknown result")
 
-    def unsetResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def unsetResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str) -> int:
         """
         Remove an entry identified by 'key' from the applicationData map for
         the Resource identified by 'guid'.
@@ -5681,7 +5684,7 @@ class Client(Iface):
         self.send_unsetResourceApplicationDataEntry(authenticationToken, guid, key)
         return self.recv_unsetResourceApplicationDataEntry()
 
-    def send_unsetResourceApplicationDataEntry(self, authenticationToken, guid, key):
+    def send_unsetResourceApplicationDataEntry(self, authenticationToken: str, guid: str, key: str):
         self._oprot.writeMessageBegin('unsetResourceApplicationDataEntry', TMessageType.CALL, self._seqid)
         args = unsetResourceApplicationDataEntry_args()
         args.authenticationToken = authenticationToken
@@ -5691,7 +5694,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_unsetResourceApplicationDataEntry(self):
+    def recv_unsetResourceApplicationDataEntry(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5712,7 +5715,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "unsetResourceApplicationDataEntry failed: unknown result")
 
-    def updateResource(self, authenticationToken, resource):
+    def updateResource(self, authenticationToken: str, resource: evernote_client.edam.type.ttypes.Resource) -> int:
         """
         Submit a set of changes to a resource to the service.  This can be used
         to update the meta-data about the resource, but cannot be used to change
@@ -5770,7 +5773,7 @@ class Client(Iface):
         self.send_updateResource(authenticationToken, resource)
         return self.recv_updateResource()
 
-    def send_updateResource(self, authenticationToken, resource):
+    def send_updateResource(self, authenticationToken: str, resource: evernote_client.edam.type.ttypes.Resource):
         self._oprot.writeMessageBegin('updateResource', TMessageType.CALL, self._seqid)
         args = updateResource_args()
         args.authenticationToken = authenticationToken
@@ -5779,7 +5782,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateResource(self):
+    def recv_updateResource(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5800,7 +5803,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateResource failed: unknown result")
 
-    def getResourceData(self, authenticationToken, guid):
+    def getResourceData(self, authenticationToken: str, guid: str) -> bytes:
         """
         Returns binary data of the resource with the provided GUID.  For
         example, if this were an image resource, this would contain the
@@ -5831,7 +5834,7 @@ class Client(Iface):
         self.send_getResourceData(authenticationToken, guid)
         return self.recv_getResourceData()
 
-    def send_getResourceData(self, authenticationToken, guid):
+    def send_getResourceData(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceData', TMessageType.CALL, self._seqid)
         args = getResourceData_args()
         args.authenticationToken = authenticationToken
@@ -5840,7 +5843,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceData(self):
+    def recv_getResourceData(self) -> bytes:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5861,7 +5864,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceData failed: unknown result")
 
-    def getResourceByHash(self, authenticationToken, noteGuid, contentHash, withData, withRecognition, withAlternateData):
+    def getResourceByHash(self, authenticationToken: str, noteGuid: str, contentHash: bytes, withData: bool, withRecognition: bool, withAlternateData: bool) -> evernote_client.edam.type.ttypes.Resource:
         """
         Returns the current state of a resource, referenced by containing
         note GUID and resource content hash.
@@ -5915,7 +5918,7 @@ class Client(Iface):
         self.send_getResourceByHash(authenticationToken, noteGuid, contentHash, withData, withRecognition, withAlternateData)
         return self.recv_getResourceByHash()
 
-    def send_getResourceByHash(self, authenticationToken, noteGuid, contentHash, withData, withRecognition, withAlternateData):
+    def send_getResourceByHash(self, authenticationToken: str, noteGuid: str, contentHash: bytes, withData: bool, withRecognition: bool, withAlternateData: bool):
         self._oprot.writeMessageBegin('getResourceByHash', TMessageType.CALL, self._seqid)
         args = getResourceByHash_args()
         args.authenticationToken = authenticationToken
@@ -5928,7 +5931,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceByHash(self):
+    def recv_getResourceByHash(self) -> evernote_client.edam.type.ttypes.Resource:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -5949,7 +5952,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceByHash failed: unknown result")
 
-    def getResourceRecognition(self, authenticationToken, guid):
+    def getResourceRecognition(self, authenticationToken: str, guid: str) -> bytes:
         """
         Returns the binary contents of the recognition index for the resource
         with the provided GUID.  If the caller asks about a resource that has
@@ -5982,7 +5985,7 @@ class Client(Iface):
         self.send_getResourceRecognition(authenticationToken, guid)
         return self.recv_getResourceRecognition()
 
-    def send_getResourceRecognition(self, authenticationToken, guid):
+    def send_getResourceRecognition(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceRecognition', TMessageType.CALL, self._seqid)
         args = getResourceRecognition_args()
         args.authenticationToken = authenticationToken
@@ -5991,7 +5994,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceRecognition(self):
+    def recv_getResourceRecognition(self) -> bytes:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6012,7 +6015,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceRecognition failed: unknown result")
 
-    def getResourceAlternateData(self, authenticationToken, guid):
+    def getResourceAlternateData(self, authenticationToken: str, guid: str) -> bytes:
         """
         If the Resource with the provided GUID has an alternate data representation
         (indicated via the Resource.alternateData field), then this request can
@@ -6045,7 +6048,7 @@ class Client(Iface):
         self.send_getResourceAlternateData(authenticationToken, guid)
         return self.recv_getResourceAlternateData()
 
-    def send_getResourceAlternateData(self, authenticationToken, guid):
+    def send_getResourceAlternateData(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceAlternateData', TMessageType.CALL, self._seqid)
         args = getResourceAlternateData_args()
         args.authenticationToken = authenticationToken
@@ -6054,7 +6057,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceAlternateData(self):
+    def recv_getResourceAlternateData(self) -> bytes:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6075,7 +6078,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceAlternateData failed: unknown result")
 
-    def getResourceAttributes(self, authenticationToken, guid):
+    def getResourceAttributes(self, authenticationToken: str, guid: str) -> evernote_client.edam.type.ttypes.ResourceAttributes:
         """
         Returns the set of attributes for the Resource with the provided GUID.
         If the Resource is found in a public notebook, the authenticationToken
@@ -6104,7 +6107,7 @@ class Client(Iface):
         self.send_getResourceAttributes(authenticationToken, guid)
         return self.recv_getResourceAttributes()
 
-    def send_getResourceAttributes(self, authenticationToken, guid):
+    def send_getResourceAttributes(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('getResourceAttributes', TMessageType.CALL, self._seqid)
         args = getResourceAttributes_args()
         args.authenticationToken = authenticationToken
@@ -6113,7 +6116,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getResourceAttributes(self):
+    def recv_getResourceAttributes(self) -> evernote_client.edam.type.ttypes.ResourceAttributes:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6134,7 +6137,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getResourceAttributes failed: unknown result")
 
-    def getPublicNotebook(self, userId, publicUri):
+    def getPublicNotebook(self, userId: int, publicUri: str) -> evernote_client.edam.type.ttypes.Notebook:
         """
         <p>
         Looks for a user account with the provided userId on this NoteStore
@@ -6177,7 +6180,7 @@ class Client(Iface):
         self.send_getPublicNotebook(userId, publicUri)
         return self.recv_getPublicNotebook()
 
-    def send_getPublicNotebook(self, userId, publicUri):
+    def send_getPublicNotebook(self, userId: int, publicUri: str):
         self._oprot.writeMessageBegin('getPublicNotebook', TMessageType.CALL, self._seqid)
         args = getPublicNotebook_args()
         args.userId = userId
@@ -6186,7 +6189,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getPublicNotebook(self):
+    def recv_getPublicNotebook(self) -> evernote_client.edam.type.ttypes.Notebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6205,7 +6208,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getPublicNotebook failed: unknown result")
 
-    def shareNotebook(self, authenticationToken, sharedNotebook, message):
+    def shareNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook, message: str) -> evernote_client.edam.type.ttypes.SharedNotebook:
         """
         * @Deprecated for first-party clients. See createOrUpdateNotebookShares.
         *
@@ -6292,7 +6295,7 @@ class Client(Iface):
         self.send_shareNotebook(authenticationToken, sharedNotebook, message)
         return self.recv_shareNotebook()
 
-    def send_shareNotebook(self, authenticationToken, sharedNotebook, message):
+    def send_shareNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook, message: str):
         self._oprot.writeMessageBegin('shareNotebook', TMessageType.CALL, self._seqid)
         args = shareNotebook_args()
         args.authenticationToken = authenticationToken
@@ -6302,7 +6305,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_shareNotebook(self):
+    def recv_shareNotebook(self) -> evernote_client.edam.type.ttypes.SharedNotebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6323,7 +6326,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "shareNotebook failed: unknown result")
 
-    def createOrUpdateNotebookShares(self, authenticationToken, shareTemplate):
+    def createOrUpdateNotebookShares(self, authenticationToken: str, shareTemplate: NotebookShareTemplate) -> CreateOrUpdateNotebookSharesResult:
         """
         Share a notebook by a messaging thread ID or a list of contacts. This function is
         intended to be used in conjunction with Evernote messaging, and as such does not
@@ -6386,7 +6389,7 @@ class Client(Iface):
         self.send_createOrUpdateNotebookShares(authenticationToken, shareTemplate)
         return self.recv_createOrUpdateNotebookShares()
 
-    def send_createOrUpdateNotebookShares(self, authenticationToken, shareTemplate):
+    def send_createOrUpdateNotebookShares(self, authenticationToken: str, shareTemplate: NotebookShareTemplate):
         self._oprot.writeMessageBegin('createOrUpdateNotebookShares', TMessageType.CALL, self._seqid)
         args = createOrUpdateNotebookShares_args()
         args.authenticationToken = authenticationToken
@@ -6395,7 +6398,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createOrUpdateNotebookShares(self):
+    def recv_createOrUpdateNotebookShares(self) -> CreateOrUpdateNotebookSharesResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6418,7 +6421,7 @@ class Client(Iface):
             raise result.invalidContactsException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createOrUpdateNotebookShares failed: unknown result")
 
-    def updateSharedNotebook(self, authenticationToken, sharedNotebook):
+    def updateSharedNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook) -> int:
         """
         @Deprecated See createOrUpdateNotebookShares and manageNotebookShares.
 
@@ -6430,7 +6433,7 @@ class Client(Iface):
         self.send_updateSharedNotebook(authenticationToken, sharedNotebook)
         return self.recv_updateSharedNotebook()
 
-    def send_updateSharedNotebook(self, authenticationToken, sharedNotebook):
+    def send_updateSharedNotebook(self, authenticationToken: str, sharedNotebook: evernote_client.edam.type.ttypes.SharedNotebook):
         self._oprot.writeMessageBegin('updateSharedNotebook', TMessageType.CALL, self._seqid)
         args = updateSharedNotebook_args()
         args.authenticationToken = authenticationToken
@@ -6439,7 +6442,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateSharedNotebook(self):
+    def recv_updateSharedNotebook(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6460,7 +6463,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateSharedNotebook failed: unknown result")
 
-    def setNotebookRecipientSettings(self, authenticationToken, notebookGuid, recipientSettings):
+    def setNotebookRecipientSettings(self, authenticationToken: str, notebookGuid: str, recipientSettings: evernote_client.edam.type.ttypes.NotebookRecipientSettings) -> evernote_client.edam.type.ttypes.Notebook:
         """
         Set values for the recipient settings associated with a notebook share. Only the
         recipient of the share can update their recipient settings.
@@ -6506,7 +6509,7 @@ class Client(Iface):
         self.send_setNotebookRecipientSettings(authenticationToken, notebookGuid, recipientSettings)
         return self.recv_setNotebookRecipientSettings()
 
-    def send_setNotebookRecipientSettings(self, authenticationToken, notebookGuid, recipientSettings):
+    def send_setNotebookRecipientSettings(self, authenticationToken: str, notebookGuid: str, recipientSettings: evernote_client.edam.type.ttypes.NotebookRecipientSettings):
         self._oprot.writeMessageBegin('setNotebookRecipientSettings', TMessageType.CALL, self._seqid)
         args = setNotebookRecipientSettings_args()
         args.authenticationToken = authenticationToken
@@ -6516,7 +6519,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_setNotebookRecipientSettings(self):
+    def recv_setNotebookRecipientSettings(self) -> evernote_client.edam.type.ttypes.Notebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6537,7 +6540,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "setNotebookRecipientSettings failed: unknown result")
 
-    def listSharedNotebooks(self, authenticationToken):
+    def listSharedNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.SharedNotebook]:
         """
         Lists the collection of shared notebooks for all notebooks in the
         users account.
@@ -6552,7 +6555,7 @@ class Client(Iface):
         self.send_listSharedNotebooks(authenticationToken)
         return self.recv_listSharedNotebooks()
 
-    def send_listSharedNotebooks(self, authenticationToken):
+    def send_listSharedNotebooks(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listSharedNotebooks', TMessageType.CALL, self._seqid)
         args = listSharedNotebooks_args()
         args.authenticationToken = authenticationToken
@@ -6560,7 +6563,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listSharedNotebooks(self):
+    def recv_listSharedNotebooks(self) -> list[evernote_client.edam.type.ttypes.SharedNotebook]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6581,7 +6584,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listSharedNotebooks failed: unknown result")
 
-    def createLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def createLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> evernote_client.edam.type.ttypes.LinkedNotebook:
         """
         Asks the service to make a linked notebook with the provided name, username
         of the owner and identifiers provided. A linked notebook can be either a
@@ -6627,7 +6630,7 @@ class Client(Iface):
         self.send_createLinkedNotebook(authenticationToken, linkedNotebook)
         return self.recv_createLinkedNotebook()
 
-    def send_createLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def send_createLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook):
         self._oprot.writeMessageBegin('createLinkedNotebook', TMessageType.CALL, self._seqid)
         args = createLinkedNotebook_args()
         args.authenticationToken = authenticationToken
@@ -6636,7 +6639,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_createLinkedNotebook(self):
+    def recv_createLinkedNotebook(self) -> evernote_client.edam.type.ttypes.LinkedNotebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6657,7 +6660,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "createLinkedNotebook failed: unknown result")
 
-    def updateLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def updateLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook) -> int:
         """
         @param linkedNotebook
           Updates the name of a linked notebook.
@@ -6682,7 +6685,7 @@ class Client(Iface):
         self.send_updateLinkedNotebook(authenticationToken, linkedNotebook)
         return self.recv_updateLinkedNotebook()
 
-    def send_updateLinkedNotebook(self, authenticationToken, linkedNotebook):
+    def send_updateLinkedNotebook(self, authenticationToken: str, linkedNotebook: evernote_client.edam.type.ttypes.LinkedNotebook):
         self._oprot.writeMessageBegin('updateLinkedNotebook', TMessageType.CALL, self._seqid)
         args = updateLinkedNotebook_args()
         args.authenticationToken = authenticationToken
@@ -6691,7 +6694,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateLinkedNotebook(self):
+    def recv_updateLinkedNotebook(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6712,7 +6715,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateLinkedNotebook failed: unknown result")
 
-    def listLinkedNotebooks(self, authenticationToken):
+    def listLinkedNotebooks(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.LinkedNotebook]:
         """
         Returns a list of linked notebooks
 
@@ -6723,7 +6726,7 @@ class Client(Iface):
         self.send_listLinkedNotebooks(authenticationToken)
         return self.recv_listLinkedNotebooks()
 
-    def send_listLinkedNotebooks(self, authenticationToken):
+    def send_listLinkedNotebooks(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listLinkedNotebooks', TMessageType.CALL, self._seqid)
         args = listLinkedNotebooks_args()
         args.authenticationToken = authenticationToken
@@ -6731,7 +6734,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listLinkedNotebooks(self):
+    def recv_listLinkedNotebooks(self) -> list[evernote_client.edam.type.ttypes.LinkedNotebook]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6752,7 +6755,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listLinkedNotebooks failed: unknown result")
 
-    def expungeLinkedNotebook(self, authenticationToken, guid):
+    def expungeLinkedNotebook(self, authenticationToken: str, guid: str) -> int:
         """
         Permanently expunges the linked notebook from the account.
         <p/>
@@ -6772,7 +6775,7 @@ class Client(Iface):
         self.send_expungeLinkedNotebook(authenticationToken, guid)
         return self.recv_expungeLinkedNotebook()
 
-    def send_expungeLinkedNotebook(self, authenticationToken, guid):
+    def send_expungeLinkedNotebook(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('expungeLinkedNotebook', TMessageType.CALL, self._seqid)
         args = expungeLinkedNotebook_args()
         args.authenticationToken = authenticationToken
@@ -6781,7 +6784,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_expungeLinkedNotebook(self):
+    def recv_expungeLinkedNotebook(self) -> int:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6802,7 +6805,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "expungeLinkedNotebook failed: unknown result")
 
-    def authenticateToSharedNotebook(self, shareKeyOrGlobalId, authenticationToken):
+    def authenticateToSharedNotebook(self, shareKeyOrGlobalId: str, authenticationToken: str) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         """
         Asks the service to produce an authentication token that can be used to
         access the contents of a shared notebook from someone else's account.
@@ -6861,7 +6864,7 @@ class Client(Iface):
         self.send_authenticateToSharedNotebook(shareKeyOrGlobalId, authenticationToken)
         return self.recv_authenticateToSharedNotebook()
 
-    def send_authenticateToSharedNotebook(self, shareKeyOrGlobalId, authenticationToken):
+    def send_authenticateToSharedNotebook(self, shareKeyOrGlobalId: str, authenticationToken: str):
         self._oprot.writeMessageBegin('authenticateToSharedNotebook', TMessageType.CALL, self._seqid)
         args = authenticateToSharedNotebook_args()
         args.shareKeyOrGlobalId = shareKeyOrGlobalId
@@ -6870,7 +6873,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_authenticateToSharedNotebook(self):
+    def recv_authenticateToSharedNotebook(self) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6891,7 +6894,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "authenticateToSharedNotebook failed: unknown result")
 
-    def getSharedNotebookByAuth(self, authenticationToken):
+    def getSharedNotebookByAuth(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.SharedNotebook:
         """
         This function is used to retrieve extended information about a shared
         notebook by a guest who has already authenticated to access that notebook.
@@ -6924,7 +6927,7 @@ class Client(Iface):
         self.send_getSharedNotebookByAuth(authenticationToken)
         return self.recv_getSharedNotebookByAuth()
 
-    def send_getSharedNotebookByAuth(self, authenticationToken):
+    def send_getSharedNotebookByAuth(self, authenticationToken: str):
         self._oprot.writeMessageBegin('getSharedNotebookByAuth', TMessageType.CALL, self._seqid)
         args = getSharedNotebookByAuth_args()
         args.authenticationToken = authenticationToken
@@ -6932,7 +6935,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getSharedNotebookByAuth(self):
+    def recv_getSharedNotebookByAuth(self) -> evernote_client.edam.type.ttypes.SharedNotebook:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -6953,7 +6956,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getSharedNotebookByAuth failed: unknown result")
 
-    def emailNote(self, authenticationToken, parameters):
+    def emailNote(self, authenticationToken: str, parameters: NoteEmailParameters) -> None:
         """
         Attempts to send a single note to one or more email recipients.
         <p/>
@@ -7011,7 +7014,7 @@ class Client(Iface):
         self.send_emailNote(authenticationToken, parameters)
         self.recv_emailNote()
 
-    def send_emailNote(self, authenticationToken, parameters):
+    def send_emailNote(self, authenticationToken: str, parameters: NoteEmailParameters):
         self._oprot.writeMessageBegin('emailNote', TMessageType.CALL, self._seqid)
         args = emailNote_args()
         args.authenticationToken = authenticationToken
@@ -7020,7 +7023,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_emailNote(self):
+    def recv_emailNote(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7039,7 +7042,7 @@ class Client(Iface):
             raise result.systemException
         return
 
-    def shareNote(self, authenticationToken, guid):
+    def shareNote(self, authenticationToken: str, guid: str) -> str:
         """
         If this note is not already shared publicly (via its own direct URL), then this
         will start sharing that note.
@@ -7071,7 +7074,7 @@ class Client(Iface):
         self.send_shareNote(authenticationToken, guid)
         return self.recv_shareNote()
 
-    def send_shareNote(self, authenticationToken, guid):
+    def send_shareNote(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('shareNote', TMessageType.CALL, self._seqid)
         args = shareNote_args()
         args.authenticationToken = authenticationToken
@@ -7080,7 +7083,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_shareNote(self):
+    def recv_shareNote(self) -> str:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7101,7 +7104,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "shareNote failed: unknown result")
 
-    def stopSharingNote(self, authenticationToken, guid):
+    def stopSharingNote(self, authenticationToken: str, guid: str) -> None:
         """
         If this note is shared publicly then this will stop sharing that note
         and invalidate its "Note Key", so any existing URLs to access that Note
@@ -7132,7 +7135,7 @@ class Client(Iface):
         self.send_stopSharingNote(authenticationToken, guid)
         self.recv_stopSharingNote()
 
-    def send_stopSharingNote(self, authenticationToken, guid):
+    def send_stopSharingNote(self, authenticationToken: str, guid: str):
         self._oprot.writeMessageBegin('stopSharingNote', TMessageType.CALL, self._seqid)
         args = stopSharingNote_args()
         args.authenticationToken = authenticationToken
@@ -7141,7 +7144,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_stopSharingNote(self):
+    def recv_stopSharingNote(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7160,7 +7163,7 @@ class Client(Iface):
             raise result.systemException
         return
 
-    def authenticateToSharedNote(self, guid, noteKey, authenticationToken):
+    def authenticateToSharedNote(self, guid: str, noteKey: str, authenticationToken: str) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         """
         Asks the service to produce an authentication token that can be used to
         access the contents of a single Note which was individually shared
@@ -7212,7 +7215,7 @@ class Client(Iface):
         self.send_authenticateToSharedNote(guid, noteKey, authenticationToken)
         return self.recv_authenticateToSharedNote()
 
-    def send_authenticateToSharedNote(self, guid, noteKey, authenticationToken):
+    def send_authenticateToSharedNote(self, guid: str, noteKey: str, authenticationToken: str):
         self._oprot.writeMessageBegin('authenticateToSharedNote', TMessageType.CALL, self._seqid)
         args = authenticateToSharedNote_args()
         args.guid = guid
@@ -7222,7 +7225,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_authenticateToSharedNote(self):
+    def recv_authenticateToSharedNote(self) -> evernote_client.edam.userstore.ttypes.AuthenticationResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7243,7 +7246,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "authenticateToSharedNote failed: unknown result")
 
-    def findRelated(self, authenticationToken, query, resultSpec):
+    def findRelated(self, authenticationToken: str, query: RelatedQuery, resultSpec: RelatedResultSpec) -> RelatedResult:
         """
         Identify related entities on the service, such as notes,
         notebooks, tags and users in a business related to notes or content.
@@ -7302,7 +7305,7 @@ class Client(Iface):
         self.send_findRelated(authenticationToken, query, resultSpec)
         return self.recv_findRelated()
 
-    def send_findRelated(self, authenticationToken, query, resultSpec):
+    def send_findRelated(self, authenticationToken: str, query: RelatedQuery, resultSpec: RelatedResultSpec):
         self._oprot.writeMessageBegin('findRelated', TMessageType.CALL, self._seqid)
         args = findRelated_args()
         args.authenticationToken = authenticationToken
@@ -7312,7 +7315,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_findRelated(self):
+    def recv_findRelated(self) -> RelatedResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7333,7 +7336,7 @@ class Client(Iface):
             raise result.notFoundException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "findRelated failed: unknown result")
 
-    def updateNoteIfUsnMatches(self, authenticationToken, note):
+    def updateNoteIfUsnMatches(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note) -> UpdateNoteIfUsnMatchesResult:
         """
         Perform the same operation as updateNote() would provided that the update
         sequence number on the parameter Note object matches the current update sequence
@@ -7369,7 +7372,7 @@ class Client(Iface):
         self.send_updateNoteIfUsnMatches(authenticationToken, note)
         return self.recv_updateNoteIfUsnMatches()
 
-    def send_updateNoteIfUsnMatches(self, authenticationToken, note):
+    def send_updateNoteIfUsnMatches(self, authenticationToken: str, note: evernote_client.edam.type.ttypes.Note):
         self._oprot.writeMessageBegin('updateNoteIfUsnMatches', TMessageType.CALL, self._seqid)
         args = updateNoteIfUsnMatches_args()
         args.authenticationToken = authenticationToken
@@ -7378,7 +7381,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateNoteIfUsnMatches(self):
+    def recv_updateNoteIfUsnMatches(self) -> UpdateNoteIfUsnMatchesResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7399,7 +7402,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "updateNoteIfUsnMatches failed: unknown result")
 
-    def manageNotebookShares(self, authenticationToken, parameters):
+    def manageNotebookShares(self, authenticationToken: str, parameters: ManageNotebookSharesParameters) -> ManageNotebookSharesResult:
         """
         Manage invitations and memberships associated with a given notebook.
 
@@ -7424,7 +7427,7 @@ class Client(Iface):
         self.send_manageNotebookShares(authenticationToken, parameters)
         return self.recv_manageNotebookShares()
 
-    def send_manageNotebookShares(self, authenticationToken, parameters):
+    def send_manageNotebookShares(self, authenticationToken: str, parameters: ManageNotebookSharesParameters):
         self._oprot.writeMessageBegin('manageNotebookShares', TMessageType.CALL, self._seqid)
         args = manageNotebookShares_args()
         args.authenticationToken = authenticationToken
@@ -7433,7 +7436,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_manageNotebookShares(self):
+    def recv_manageNotebookShares(self) -> ManageNotebookSharesResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -7454,7 +7457,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "manageNotebookShares failed: unknown result")
 
-    def getNotebookShares(self, authenticationToken, notebookGuid):
+    def getNotebookShares(self, authenticationToken: str, notebookGuid: str) -> ShareRelationships:
         """
         Return the share relationships for the given notebook, including
         both the invitations and the memberships.
@@ -7471,7 +7474,7 @@ class Client(Iface):
         self.send_getNotebookShares(authenticationToken, notebookGuid)
         return self.recv_getNotebookShares()
 
-    def send_getNotebookShares(self, authenticationToken, notebookGuid):
+    def send_getNotebookShares(self, authenticationToken: str, notebookGuid: str):
         self._oprot.writeMessageBegin('getNotebookShares', TMessageType.CALL, self._seqid)
         args = getNotebookShares_args()
         args.authenticationToken = authenticationToken
@@ -7480,7 +7483,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getNotebookShares(self):
+    def recv_getNotebookShares(self) -> ShareRelationships:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -9955,11 +9958,11 @@ class getSyncState_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10021,13 +10024,13 @@ class getSyncState_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[SyncState] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[SyncState] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10110,14 +10113,14 @@ class getFilteredSyncChunk_args(object):
      - filter
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, afterUSN = None, maxEntries = None, filter = None,):
-        self.authenticationToken = authenticationToken
-        self.afterUSN = afterUSN
-        self.maxEntries = maxEntries
-        self.filter = filter
+    def __init__(self, authenticationToken: typing.Optional[str] = None, afterUSN: typing.Optional[int] = None, maxEntries: typing.Optional[int] = None, filter: typing.Optional[SyncChunkFilter] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.afterUSN: typing.Optional[int] = afterUSN
+        self.maxEntries: typing.Optional[int] = maxEntries
+        self.filter: typing.Optional[SyncChunkFilter] = filter
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10210,13 +10213,13 @@ class getFilteredSyncChunk_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[SyncChunk] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[SyncChunk] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10297,12 +10300,12 @@ class getLinkedNotebookSyncState_args(object):
      - linkedNotebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, linkedNotebook = None,):
-        self.authenticationToken = authenticationToken
-        self.linkedNotebook = linkedNotebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = linkedNotebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10376,14 +10379,14 @@ class getLinkedNotebookSyncState_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[SyncState] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[SyncState] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10477,15 +10480,15 @@ class getLinkedNotebookSyncChunk_args(object):
      - fullSyncOnly
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, linkedNotebook = None, afterUSN = None, maxEntries = None, fullSyncOnly = None,):
-        self.authenticationToken = authenticationToken
-        self.linkedNotebook = linkedNotebook
-        self.afterUSN = afterUSN
-        self.maxEntries = maxEntries
-        self.fullSyncOnly = fullSyncOnly
+    def __init__(self, authenticationToken: typing.Optional[str] = None, linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = None, afterUSN: typing.Optional[int] = None, maxEntries: typing.Optional[int] = None, fullSyncOnly: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = linkedNotebook
+        self.afterUSN: typing.Optional[int] = afterUSN
+        self.maxEntries: typing.Optional[int] = maxEntries
+        self.fullSyncOnly: typing.Optional[bool] = fullSyncOnly
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10589,14 +10592,14 @@ class getLinkedNotebookSyncChunk_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[SyncChunk] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[SyncChunk] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10686,11 +10689,11 @@ class listNotebooks_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10752,13 +10755,13 @@ class listNotebooks_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10846,11 +10849,11 @@ class listAccessibleBusinessNotebooks_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -10912,13 +10915,13 @@ class listAccessibleBusinessNotebooks_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11007,12 +11010,12 @@ class getNotebook_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11085,14 +11088,14 @@ class getNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11182,11 +11185,11 @@ class getDefaultNotebook_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11248,13 +11251,13 @@ class getDefaultNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11335,12 +11338,12 @@ class createNotebook_args(object):
      - notebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, notebook = None,):
-        self.authenticationToken = authenticationToken
-        self.notebook = notebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, notebook: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.notebook: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = notebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11414,14 +11417,14 @@ class createNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11512,12 +11515,12 @@ class updateNotebook_args(object):
      - notebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, notebook = None,):
-        self.authenticationToken = authenticationToken
-        self.notebook = notebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, notebook: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.notebook: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = notebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11591,14 +11594,14 @@ class updateNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11688,12 +11691,12 @@ class expungeNotebook_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11766,14 +11769,14 @@ class expungeNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11862,11 +11865,11 @@ class listTags_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -11928,13 +11931,13 @@ class listTags_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12023,12 +12026,12 @@ class listTagsByNotebook_args(object):
      - notebookGuid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, notebookGuid = None,):
-        self.authenticationToken = authenticationToken
-        self.notebookGuid = notebookGuid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, notebookGuid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.notebookGuid: typing.Optional[str] = notebookGuid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12101,14 +12104,14 @@ class listTagsByNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12207,12 +12210,12 @@ class getTag_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12285,14 +12288,14 @@ class getTag_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Tag] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Tag] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12383,12 +12386,12 @@ class createTag_args(object):
      - tag
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, tag = None,):
-        self.authenticationToken = authenticationToken
-        self.tag = tag
+    def __init__(self, authenticationToken: typing.Optional[str] = None, tag: typing.Optional[evernote_client.edam.type.ttypes.Tag] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.tag: typing.Optional[evernote_client.edam.type.ttypes.Tag] = tag
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12462,14 +12465,14 @@ class createTag_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Tag] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Tag] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12560,12 +12563,12 @@ class updateTag_args(object):
      - tag
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, tag = None,):
-        self.authenticationToken = authenticationToken
-        self.tag = tag
+    def __init__(self, authenticationToken: typing.Optional[str] = None, tag: typing.Optional[evernote_client.edam.type.ttypes.Tag] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.tag: typing.Optional[evernote_client.edam.type.ttypes.Tag] = tag
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12639,14 +12642,14 @@ class updateTag_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12736,12 +12739,12 @@ class untagAll_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12813,13 +12816,13 @@ class untagAll_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, systemException = None, notFoundException = None,):
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12900,12 +12903,12 @@ class expungeTag_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -12978,14 +12981,14 @@ class expungeTag_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13074,11 +13077,11 @@ class listSearches_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13140,13 +13143,13 @@ class listSearches_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.SavedSearch]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.SavedSearch]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13235,12 +13238,12 @@ class getSearch_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13313,14 +13316,14 @@ class getSearch_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13411,12 +13414,12 @@ class createSearch_args(object):
      - search
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, search = None,):
-        self.authenticationToken = authenticationToken
-        self.search = search
+    def __init__(self, authenticationToken: typing.Optional[str] = None, search: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.search: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = search
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13489,13 +13492,13 @@ class createSearch_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13576,12 +13579,12 @@ class updateSearch_args(object):
      - search
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, search = None,):
-        self.authenticationToken = authenticationToken
-        self.search = search
+    def __init__(self, authenticationToken: typing.Optional[str] = None, search: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.search: typing.Optional[evernote_client.edam.type.ttypes.SavedSearch] = search
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13655,14 +13658,14 @@ class updateSearch_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13752,12 +13755,12 @@ class expungeSearch_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13830,14 +13833,14 @@ class expungeSearch_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -13928,13 +13931,13 @@ class findNoteOffset_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, filter = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.filter = filter
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, filter: typing.Optional[NoteFilter] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.filter: typing.Optional[NoteFilter] = filter
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14018,14 +14021,14 @@ class findNoteOffset_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14118,15 +14121,15 @@ class findNotesMetadata_args(object):
      - resultSpec
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, filter = None, offset = None, maxNotes = None, resultSpec = None,):
-        self.authenticationToken = authenticationToken
-        self.filter = filter
-        self.offset = offset
-        self.maxNotes = maxNotes
-        self.resultSpec = resultSpec
+    def __init__(self, authenticationToken: typing.Optional[str] = None, filter: typing.Optional[NoteFilter] = None, offset: typing.Optional[int] = None, maxNotes: typing.Optional[int] = None, resultSpec: typing.Optional[NotesMetadataResultSpec] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.filter: typing.Optional[NoteFilter] = filter
+        self.offset: typing.Optional[int] = offset
+        self.maxNotes: typing.Optional[int] = maxNotes
+        self.resultSpec: typing.Optional[NotesMetadataResultSpec] = resultSpec
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14231,14 +14234,14 @@ class findNotesMetadata_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[NotesMetadataList] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[NotesMetadataList] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14330,13 +14333,13 @@ class findNoteCounts_args(object):
      - withTrash
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, filter = None, withTrash = None,):
-        self.authenticationToken = authenticationToken
-        self.filter = filter
-        self.withTrash = withTrash
+    def __init__(self, authenticationToken: typing.Optional[str] = None, filter: typing.Optional[NoteFilter] = None, withTrash: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.filter: typing.Optional[NoteFilter] = filter
+        self.withTrash: typing.Optional[bool] = withTrash
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14420,14 +14423,14 @@ class findNoteCounts_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[NoteCollectionCounts] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[NoteCollectionCounts] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14519,13 +14522,13 @@ class getNoteWithResultSpec_args(object):
      - resultSpec
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, resultSpec = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.resultSpec = resultSpec
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, resultSpec: typing.Optional[NoteResultSpec] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.resultSpec: typing.Optional[NoteResultSpec] = resultSpec
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14609,14 +14612,14 @@ class getNoteWithResultSpec_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14711,16 +14714,16 @@ class getNote_args(object):
      - withResourcesAlternateData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, withContent = None, withResourcesData = None, withResourcesRecognition = None, withResourcesAlternateData = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.withContent = withContent
-        self.withResourcesData = withResourcesData
-        self.withResourcesRecognition = withResourcesRecognition
-        self.withResourcesAlternateData = withResourcesAlternateData
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, withContent: typing.Optional[bool] = None, withResourcesData: typing.Optional[bool] = None, withResourcesRecognition: typing.Optional[bool] = None, withResourcesAlternateData: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.withContent: typing.Optional[bool] = withContent
+        self.withResourcesData: typing.Optional[bool] = withResourcesData
+        self.withResourcesRecognition: typing.Optional[bool] = withResourcesRecognition
+        self.withResourcesAlternateData: typing.Optional[bool] = withResourcesAlternateData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14833,14 +14836,14 @@ class getNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -14931,12 +14934,12 @@ class getNoteApplicationData_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15009,14 +15012,14 @@ class getNoteApplicationData_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.LazyMap] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.LazyMap] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15108,13 +15111,13 @@ class getNoteApplicationDataEntry_args(object):
      - key
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15197,14 +15200,14 @@ class getNoteApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15296,14 +15299,14 @@ class setNoteApplicationDataEntry_args(object):
      - value
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None, value = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
-        self.value = value
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None, value: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
+        self.value: typing.Optional[str] = value
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15396,14 +15399,14 @@ class setNoteApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15494,13 +15497,13 @@ class unsetNoteApplicationDataEntry_args(object):
      - key
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15583,14 +15586,14 @@ class unsetNoteApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15680,12 +15683,12 @@ class getNoteContent_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15758,14 +15761,14 @@ class getNoteContent_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15857,14 +15860,14 @@ class getNoteSearchText_args(object):
      - tokenizeForIndexing
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, noteOnly = None, tokenizeForIndexing = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.noteOnly = noteOnly
-        self.tokenizeForIndexing = tokenizeForIndexing
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, noteOnly: typing.Optional[bool] = None, tokenizeForIndexing: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.noteOnly: typing.Optional[bool] = noteOnly
+        self.tokenizeForIndexing: typing.Optional[bool] = tokenizeForIndexing
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -15957,14 +15960,14 @@ class getNoteSearchText_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16054,12 +16057,12 @@ class getResourceSearchText_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16132,14 +16135,14 @@ class getResourceSearchText_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16229,12 +16232,12 @@ class getNoteTagNames_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16307,14 +16310,14 @@ class getNoteTagNames_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[list[str]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[list[str]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16412,12 +16415,12 @@ class createNote_args(object):
      - note
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, note = None,):
-        self.authenticationToken = authenticationToken
-        self.note = note
+    def __init__(self, authenticationToken: typing.Optional[str] = None, note: typing.Optional[evernote_client.edam.type.ttypes.Note] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.note: typing.Optional[evernote_client.edam.type.ttypes.Note] = note
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16491,14 +16494,14 @@ class createNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16589,12 +16592,12 @@ class updateNote_args(object):
      - note
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, note = None,):
-        self.authenticationToken = authenticationToken
-        self.note = note
+    def __init__(self, authenticationToken: typing.Optional[str] = None, note: typing.Optional[evernote_client.edam.type.ttypes.Note] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.note: typing.Optional[evernote_client.edam.type.ttypes.Note] = note
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16668,14 +16671,14 @@ class updateNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16766,12 +16769,12 @@ class deleteNote_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16844,14 +16847,14 @@ class deleteNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -16941,12 +16944,12 @@ class expungeNote_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17019,14 +17022,14 @@ class expungeNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17117,13 +17120,13 @@ class copyNote_args(object):
      - toNotebookGuid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, noteGuid = None, toNotebookGuid = None,):
-        self.authenticationToken = authenticationToken
-        self.noteGuid = noteGuid
-        self.toNotebookGuid = toNotebookGuid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, noteGuid: typing.Optional[str] = None, toNotebookGuid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.toNotebookGuid: typing.Optional[str] = toNotebookGuid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17206,14 +17209,14 @@ class copyNote_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17304,12 +17307,12 @@ class listNoteVersions_args(object):
      - noteGuid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, noteGuid = None,):
-        self.authenticationToken = authenticationToken
-        self.noteGuid = noteGuid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, noteGuid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.noteGuid: typing.Optional[str] = noteGuid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17382,14 +17385,14 @@ class listNoteVersions_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[list[NoteVersionId]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[list[NoteVersionId]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17492,16 +17495,16 @@ class getNoteVersion_args(object):
      - withResourcesAlternateData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, noteGuid = None, updateSequenceNum = None, withResourcesData = None, withResourcesRecognition = None, withResourcesAlternateData = None,):
-        self.authenticationToken = authenticationToken
-        self.noteGuid = noteGuid
-        self.updateSequenceNum = updateSequenceNum
-        self.withResourcesData = withResourcesData
-        self.withResourcesRecognition = withResourcesRecognition
-        self.withResourcesAlternateData = withResourcesAlternateData
+    def __init__(self, authenticationToken: typing.Optional[str] = None, noteGuid: typing.Optional[str] = None, updateSequenceNum: typing.Optional[int] = None, withResourcesData: typing.Optional[bool] = None, withResourcesRecognition: typing.Optional[bool] = None, withResourcesAlternateData: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.withResourcesData: typing.Optional[bool] = withResourcesData
+        self.withResourcesRecognition: typing.Optional[bool] = withResourcesRecognition
+        self.withResourcesAlternateData: typing.Optional[bool] = withResourcesAlternateData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17614,14 +17617,14 @@ class getNoteVersion_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Note] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17716,16 +17719,16 @@ class getResource_args(object):
      - withAlternateData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, withData = None, withRecognition = None, withAttributes = None, withAlternateData = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.withData = withData
-        self.withRecognition = withRecognition
-        self.withAttributes = withAttributes
-        self.withAlternateData = withAlternateData
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, withData: typing.Optional[bool] = None, withRecognition: typing.Optional[bool] = None, withAttributes: typing.Optional[bool] = None, withAlternateData: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.withData: typing.Optional[bool] = withData
+        self.withRecognition: typing.Optional[bool] = withRecognition
+        self.withAttributes: typing.Optional[bool] = withAttributes
+        self.withAlternateData: typing.Optional[bool] = withAlternateData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17838,14 +17841,14 @@ class getResource_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Resource] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Resource] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -17936,12 +17939,12 @@ class getResourceApplicationData_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18014,14 +18017,14 @@ class getResourceApplicationData_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.LazyMap] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.LazyMap] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18113,13 +18116,13 @@ class getResourceApplicationDataEntry_args(object):
      - key
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18202,14 +18205,14 @@ class getResourceApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18301,14 +18304,14 @@ class setResourceApplicationDataEntry_args(object):
      - value
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None, value = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
-        self.value = value
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None, value: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
+        self.value: typing.Optional[str] = value
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18401,14 +18404,14 @@ class setResourceApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18499,13 +18502,13 @@ class unsetResourceApplicationDataEntry_args(object):
      - key
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None, key = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
-        self.key = key
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None, key: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
+        self.key: typing.Optional[str] = key
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18588,14 +18591,14 @@ class unsetResourceApplicationDataEntry_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18685,12 +18688,12 @@ class updateResource_args(object):
      - resource
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, resource = None,):
-        self.authenticationToken = authenticationToken
-        self.resource = resource
+    def __init__(self, authenticationToken: typing.Optional[str] = None, resource: typing.Optional[evernote_client.edam.type.ttypes.Resource] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.resource: typing.Optional[evernote_client.edam.type.ttypes.Resource] = resource
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18764,14 +18767,14 @@ class updateResource_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18861,12 +18864,12 @@ class getResourceData_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -18939,14 +18942,14 @@ class getResourceData_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[bytes] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[bytes] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19040,16 +19043,16 @@ class getResourceByHash_args(object):
      - withAlternateData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, noteGuid = None, contentHash = None, withData = None, withRecognition = None, withAlternateData = None,):
-        self.authenticationToken = authenticationToken
-        self.noteGuid = noteGuid
-        self.contentHash = contentHash
-        self.withData = withData
-        self.withRecognition = withRecognition
-        self.withAlternateData = withAlternateData
+    def __init__(self, authenticationToken: typing.Optional[str] = None, noteGuid: typing.Optional[str] = None, contentHash: typing.Optional[bytes] = None, withData: typing.Optional[bool] = None, withRecognition: typing.Optional[bool] = None, withAlternateData: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.contentHash: typing.Optional[bytes] = contentHash
+        self.withData: typing.Optional[bool] = withData
+        self.withRecognition: typing.Optional[bool] = withRecognition
+        self.withAlternateData: typing.Optional[bool] = withAlternateData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19162,14 +19165,14 @@ class getResourceByHash_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Resource] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Resource] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19260,12 +19263,12 @@ class getResourceRecognition_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19338,14 +19341,14 @@ class getResourceRecognition_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[bytes] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[bytes] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19435,12 +19438,12 @@ class getResourceAlternateData_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19513,14 +19516,14 @@ class getResourceAlternateData_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[bytes] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[bytes] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19610,12 +19613,12 @@ class getResourceAttributes_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19688,14 +19691,14 @@ class getResourceAttributes_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.ResourceAttributes] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.ResourceAttributes] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19786,12 +19789,12 @@ class getPublicNotebook_args(object):
      - publicUri
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userId = None, publicUri = None,):
-        self.userId = userId
-        self.publicUri = publicUri
+    def __init__(self, userId: typing.Optional[int] = None, publicUri: typing.Optional[str] = None,):
+        self.userId: typing.Optional[int] = userId
+        self.publicUri: typing.Optional[str] = publicUri
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19863,13 +19866,13 @@ class getPublicNotebook_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = success
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -19951,13 +19954,13 @@ class shareNotebook_args(object):
      - message
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, sharedNotebook = None, message = None,):
-        self.authenticationToken = authenticationToken
-        self.sharedNotebook = sharedNotebook
-        self.message = message
+    def __init__(self, authenticationToken: typing.Optional[str] = None, sharedNotebook: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = None, message: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.sharedNotebook: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = sharedNotebook
+        self.message: typing.Optional[str] = message
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20041,14 +20044,14 @@ class shareNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20139,12 +20142,12 @@ class createOrUpdateNotebookShares_args(object):
      - shareTemplate
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, shareTemplate = None,):
-        self.authenticationToken = authenticationToken
-        self.shareTemplate = shareTemplate
+    def __init__(self, authenticationToken: typing.Optional[str] = None, shareTemplate: typing.Optional[NotebookShareTemplate] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.shareTemplate: typing.Optional[NotebookShareTemplate] = shareTemplate
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20219,15 +20222,15 @@ class createOrUpdateNotebookShares_result(object):
      - invalidContactsException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None, invalidContactsException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
-        self.invalidContactsException = invalidContactsException
+    def __init__(self, success: typing.Optional[CreateOrUpdateNotebookSharesResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, invalidContactsException: typing.Optional[evernote_client.edam.error.ttypes.EDAMInvalidContactsException] = None,):
+        self.success: typing.Optional[CreateOrUpdateNotebookSharesResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.invalidContactsException: typing.Optional[evernote_client.edam.error.ttypes.EDAMInvalidContactsException] = invalidContactsException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20328,12 +20331,12 @@ class updateSharedNotebook_args(object):
      - sharedNotebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, sharedNotebook = None,):
-        self.authenticationToken = authenticationToken
-        self.sharedNotebook = sharedNotebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, sharedNotebook: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.sharedNotebook: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = sharedNotebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20407,14 +20410,14 @@ class updateSharedNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20505,13 +20508,13 @@ class setNotebookRecipientSettings_args(object):
      - recipientSettings
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, notebookGuid = None, recipientSettings = None,):
-        self.authenticationToken = authenticationToken
-        self.notebookGuid = notebookGuid
-        self.recipientSettings = recipientSettings
+    def __init__(self, authenticationToken: typing.Optional[str] = None, notebookGuid: typing.Optional[str] = None, recipientSettings: typing.Optional[evernote_client.edam.type.ttypes.NotebookRecipientSettings] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.recipientSettings: typing.Optional[evernote_client.edam.type.ttypes.NotebookRecipientSettings] = recipientSettings
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20595,14 +20598,14 @@ class setNotebookRecipientSettings_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.Notebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20692,11 +20695,11 @@ class listSharedNotebooks_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20759,14 +20762,14 @@ class listSharedNotebooks_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.SharedNotebook]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.SharedNotebook]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20865,12 +20868,12 @@ class createLinkedNotebook_args(object):
      - linkedNotebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, linkedNotebook = None,):
-        self.authenticationToken = authenticationToken
-        self.linkedNotebook = linkedNotebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = linkedNotebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -20944,14 +20947,14 @@ class createLinkedNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21042,12 +21045,12 @@ class updateLinkedNotebook_args(object):
      - linkedNotebook
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, linkedNotebook = None,):
-        self.authenticationToken = authenticationToken
-        self.linkedNotebook = linkedNotebook
+    def __init__(self, authenticationToken: typing.Optional[str] = None, linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.linkedNotebook: typing.Optional[evernote_client.edam.type.ttypes.LinkedNotebook] = linkedNotebook
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21121,14 +21124,14 @@ class updateLinkedNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21217,11 +21220,11 @@ class listLinkedNotebooks_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21284,14 +21287,14 @@ class listLinkedNotebooks_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.LinkedNotebook]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.LinkedNotebook]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21390,12 +21393,12 @@ class expungeLinkedNotebook_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21468,14 +21471,14 @@ class expungeLinkedNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[int] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21565,12 +21568,12 @@ class authenticateToSharedNotebook_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, shareKeyOrGlobalId = None, authenticationToken = None,):
-        self.shareKeyOrGlobalId = shareKeyOrGlobalId
-        self.authenticationToken = authenticationToken
+    def __init__(self, shareKeyOrGlobalId: typing.Optional[str] = None, authenticationToken: typing.Optional[str] = None,):
+        self.shareKeyOrGlobalId: typing.Optional[str] = shareKeyOrGlobalId
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21643,14 +21646,14 @@ class authenticateToSharedNotebook_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.userstore.ttypes.AuthenticationResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.userstore.ttypes.AuthenticationResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21740,11 +21743,11 @@ class getSharedNotebookByAuth_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21807,14 +21810,14 @@ class getSharedNotebookByAuth_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebook] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21905,12 +21908,12 @@ class emailNote_args(object):
      - parameters
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, parameters = None,):
-        self.authenticationToken = authenticationToken
-        self.parameters = parameters
+    def __init__(self, authenticationToken: typing.Optional[str] = None, parameters: typing.Optional[NoteEmailParameters] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.parameters: typing.Optional[NoteEmailParameters] = parameters
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -21983,13 +21986,13 @@ class emailNote_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, notFoundException = None, systemException = None,):
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22070,12 +22073,12 @@ class shareNote_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22148,14 +22151,14 @@ class shareNote_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[str] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[str] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22245,12 +22248,12 @@ class stopSharingNote_args(object):
      - guid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, guid = None,):
-        self.authenticationToken = authenticationToken
-        self.guid = guid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, guid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.guid: typing.Optional[str] = guid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22322,13 +22325,13 @@ class stopSharingNote_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, notFoundException = None, systemException = None,):
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22410,13 +22413,13 @@ class authenticateToSharedNote_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, noteKey = None, authenticationToken = None,):
-        self.guid = guid
-        self.noteKey = noteKey
-        self.authenticationToken = authenticationToken
+    def __init__(self, guid: typing.Optional[str] = None, noteKey: typing.Optional[str] = None, authenticationToken: typing.Optional[str] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.noteKey: typing.Optional[str] = noteKey
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22499,14 +22502,14 @@ class authenticateToSharedNote_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.userstore.ttypes.AuthenticationResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.userstore.ttypes.AuthenticationResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22598,13 +22601,13 @@ class findRelated_args(object):
      - resultSpec
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, query = None, resultSpec = None,):
-        self.authenticationToken = authenticationToken
-        self.query = query
-        self.resultSpec = resultSpec
+    def __init__(self, authenticationToken: typing.Optional[str] = None, query: typing.Optional[RelatedQuery] = None, resultSpec: typing.Optional[RelatedResultSpec] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.query: typing.Optional[RelatedQuery] = query
+        self.resultSpec: typing.Optional[RelatedResultSpec] = resultSpec
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22689,14 +22692,14 @@ class findRelated_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None, notFoundException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, success: typing.Optional[RelatedResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.success: typing.Optional[RelatedResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22787,12 +22790,12 @@ class updateNoteIfUsnMatches_args(object):
      - note
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, note = None,):
-        self.authenticationToken = authenticationToken
-        self.note = note
+    def __init__(self, authenticationToken: typing.Optional[str] = None, note: typing.Optional[evernote_client.edam.type.ttypes.Note] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.note: typing.Optional[evernote_client.edam.type.ttypes.Note] = note
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22866,14 +22869,14 @@ class updateNoteIfUsnMatches_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[UpdateNoteIfUsnMatchesResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[UpdateNoteIfUsnMatchesResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -22964,12 +22967,12 @@ class manageNotebookShares_args(object):
      - parameters
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, parameters = None,):
-        self.authenticationToken = authenticationToken
-        self.parameters = parameters
+    def __init__(self, authenticationToken: typing.Optional[str] = None, parameters: typing.Optional[ManageNotebookSharesParameters] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.parameters: typing.Optional[ManageNotebookSharesParameters] = parameters
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -23043,14 +23046,14 @@ class manageNotebookShares_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[ManageNotebookSharesResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[ManageNotebookSharesResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -23141,12 +23144,12 @@ class getNotebookShares_args(object):
      - notebookGuid
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, notebookGuid = None,):
-        self.authenticationToken = authenticationToken
-        self.notebookGuid = notebookGuid
+    def __init__(self, authenticationToken: typing.Optional[str] = None, notebookGuid: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.notebookGuid: typing.Optional[str] = notebookGuid
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -23219,14 +23222,14 @@ class getNotebookShares_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, notFoundException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.notFoundException = notFoundException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[ShareRelationships] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[ShareRelationships] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:

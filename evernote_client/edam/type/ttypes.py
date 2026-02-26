@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import evernote_client.edam.limits.ttypes
@@ -18,7 +21,7 @@ from thrift.transport import TTransport
 all_structs = []
 
 
-class PrivilegeLevel(object):
+class PrivilegeLevel(IntEnum):
     """
     This enumeration defines the possible permission levels for a user.
     Free accounts will have a level of NORMAL and paid Premium accounts
@@ -32,26 +35,9 @@ class PrivilegeLevel(object):
     SUPPORT = 8
     ADMIN = 9
 
-    _VALUES_TO_NAMES = {
-        1: "NORMAL",
-        3: "PREMIUM",
-        5: "VIP",
-        7: "MANAGER",
-        8: "SUPPORT",
-        9: "ADMIN",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NORMAL": 1,
-        "PREMIUM": 3,
-        "VIP": 5,
-        "MANAGER": 7,
-        "SUPPORT": 8,
-        "ADMIN": 9,
-    }
 
 
-class ServiceLevel(object):
+class ServiceLevel(IntEnum):
     """
     This enumeration defines the possible tiers of service that a user may have. A
     ServiceLevel of BUSINESS signifies a business-only account, which can never be any
@@ -63,22 +49,9 @@ class ServiceLevel(object):
     PREMIUM = 3
     BUSINESS = 4
 
-    _VALUES_TO_NAMES = {
-        1: "BASIC",
-        2: "PLUS",
-        3: "PREMIUM",
-        4: "BUSINESS",
-    }
-
-    _NAMES_TO_VALUES = {
-        "BASIC": 1,
-        "PLUS": 2,
-        "PREMIUM": 3,
-        "BUSINESS": 4,
-    }
 
 
-class QueryFormat(object):
+class QueryFormat(IntEnum):
     """
     Every search query is specified as a sequence of characters.
     Currently, only the USER query format is supported.
@@ -87,18 +60,9 @@ class QueryFormat(object):
     USER = 1
     SEXP = 2
 
-    _VALUES_TO_NAMES = {
-        1: "USER",
-        2: "SEXP",
-    }
-
-    _NAMES_TO_VALUES = {
-        "USER": 1,
-        "SEXP": 2,
-    }
 
 
-class NoteSortOrder(object):
+class NoteSortOrder(IntEnum):
     """
     This enumeration defines the possible sort ordering for notes when
     they are returned from a search result.
@@ -110,24 +74,9 @@ class NoteSortOrder(object):
     UPDATE_SEQUENCE_NUMBER = 4
     TITLE = 5
 
-    _VALUES_TO_NAMES = {
-        1: "CREATED",
-        2: "UPDATED",
-        3: "RELEVANCE",
-        4: "UPDATE_SEQUENCE_NUMBER",
-        5: "TITLE",
-    }
-
-    _NAMES_TO_VALUES = {
-        "CREATED": 1,
-        "UPDATED": 2,
-        "RELEVANCE": 3,
-        "UPDATE_SEQUENCE_NUMBER": 4,
-        "TITLE": 5,
-    }
 
 
-class PremiumOrderStatus(object):
+class PremiumOrderStatus(IntEnum):
     """
     This enumeration defines the possible states of a premium account
 
@@ -156,26 +105,9 @@ class PremiumOrderStatus(object):
     CANCELLATION_PENDING = 4
     CANCELED = 5
 
-    _VALUES_TO_NAMES = {
-        0: "NONE",
-        1: "PENDING",
-        2: "ACTIVE",
-        3: "FAILED",
-        4: "CANCELLATION_PENDING",
-        5: "CANCELED",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NONE": 0,
-        "PENDING": 1,
-        "ACTIVE": 2,
-        "FAILED": 3,
-        "CANCELLATION_PENDING": 4,
-        "CANCELED": 5,
-    }
 
 
-class SharedNotebookPrivilegeLevel(object):
+class SharedNotebookPrivilegeLevel(IntEnum):
     """
     Privilege levels for accessing shared notebooks.
 
@@ -219,26 +151,9 @@ class SharedNotebookPrivilegeLevel(object):
     FULL_ACCESS = 4
     BUSINESS_FULL_ACCESS = 5
 
-    _VALUES_TO_NAMES = {
-        0: "READ_NOTEBOOK",
-        1: "MODIFY_NOTEBOOK_PLUS_ACTIVITY",
-        2: "READ_NOTEBOOK_PLUS_ACTIVITY",
-        3: "GROUP",
-        4: "FULL_ACCESS",
-        5: "BUSINESS_FULL_ACCESS",
-    }
-
-    _NAMES_TO_VALUES = {
-        "READ_NOTEBOOK": 0,
-        "MODIFY_NOTEBOOK_PLUS_ACTIVITY": 1,
-        "READ_NOTEBOOK_PLUS_ACTIVITY": 2,
-        "GROUP": 3,
-        "FULL_ACCESS": 4,
-        "BUSINESS_FULL_ACCESS": 5,
-    }
 
 
-class SharedNotePrivilegeLevel(object):
+class SharedNotePrivilegeLevel(IntEnum):
     """
     Privilege levels for accessing a shared note. All privilege levels convey "activity feed" access,
     which allows the recipient to access information about other recipients and the activity stream.
@@ -258,20 +173,9 @@ class SharedNotePrivilegeLevel(object):
     MODIFY_NOTE = 1
     FULL_ACCESS = 2
 
-    _VALUES_TO_NAMES = {
-        0: "READ_NOTE",
-        1: "MODIFY_NOTE",
-        2: "FULL_ACCESS",
-    }
-
-    _NAMES_TO_VALUES = {
-        "READ_NOTE": 0,
-        "MODIFY_NOTE": 1,
-        "FULL_ACCESS": 2,
-    }
 
 
-class SponsoredGroupRole(object):
+class SponsoredGroupRole(IntEnum):
     """
     Enumeration of the roles that a User can have within a sponsored group.
 
@@ -286,20 +190,9 @@ class SponsoredGroupRole(object):
     GROUP_ADMIN = 2
     GROUP_OWNER = 3
 
-    _VALUES_TO_NAMES = {
-        1: "GROUP_MEMBER",
-        2: "GROUP_ADMIN",
-        3: "GROUP_OWNER",
-    }
-
-    _NAMES_TO_VALUES = {
-        "GROUP_MEMBER": 1,
-        "GROUP_ADMIN": 2,
-        "GROUP_OWNER": 3,
-    }
 
 
-class BusinessUserRole(object):
+class BusinessUserRole(IntEnum):
     """
     Enumeration of the roles that a User can have within an Evernote Business account.
 
@@ -311,18 +204,9 @@ class BusinessUserRole(object):
     ADMIN = 1
     NORMAL = 2
 
-    _VALUES_TO_NAMES = {
-        1: "ADMIN",
-        2: "NORMAL",
-    }
-
-    _NAMES_TO_VALUES = {
-        "ADMIN": 1,
-        "NORMAL": 2,
-    }
 
 
-class BusinessUserStatus(object):
+class BusinessUserStatus(IntEnum):
     """
     The BusinessUserStatus indicates the status of the user in the business.
 
@@ -340,18 +224,9 @@ class BusinessUserStatus(object):
     ACTIVE = 1
     DEACTIVATED = 2
 
-    _VALUES_TO_NAMES = {
-        1: "ACTIVE",
-        2: "DEACTIVATED",
-    }
-
-    _NAMES_TO_VALUES = {
-        "ACTIVE": 1,
-        "DEACTIVATED": 2,
-    }
 
 
-class SharedNotebookInstanceRestrictions(object):
+class SharedNotebookInstanceRestrictions(IntEnum):
     """
     An enumeration describing restrictions on the domain of shared notebook
     instances that are valid for a given operation, as used, for example, in
@@ -366,18 +241,9 @@ class SharedNotebookInstanceRestrictions(object):
     ASSIGNED = 1
     NO_SHARED_NOTEBOOKS = 2
 
-    _VALUES_TO_NAMES = {
-        1: "ASSIGNED",
-        2: "NO_SHARED_NOTEBOOKS",
-    }
-
-    _NAMES_TO_VALUES = {
-        "ASSIGNED": 1,
-        "NO_SHARED_NOTEBOOKS": 2,
-    }
 
 
-class ReminderEmailConfig(object):
+class ReminderEmailConfig(IntEnum):
     """
     An enumeration describing the configuration state related to receiving
     reminder e-mails from the service.  Reminder e-mails summarize notes
@@ -392,18 +258,9 @@ class ReminderEmailConfig(object):
     DO_NOT_SEND = 1
     SEND_DAILY_EMAIL = 2
 
-    _VALUES_TO_NAMES = {
-        1: "DO_NOT_SEND",
-        2: "SEND_DAILY_EMAIL",
-    }
-
-    _NAMES_TO_VALUES = {
-        "DO_NOT_SEND": 1,
-        "SEND_DAILY_EMAIL": 2,
-    }
 
 
-class BusinessInvitationStatus(object):
+class BusinessInvitationStatus(IntEnum):
     """
     An enumeration defining the possible states of a BusinessInvitation.
 
@@ -422,20 +279,9 @@ class BusinessInvitationStatus(object):
     REQUESTED = 1
     REDEEMED = 2
 
-    _VALUES_TO_NAMES = {
-        0: "APPROVED",
-        1: "REQUESTED",
-        2: "REDEEMED",
-    }
-
-    _NAMES_TO_VALUES = {
-        "APPROVED": 0,
-        "REQUESTED": 1,
-        "REDEEMED": 2,
-    }
 
 
-class ContactType(object):
+class ContactType(IntEnum):
     """
     What kinds of Contacts does the Evernote service know about?
 
@@ -447,26 +293,9 @@ class ContactType(object):
     TWITTER = 5
     LINKEDIN = 6
 
-    _VALUES_TO_NAMES = {
-        1: "EVERNOTE",
-        2: "SMS",
-        3: "FACEBOOK",
-        4: "EMAIL",
-        5: "TWITTER",
-        6: "LINKEDIN",
-    }
-
-    _NAMES_TO_VALUES = {
-        "EVERNOTE": 1,
-        "SMS": 2,
-        "FACEBOOK": 3,
-        "EMAIL": 4,
-        "TWITTER": 5,
-        "LINKEDIN": 6,
-    }
 
 
-class EntityType(object):
+class EntityType(IntEnum):
     """
     Entity types
 
@@ -475,20 +304,9 @@ class EntityType(object):
     NOTEBOOK = 2
     WORKSPACE = 3
 
-    _VALUES_TO_NAMES = {
-        1: "NOTE",
-        2: "NOTEBOOK",
-        3: "WORKSPACE",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NOTE": 1,
-        "NOTEBOOK": 2,
-        "WORKSPACE": 3,
-    }
 
 
-class RecipientStatus(object):
+class RecipientStatus(IntEnum):
     """
     This enumeration defines the possible states that a notebook can be in for a recipient.
     It encompasses the "inMyList" boolean and default notebook status.
@@ -508,20 +326,9 @@ class RecipientStatus(object):
     IN_MY_LIST = 2
     IN_MY_LIST_AND_DEFAULT_NOTEBOOK = 3
 
-    _VALUES_TO_NAMES = {
-        1: "NOT_IN_MY_LIST",
-        2: "IN_MY_LIST",
-        3: "IN_MY_LIST_AND_DEFAULT_NOTEBOOK",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NOT_IN_MY_LIST": 1,
-        "IN_MY_LIST": 2,
-        "IN_MY_LIST_AND_DEFAULT_NOTEBOOK": 3,
-    }
 
 
-class CanMoveToContainerStatus(object):
+class CanMoveToContainerStatus(IntEnum):
     """
     This enumeration defines the possible types of canMoveToContainer outcomes.
     <p />
@@ -545,20 +352,9 @@ class CanMoveToContainerStatus(object):
     INSUFFICIENT_ENTITY_PRIVILEGE = 2
     INSUFFICIENT_CONTAINER_PRIVILEGE = 3
 
-    _VALUES_TO_NAMES = {
-        1: "CAN_BE_MOVED",
-        2: "INSUFFICIENT_ENTITY_PRIVILEGE",
-        3: "INSUFFICIENT_CONTAINER_PRIVILEGE",
-    }
-
-    _NAMES_TO_VALUES = {
-        "CAN_BE_MOVED": 1,
-        "INSUFFICIENT_ENTITY_PRIVILEGE": 2,
-        "INSUFFICIENT_CONTAINER_PRIVILEGE": 3,
-    }
 
 
-class RelatedContentType(object):
+class RelatedContentType(IntEnum):
     """
     This enumeration defines the possible types of related content.
 
@@ -573,22 +369,9 @@ class RelatedContentType(object):
     PROFILE_ORGANIZATION = 3
     REFERENCE_MATERIAL = 4
 
-    _VALUES_TO_NAMES = {
-        1: "NEWS_ARTICLE",
-        2: "PROFILE_PERSON",
-        3: "PROFILE_ORGANIZATION",
-        4: "REFERENCE_MATERIAL",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NEWS_ARTICLE": 1,
-        "PROFILE_PERSON": 2,
-        "PROFILE_ORGANIZATION": 3,
-        "REFERENCE_MATERIAL": 4,
-    }
 
 
-class RelatedContentAccess(object):
+class RelatedContentAccess(IntEnum):
     """
     This enumeration defines the possible ways to access related content.
 
@@ -614,22 +397,9 @@ class RelatedContentAccess(object):
     DIRECT_LINK_LOGIN_REQUIRED = 2
     DIRECT_LINK_EMBEDDED_VIEW = 3
 
-    _VALUES_TO_NAMES = {
-        0: "NOT_ACCESSIBLE",
-        1: "DIRECT_LINK_ACCESS_OK",
-        2: "DIRECT_LINK_LOGIN_REQUIRED",
-        3: "DIRECT_LINK_EMBEDDED_VIEW",
-    }
-
-    _NAMES_TO_VALUES = {
-        "NOT_ACCESSIBLE": 0,
-        "DIRECT_LINK_ACCESS_OK": 1,
-        "DIRECT_LINK_LOGIN_REQUIRED": 2,
-        "DIRECT_LINK_EMBEDDED_VIEW": 3,
-    }
 
 
-class UserIdentityType(object):
+class UserIdentityType(IntEnum):
     """
 
 
@@ -638,17 +408,6 @@ class UserIdentityType(object):
     EMAIL = 2
     IDENTITYID = 3
 
-    _VALUES_TO_NAMES = {
-        1: "EVERNOTE_USERID",
-        2: "EMAIL",
-        3: "IDENTITYID",
-    }
-
-    _NAMES_TO_VALUES = {
-        "EVERNOTE_USERID": 1,
-        "EMAIL": 2,
-        "IDENTITYID": 3,
-    }
 
 
 class Data(object):
@@ -686,13 +445,13 @@ class Data(object):
      - body
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, bodyHash = None, size = None, body = None,):
-        self.bodyHash = bodyHash
-        self.size = size
-        self.body = body
+    def __init__(self, bodyHash: typing.Optional[bytes] = None, size: typing.Optional[int] = None, body: typing.Optional[bytes] = None,):
+        self.bodyHash: typing.Optional[bytes] = bodyHash
+        self.size: typing.Optional[int] = size
+        self.body: typing.Optional[bytes] = body
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -995,45 +754,52 @@ class UserAttributes(object):
      - optOutMachineLearning
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, defaultLocationName = None, defaultLatitude = None, defaultLongitude = None, preactivation = None, viewedPromotions = None, incomingEmailAddress = None, recentMailedAddresses = None, comments = None, dateAgreedToTermsOfService = None, maxReferrals = None, referralCount = None, refererCode = None, sentEmailDate = None, sentEmailCount = None, dailyEmailLimit = None, emailOptOutDate = None, partnerEmailOptInDate = None, preferredLanguage = None, preferredCountry = None, clipFullPage = None, twitterUserName = None, twitterId = None, groupName = None, recognitionLanguage = None, referralProof = None, educationalDiscount = None, businessAddress = None, hideSponsorBilling = None, useEmailAutoFiling = None, reminderEmailConfig = None, emailAddressLastConfirmed = None, passwordUpdated = None, salesforcePushEnabled = None, shouldLogClientEvent = None, optOutMachineLearning = None,):
-        self.defaultLocationName = defaultLocationName
-        self.defaultLatitude = defaultLatitude
-        self.defaultLongitude = defaultLongitude
-        self.preactivation = preactivation
-        self.viewedPromotions = viewedPromotions
-        self.incomingEmailAddress = incomingEmailAddress
-        self.recentMailedAddresses = recentMailedAddresses
-        self.comments = comments
-        self.dateAgreedToTermsOfService = dateAgreedToTermsOfService
-        self.maxReferrals = maxReferrals
-        self.referralCount = referralCount
-        self.refererCode = refererCode
-        self.sentEmailDate = sentEmailDate
-        self.sentEmailCount = sentEmailCount
-        self.dailyEmailLimit = dailyEmailLimit
-        self.emailOptOutDate = emailOptOutDate
-        self.partnerEmailOptInDate = partnerEmailOptInDate
-        self.preferredLanguage = preferredLanguage
-        self.preferredCountry = preferredCountry
-        self.clipFullPage = clipFullPage
-        self.twitterUserName = twitterUserName
-        self.twitterId = twitterId
-        self.groupName = groupName
-        self.recognitionLanguage = recognitionLanguage
-        self.referralProof = referralProof
-        self.educationalDiscount = educationalDiscount
-        self.businessAddress = businessAddress
-        self.hideSponsorBilling = hideSponsorBilling
-        self.useEmailAutoFiling = useEmailAutoFiling
-        self.reminderEmailConfig = reminderEmailConfig
-        self.emailAddressLastConfirmed = emailAddressLastConfirmed
-        self.passwordUpdated = passwordUpdated
-        self.salesforcePushEnabled = salesforcePushEnabled
-        self.shouldLogClientEvent = shouldLogClientEvent
-        self.optOutMachineLearning = optOutMachineLearning
+    def __init__(self, defaultLocationName: typing.Optional[str] = None, defaultLatitude: typing.Optional[float] = None, defaultLongitude: typing.Optional[float] = None, preactivation: typing.Optional[bool] = None, viewedPromotions: typing.Optional[list[str]] = None, incomingEmailAddress: typing.Optional[str] = None, recentMailedAddresses: typing.Optional[list[str]] = None, comments: typing.Optional[str] = None, dateAgreedToTermsOfService: typing.Optional[int] = None, maxReferrals: typing.Optional[int] = None, referralCount: typing.Optional[int] = None, refererCode: typing.Optional[str] = None, sentEmailDate: typing.Optional[int] = None, sentEmailCount: typing.Optional[int] = None, dailyEmailLimit: typing.Optional[int] = None, emailOptOutDate: typing.Optional[int] = None, partnerEmailOptInDate: typing.Optional[int] = None, preferredLanguage: typing.Optional[str] = None, preferredCountry: typing.Optional[str] = None, clipFullPage: typing.Optional[bool] = None, twitterUserName: typing.Optional[str] = None, twitterId: typing.Optional[str] = None, groupName: typing.Optional[str] = None, recognitionLanguage: typing.Optional[str] = None, referralProof: typing.Optional[str] = None, educationalDiscount: typing.Optional[bool] = None, businessAddress: typing.Optional[str] = None, hideSponsorBilling: typing.Optional[bool] = None, useEmailAutoFiling: typing.Optional[bool] = None, reminderEmailConfig: typing.Optional[ReminderEmailConfig] = None, emailAddressLastConfirmed: typing.Optional[int] = None, passwordUpdated: typing.Optional[int] = None, salesforcePushEnabled: typing.Optional[bool] = None, shouldLogClientEvent: typing.Optional[bool] = None, optOutMachineLearning: typing.Optional[bool] = None,):
+        self.defaultLocationName: typing.Optional[str] = defaultLocationName
+        self.defaultLatitude: typing.Optional[float] = defaultLatitude
+        self.defaultLongitude: typing.Optional[float] = defaultLongitude
+        self.preactivation: typing.Optional[bool] = preactivation
+        self.viewedPromotions: typing.Optional[list[str]] = viewedPromotions
+        self.incomingEmailAddress: typing.Optional[str] = incomingEmailAddress
+        self.recentMailedAddresses: typing.Optional[list[str]] = recentMailedAddresses
+        self.comments: typing.Optional[str] = comments
+        self.dateAgreedToTermsOfService: typing.Optional[int] = dateAgreedToTermsOfService
+        self.maxReferrals: typing.Optional[int] = maxReferrals
+        self.referralCount: typing.Optional[int] = referralCount
+        self.refererCode: typing.Optional[str] = refererCode
+        self.sentEmailDate: typing.Optional[int] = sentEmailDate
+        self.sentEmailCount: typing.Optional[int] = sentEmailCount
+        self.dailyEmailLimit: typing.Optional[int] = dailyEmailLimit
+        self.emailOptOutDate: typing.Optional[int] = emailOptOutDate
+        self.partnerEmailOptInDate: typing.Optional[int] = partnerEmailOptInDate
+        self.preferredLanguage: typing.Optional[str] = preferredLanguage
+        self.preferredCountry: typing.Optional[str] = preferredCountry
+        self.clipFullPage: typing.Optional[bool] = clipFullPage
+        self.twitterUserName: typing.Optional[str] = twitterUserName
+        self.twitterId: typing.Optional[str] = twitterId
+        self.groupName: typing.Optional[str] = groupName
+        self.recognitionLanguage: typing.Optional[str] = recognitionLanguage
+        self.referralProof: typing.Optional[str] = referralProof
+        self.educationalDiscount: typing.Optional[bool] = educationalDiscount
+        self.businessAddress: typing.Optional[str] = businessAddress
+        self.hideSponsorBilling: typing.Optional[bool] = hideSponsorBilling
+        self.useEmailAutoFiling: typing.Optional[bool] = useEmailAutoFiling
+        self.reminderEmailConfig: typing.Optional[ReminderEmailConfig] = reminderEmailConfig
+        self.emailAddressLastConfirmed: typing.Optional[int] = emailAddressLastConfirmed
+        self.passwordUpdated: typing.Optional[int] = passwordUpdated
+        self.salesforcePushEnabled: typing.Optional[bool] = salesforcePushEnabled
+        self.shouldLogClientEvent: typing.Optional[bool] = shouldLogClientEvent
+        self.optOutMachineLearning: typing.Optional[bool] = optOutMachineLearning
+
+    def __setattr__(self, name, value):
+        if name == "reminderEmailConfig":
+            super().__setattr__(name, value if hasattr(value, 'value') else ReminderEmailConfig.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1201,7 +967,7 @@ class UserAttributes(object):
                     iprot.skip(ftype)
             elif fid == 34:
                 if ftype == TType.I32:
-                    self.reminderEmailConfig = iprot.readI32()
+                    self.reminderEmailConfig = ReminderEmailConfig(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 35:
@@ -1364,7 +1130,7 @@ class UserAttributes(object):
             oprot.writeFieldEnd()
         if self.reminderEmailConfig is not None:
             oprot.writeFieldBegin('reminderEmailConfig', TType.I32, 34)
-            oprot.writeI32(self.reminderEmailConfig)
+            oprot.writeI32(self.reminderEmailConfig.value)
             oprot.writeFieldEnd()
         if self.emailAddressLastConfirmed is not None:
             oprot.writeFieldBegin('emailAddressLastConfirmed', TType.I64, 35)
@@ -1444,17 +1210,17 @@ class BusinessUserAttributes(object):
      - companyStartDate
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, title = None, location = None, department = None, mobilePhone = None, linkedInProfileUrl = None, workPhone = None, companyStartDate = None,):
-        self.title = title
-        self.location = location
-        self.department = department
-        self.mobilePhone = mobilePhone
-        self.linkedInProfileUrl = linkedInProfileUrl
-        self.workPhone = workPhone
-        self.companyStartDate = companyStartDate
+    def __init__(self, title: typing.Optional[str] = None, location: typing.Optional[str] = None, department: typing.Optional[str] = None, mobilePhone: typing.Optional[str] = None, linkedInProfileUrl: typing.Optional[str] = None, workPhone: typing.Optional[str] = None, companyStartDate: typing.Optional[int] = None,):
+        self.title: typing.Optional[str] = title
+        self.location: typing.Optional[str] = location
+        self.department: typing.Optional[str] = department
+        self.mobilePhone: typing.Optional[str] = mobilePhone
+        self.linkedInProfileUrl: typing.Optional[str] = linkedInProfileUrl
+        self.workPhone: typing.Optional[str] = workPhone
+        self.companyStartDate: typing.Optional[int] = companyStartDate
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1666,33 +1432,43 @@ class Accounting(object):
      - availablePoints
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, uploadLimitEnd = None, uploadLimitNextMonth = None, premiumServiceStatus = None, premiumOrderNumber = None, premiumCommerceService = None, premiumServiceStart = None, premiumServiceSKU = None, lastSuccessfulCharge = None, lastFailedCharge = None, lastFailedChargeReason = None, nextPaymentDue = None, premiumLockUntil = None, updated = None, premiumSubscriptionNumber = None, lastRequestedCharge = None, currency = None, unitPrice = None, businessId = None, businessName = None, businessRole = None, unitDiscount = None, nextChargeDate = None, availablePoints = None,):
-        self.uploadLimitEnd = uploadLimitEnd
-        self.uploadLimitNextMonth = uploadLimitNextMonth
-        self.premiumServiceStatus = premiumServiceStatus
-        self.premiumOrderNumber = premiumOrderNumber
-        self.premiumCommerceService = premiumCommerceService
-        self.premiumServiceStart = premiumServiceStart
-        self.premiumServiceSKU = premiumServiceSKU
-        self.lastSuccessfulCharge = lastSuccessfulCharge
-        self.lastFailedCharge = lastFailedCharge
-        self.lastFailedChargeReason = lastFailedChargeReason
-        self.nextPaymentDue = nextPaymentDue
-        self.premiumLockUntil = premiumLockUntil
-        self.updated = updated
-        self.premiumSubscriptionNumber = premiumSubscriptionNumber
-        self.lastRequestedCharge = lastRequestedCharge
-        self.currency = currency
-        self.unitPrice = unitPrice
-        self.businessId = businessId
-        self.businessName = businessName
-        self.businessRole = businessRole
-        self.unitDiscount = unitDiscount
-        self.nextChargeDate = nextChargeDate
-        self.availablePoints = availablePoints
+    def __init__(self, uploadLimitEnd: typing.Optional[int] = None, uploadLimitNextMonth: typing.Optional[int] = None, premiumServiceStatus: typing.Optional[PremiumOrderStatus] = None, premiumOrderNumber: typing.Optional[str] = None, premiumCommerceService: typing.Optional[str] = None, premiumServiceStart: typing.Optional[int] = None, premiumServiceSKU: typing.Optional[str] = None, lastSuccessfulCharge: typing.Optional[int] = None, lastFailedCharge: typing.Optional[int] = None, lastFailedChargeReason: typing.Optional[str] = None, nextPaymentDue: typing.Optional[int] = None, premiumLockUntil: typing.Optional[int] = None, updated: typing.Optional[int] = None, premiumSubscriptionNumber: typing.Optional[str] = None, lastRequestedCharge: typing.Optional[int] = None, currency: typing.Optional[str] = None, unitPrice: typing.Optional[int] = None, businessId: typing.Optional[int] = None, businessName: typing.Optional[str] = None, businessRole: typing.Optional[BusinessUserRole] = None, unitDiscount: typing.Optional[int] = None, nextChargeDate: typing.Optional[int] = None, availablePoints: typing.Optional[int] = None,):
+        self.uploadLimitEnd: typing.Optional[int] = uploadLimitEnd
+        self.uploadLimitNextMonth: typing.Optional[int] = uploadLimitNextMonth
+        self.premiumServiceStatus: typing.Optional[PremiumOrderStatus] = premiumServiceStatus
+        self.premiumOrderNumber: typing.Optional[str] = premiumOrderNumber
+        self.premiumCommerceService: typing.Optional[str] = premiumCommerceService
+        self.premiumServiceStart: typing.Optional[int] = premiumServiceStart
+        self.premiumServiceSKU: typing.Optional[str] = premiumServiceSKU
+        self.lastSuccessfulCharge: typing.Optional[int] = lastSuccessfulCharge
+        self.lastFailedCharge: typing.Optional[int] = lastFailedCharge
+        self.lastFailedChargeReason: typing.Optional[str] = lastFailedChargeReason
+        self.nextPaymentDue: typing.Optional[int] = nextPaymentDue
+        self.premiumLockUntil: typing.Optional[int] = premiumLockUntil
+        self.updated: typing.Optional[int] = updated
+        self.premiumSubscriptionNumber: typing.Optional[str] = premiumSubscriptionNumber
+        self.lastRequestedCharge: typing.Optional[int] = lastRequestedCharge
+        self.currency: typing.Optional[str] = currency
+        self.unitPrice: typing.Optional[int] = unitPrice
+        self.businessId: typing.Optional[int] = businessId
+        self.businessName: typing.Optional[str] = businessName
+        self.businessRole: typing.Optional[BusinessUserRole] = businessRole
+        self.unitDiscount: typing.Optional[int] = unitDiscount
+        self.nextChargeDate: typing.Optional[int] = nextChargeDate
+        self.availablePoints: typing.Optional[int] = availablePoints
+
+    def __setattr__(self, name, value):
+        if name == "premiumServiceStatus":
+            super().__setattr__(name, value if hasattr(value, 'value') else PremiumOrderStatus.__members__.get(value))
+            return
+        if name == "businessRole":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessUserRole.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1715,7 +1491,7 @@ class Accounting(object):
                     iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I32:
-                    self.premiumServiceStatus = iprot.readI32()
+                    self.premiumServiceStatus = PremiumOrderStatus(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -1800,7 +1576,7 @@ class Accounting(object):
                     iprot.skip(ftype)
             elif fid == 22:
                 if ftype == TType.I32:
-                    self.businessRole = iprot.readI32()
+                    self.businessRole = BusinessUserRole(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 23:
@@ -1839,7 +1615,7 @@ class Accounting(object):
             oprot.writeFieldEnd()
         if self.premiumServiceStatus is not None:
             oprot.writeFieldBegin('premiumServiceStatus', TType.I32, 4)
-            oprot.writeI32(self.premiumServiceStatus)
+            oprot.writeI32(self.premiumServiceStatus.value)
             oprot.writeFieldEnd()
         if self.premiumOrderNumber is not None:
             oprot.writeFieldBegin('premiumOrderNumber', TType.STRING, 5)
@@ -1907,7 +1683,7 @@ class Accounting(object):
             oprot.writeFieldEnd()
         if self.businessRole is not None:
             oprot.writeFieldBegin('businessRole', TType.I32, 22)
-            oprot.writeI32(self.businessRole)
+            oprot.writeI32(self.businessRole.value)
             oprot.writeFieldEnd()
         if self.unitDiscount is not None:
             oprot.writeFieldBegin('unitDiscount', TType.I32, 23)
@@ -1972,15 +1748,22 @@ class BusinessUserInfo(object):
      - updated
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, businessId = None, businessName = None, role = None, email = None, updated = None,):
-        self.businessId = businessId
-        self.businessName = businessName
-        self.role = role
-        self.email = email
-        self.updated = updated
+    def __init__(self, businessId: typing.Optional[int] = None, businessName: typing.Optional[str] = None, role: typing.Optional[BusinessUserRole] = None, email: typing.Optional[str] = None, updated: typing.Optional[int] = None,):
+        self.businessId: typing.Optional[int] = businessId
+        self.businessName: typing.Optional[str] = businessName
+        self.role: typing.Optional[BusinessUserRole] = role
+        self.email: typing.Optional[str] = email
+        self.updated: typing.Optional[int] = updated
+
+    def __setattr__(self, name, value):
+        if name == "role":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessUserRole.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2003,7 +1786,7 @@ class BusinessUserInfo(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.role = iprot.readI32()
+                    self.role = BusinessUserRole(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -2037,7 +1820,7 @@ class BusinessUserInfo(object):
             oprot.writeFieldEnd()
         if self.role is not None:
             oprot.writeFieldBegin('role', TType.I32, 3)
-            oprot.writeI32(self.role)
+            oprot.writeI32(self.role.value)
             oprot.writeFieldEnd()
         if self.email is not None:
             oprot.writeFieldBegin('email', TType.STRING, 4)
@@ -2122,21 +1905,21 @@ class AccountLimits(object):
      - noteResourceCountMax
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userMailLimitDaily = None, noteSizeMax = None, resourceSizeMax = None, userLinkedNotebookMax = None, uploadLimit = None, userNoteCountMax = None, userNotebookCountMax = None, userTagCountMax = None, noteTagCountMax = None, userSavedSearchesMax = None, noteResourceCountMax = None,):
-        self.userMailLimitDaily = userMailLimitDaily
-        self.noteSizeMax = noteSizeMax
-        self.resourceSizeMax = resourceSizeMax
-        self.userLinkedNotebookMax = userLinkedNotebookMax
-        self.uploadLimit = uploadLimit
-        self.userNoteCountMax = userNoteCountMax
-        self.userNotebookCountMax = userNotebookCountMax
-        self.userTagCountMax = userTagCountMax
-        self.noteTagCountMax = noteTagCountMax
-        self.userSavedSearchesMax = userSavedSearchesMax
-        self.noteResourceCountMax = noteResourceCountMax
+    def __init__(self, userMailLimitDaily: typing.Optional[int] = None, noteSizeMax: typing.Optional[int] = None, resourceSizeMax: typing.Optional[int] = None, userLinkedNotebookMax: typing.Optional[int] = None, uploadLimit: typing.Optional[int] = None, userNoteCountMax: typing.Optional[int] = None, userNotebookCountMax: typing.Optional[int] = None, userTagCountMax: typing.Optional[int] = None, noteTagCountMax: typing.Optional[int] = None, userSavedSearchesMax: typing.Optional[int] = None, noteResourceCountMax: typing.Optional[int] = None,):
+        self.userMailLimitDaily: typing.Optional[int] = userMailLimitDaily
+        self.noteSizeMax: typing.Optional[int] = noteSizeMax
+        self.resourceSizeMax: typing.Optional[int] = resourceSizeMax
+        self.userLinkedNotebookMax: typing.Optional[int] = userLinkedNotebookMax
+        self.uploadLimit: typing.Optional[int] = uploadLimit
+        self.userNoteCountMax: typing.Optional[int] = userNoteCountMax
+        self.userNotebookCountMax: typing.Optional[int] = userNotebookCountMax
+        self.userTagCountMax: typing.Optional[int] = userTagCountMax
+        self.noteTagCountMax: typing.Optional[int] = noteTagCountMax
+        self.userSavedSearchesMax: typing.Optional[int] = userSavedSearchesMax
+        self.noteResourceCountMax: typing.Optional[int] = noteResourceCountMax
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2409,28 +2192,38 @@ class User(object):
      - accountLimits
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, id = None, username = None, email = None, name = None, timezone = None, privilege = None, serviceLevel = None, created = None, updated = None, deleted = None, active = None, shardId = None, attributes = None, accounting = None, businessUserInfo = None, photoUrl = None, photoLastUpdated = None, accountLimits = None,):
-        self.id = id
-        self.username = username
-        self.email = email
-        self.name = name
-        self.timezone = timezone
-        self.privilege = privilege
-        self.serviceLevel = serviceLevel
-        self.created = created
-        self.updated = updated
-        self.deleted = deleted
-        self.active = active
-        self.shardId = shardId
-        self.attributes = attributes
-        self.accounting = accounting
-        self.businessUserInfo = businessUserInfo
-        self.photoUrl = photoUrl
-        self.photoLastUpdated = photoLastUpdated
-        self.accountLimits = accountLimits
+    def __init__(self, id: typing.Optional[int] = None, username: typing.Optional[str] = None, email: typing.Optional[str] = None, name: typing.Optional[str] = None, timezone: typing.Optional[str] = None, privilege: typing.Optional[PrivilegeLevel] = None, serviceLevel: typing.Optional[ServiceLevel] = None, created: typing.Optional[int] = None, updated: typing.Optional[int] = None, deleted: typing.Optional[int] = None, active: typing.Optional[bool] = None, shardId: typing.Optional[str] = None, attributes: typing.Optional[UserAttributes] = None, accounting: typing.Optional[Accounting] = None, businessUserInfo: typing.Optional[BusinessUserInfo] = None, photoUrl: typing.Optional[str] = None, photoLastUpdated: typing.Optional[int] = None, accountLimits: typing.Optional[AccountLimits] = None,):
+        self.id: typing.Optional[int] = id
+        self.username: typing.Optional[str] = username
+        self.email: typing.Optional[str] = email
+        self.name: typing.Optional[str] = name
+        self.timezone: typing.Optional[str] = timezone
+        self.privilege: typing.Optional[PrivilegeLevel] = privilege
+        self.serviceLevel: typing.Optional[ServiceLevel] = serviceLevel
+        self.created: typing.Optional[int] = created
+        self.updated: typing.Optional[int] = updated
+        self.deleted: typing.Optional[int] = deleted
+        self.active: typing.Optional[bool] = active
+        self.shardId: typing.Optional[str] = shardId
+        self.attributes: typing.Optional[UserAttributes] = attributes
+        self.accounting: typing.Optional[Accounting] = accounting
+        self.businessUserInfo: typing.Optional[BusinessUserInfo] = businessUserInfo
+        self.photoUrl: typing.Optional[str] = photoUrl
+        self.photoLastUpdated: typing.Optional[int] = photoLastUpdated
+        self.accountLimits: typing.Optional[AccountLimits] = accountLimits
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else PrivilegeLevel.__members__.get(value))
+            return
+        if name == "serviceLevel":
+            super().__setattr__(name, value if hasattr(value, 'value') else ServiceLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2468,12 +2261,12 @@ class User(object):
                     iprot.skip(ftype)
             elif fid == 7:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = PrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 21:
                 if ftype == TType.I32:
-                    self.serviceLevel = iprot.readI32()
+                    self.serviceLevel = ServiceLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 9:
@@ -2568,7 +2361,7 @@ class User(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 7)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.created is not None:
             oprot.writeFieldBegin('created', TType.I64, 9)
@@ -2612,7 +2405,7 @@ class User(object):
             oprot.writeFieldEnd()
         if self.serviceLevel is not None:
             oprot.writeFieldBegin('serviceLevel', TType.I32, 21)
-            oprot.writeI32(self.serviceLevel)
+            oprot.writeI32(self.serviceLevel.value)
             oprot.writeFieldEnd()
         if self.accountLimits is not None:
             oprot.writeFieldBegin('accountLimits', TType.STRUCT, 22)
@@ -2686,17 +2479,24 @@ class Contact(object):
      - messagingPermitExpires
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, name = None, id = None, type = None, photoUrl = None, photoLastUpdated = None, messagingPermit = None, messagingPermitExpires = None,):
-        self.name = name
-        self.id = id
-        self.type = type
-        self.photoUrl = photoUrl
-        self.photoLastUpdated = photoLastUpdated
-        self.messagingPermit = messagingPermit
-        self.messagingPermitExpires = messagingPermitExpires
+    def __init__(self, name: typing.Optional[str] = None, id: typing.Optional[str] = None, type: typing.Optional[ContactType] = None, photoUrl: typing.Optional[str] = None, photoLastUpdated: typing.Optional[int] = None, messagingPermit: typing.Optional[bytes] = None, messagingPermitExpires: typing.Optional[int] = None,):
+        self.name: typing.Optional[str] = name
+        self.id: typing.Optional[str] = id
+        self.type: typing.Optional[ContactType] = type
+        self.photoUrl: typing.Optional[str] = photoUrl
+        self.photoLastUpdated: typing.Optional[int] = photoLastUpdated
+        self.messagingPermit: typing.Optional[bytes] = messagingPermit
+        self.messagingPermitExpires: typing.Optional[int] = messagingPermitExpires
+
+    def __setattr__(self, name, value):
+        if name == "type":
+            super().__setattr__(name, value if hasattr(value, 'value') else ContactType.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2719,7 +2519,7 @@ class Contact(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.type = iprot.readI32()
+                    self.type = ContactType(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -2763,7 +2563,7 @@ class Contact(object):
             oprot.writeFieldEnd()
         if self.type is not None:
             oprot.writeFieldBegin('type', TType.I32, 3)
-            oprot.writeI32(self.type)
+            oprot.writeI32(self.type.value)
             oprot.writeFieldEnd()
         if self.photoUrl is not None:
             oprot.writeFieldBegin('photoUrl', TType.STRING, 4)
@@ -2869,18 +2669,18 @@ class Identity(object):
      - eventId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, id = None, contact = None, userId = None, deactivated = None, sameBusiness = None, blocked = None, userConnected = None, eventId = None,):
-        self.id = id
-        self.contact = contact
-        self.userId = userId
-        self.deactivated = deactivated
-        self.sameBusiness = sameBusiness
-        self.blocked = blocked
-        self.userConnected = userConnected
-        self.eventId = eventId
+    def __init__(self, id: int = None, contact: typing.Optional[Contact] = None, userId: typing.Optional[int] = None, deactivated: typing.Optional[bool] = None, sameBusiness: typing.Optional[bool] = None, blocked: typing.Optional[bool] = None, userConnected: typing.Optional[bool] = None, eventId: typing.Optional[int] = None,):
+        self.id: int = id
+        self.contact: typing.Optional[Contact] = contact
+        self.userId: typing.Optional[int] = userId
+        self.deactivated: typing.Optional[bool] = deactivated
+        self.sameBusiness: typing.Optional[bool] = sameBusiness
+        self.blocked: typing.Optional[bool] = blocked
+        self.userConnected: typing.Optional[bool] = userConnected
+        self.eventId: typing.Optional[int] = eventId
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3049,14 +2849,14 @@ class Tag(object):
      - updateSequenceNum
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, name = None, parentGuid = None, updateSequenceNum = None,):
-        self.guid = guid
-        self.name = name
-        self.parentGuid = parentGuid
-        self.updateSequenceNum = updateSequenceNum
+    def __init__(self, guid: typing.Optional[str] = None, name: typing.Optional[str] = None, parentGuid: typing.Optional[str] = None, updateSequenceNum: typing.Optional[int] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.name: typing.Optional[str] = name
+        self.parentGuid: typing.Optional[str] = parentGuid
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3167,12 +2967,12 @@ class LazyMap(object):
      - fullMap
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, keysOnly = None, fullMap = None,):
-        self.keysOnly = keysOnly
-        self.fullMap = fullMap
+    def __init__(self, keysOnly: typing.Optional[set[str]] = None, fullMap: typing.Optional[dict[str, str]] = None,):
+        self.keysOnly: typing.Optional[set[str]] = keysOnly
+        self.fullMap: typing.Optional[dict[str, str]] = fullMap
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3345,22 +3145,22 @@ class ResourceAttributes(object):
      - applicationData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, sourceURL = None, timestamp = None, latitude = None, longitude = None, altitude = None, cameraMake = None, cameraModel = None, clientWillIndex = None, recoType = None, fileName = None, attachment = None, applicationData = None,):
-        self.sourceURL = sourceURL
-        self.timestamp = timestamp
-        self.latitude = latitude
-        self.longitude = longitude
-        self.altitude = altitude
-        self.cameraMake = cameraMake
-        self.cameraModel = cameraModel
-        self.clientWillIndex = clientWillIndex
-        self.recoType = recoType
-        self.fileName = fileName
-        self.attachment = attachment
-        self.applicationData = applicationData
+    def __init__(self, sourceURL: typing.Optional[str] = None, timestamp: typing.Optional[int] = None, latitude: typing.Optional[float] = None, longitude: typing.Optional[float] = None, altitude: typing.Optional[float] = None, cameraMake: typing.Optional[str] = None, cameraModel: typing.Optional[str] = None, clientWillIndex: typing.Optional[bool] = None, recoType: typing.Optional[str] = None, fileName: typing.Optional[str] = None, attachment: typing.Optional[bool] = None, applicationData: typing.Optional[LazyMap] = None,):
+        self.sourceURL: typing.Optional[str] = sourceURL
+        self.timestamp: typing.Optional[int] = timestamp
+        self.latitude: typing.Optional[float] = latitude
+        self.longitude: typing.Optional[float] = longitude
+        self.altitude: typing.Optional[float] = altitude
+        self.cameraMake: typing.Optional[str] = cameraMake
+        self.cameraModel: typing.Optional[str] = cameraModel
+        self.clientWillIndex: typing.Optional[bool] = clientWillIndex
+        self.recoType: typing.Optional[str] = recoType
+        self.fileName: typing.Optional[str] = fileName
+        self.attachment: typing.Optional[bool] = attachment
+        self.applicationData: typing.Optional[LazyMap] = applicationData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3605,22 +3405,22 @@ class Resource(object):
      - alternateData
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, noteGuid = None, data = None, mime = None, width = None, height = None, duration = None, active = None, recognition = None, attributes = None, updateSequenceNum = None, alternateData = None,):
-        self.guid = guid
-        self.noteGuid = noteGuid
-        self.data = data
-        self.mime = mime
-        self.width = width
-        self.height = height
-        self.duration = duration
-        self.active = active
-        self.recognition = recognition
-        self.attributes = attributes
-        self.updateSequenceNum = updateSequenceNum
-        self.alternateData = alternateData
+    def __init__(self, guid: typing.Optional[str] = None, noteGuid: typing.Optional[str] = None, data: typing.Optional[Data] = None, mime: typing.Optional[str] = None, width: typing.Optional[int] = None, height: typing.Optional[int] = None, duration: typing.Optional[int] = None, active: typing.Optional[bool] = None, recognition: typing.Optional[Data] = None, attributes: typing.Optional[ResourceAttributes] = None, updateSequenceNum: typing.Optional[int] = None, alternateData: typing.Optional[Data] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.data: typing.Optional[Data] = data
+        self.mime: typing.Optional[str] = mime
+        self.width: typing.Optional[int] = width
+        self.height: typing.Optional[int] = height
+        self.duration: typing.Optional[int] = duration
+        self.active: typing.Optional[bool] = active
+        self.recognition: typing.Optional[Data] = recognition
+        self.attributes: typing.Optional[ResourceAttributes] = attributes
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.alternateData: typing.Optional[Data] = alternateData
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4000,32 +3800,32 @@ class NoteAttributes(object):
      - noteTitleQuality
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, subjectDate = None, latitude = None, longitude = None, altitude = None, author = None, source = None, sourceURL = None, sourceApplication = None, shareDate = None, reminderOrder = None, reminderDoneTime = None, reminderTime = None, placeName = None, contentClass = None, applicationData = None, lastEditedBy = None, classifications = None, creatorId = None, lastEditorId = None, sharedWithBusiness = None, conflictSourceNoteGuid = None, noteTitleQuality = None,):
-        self.subjectDate = subjectDate
-        self.latitude = latitude
-        self.longitude = longitude
-        self.altitude = altitude
-        self.author = author
-        self.source = source
-        self.sourceURL = sourceURL
-        self.sourceApplication = sourceApplication
-        self.shareDate = shareDate
-        self.reminderOrder = reminderOrder
-        self.reminderDoneTime = reminderDoneTime
-        self.reminderTime = reminderTime
-        self.placeName = placeName
-        self.contentClass = contentClass
-        self.applicationData = applicationData
-        self.lastEditedBy = lastEditedBy
-        self.classifications = classifications
-        self.creatorId = creatorId
-        self.lastEditorId = lastEditorId
-        self.sharedWithBusiness = sharedWithBusiness
-        self.conflictSourceNoteGuid = conflictSourceNoteGuid
-        self.noteTitleQuality = noteTitleQuality
+    def __init__(self, subjectDate: typing.Optional[int] = None, latitude: typing.Optional[float] = None, longitude: typing.Optional[float] = None, altitude: typing.Optional[float] = None, author: typing.Optional[str] = None, source: typing.Optional[str] = None, sourceURL: typing.Optional[str] = None, sourceApplication: typing.Optional[str] = None, shareDate: typing.Optional[int] = None, reminderOrder: typing.Optional[int] = None, reminderDoneTime: typing.Optional[int] = None, reminderTime: typing.Optional[int] = None, placeName: typing.Optional[str] = None, contentClass: typing.Optional[str] = None, applicationData: typing.Optional[LazyMap] = None, lastEditedBy: typing.Optional[str] = None, classifications: typing.Optional[dict[str, str]] = None, creatorId: typing.Optional[int] = None, lastEditorId: typing.Optional[int] = None, sharedWithBusiness: typing.Optional[bool] = None, conflictSourceNoteGuid: typing.Optional[str] = None, noteTitleQuality: typing.Optional[int] = None,):
+        self.subjectDate: typing.Optional[int] = subjectDate
+        self.latitude: typing.Optional[float] = latitude
+        self.longitude: typing.Optional[float] = longitude
+        self.altitude: typing.Optional[float] = altitude
+        self.author: typing.Optional[str] = author
+        self.source: typing.Optional[str] = source
+        self.sourceURL: typing.Optional[str] = sourceURL
+        self.sourceApplication: typing.Optional[str] = sourceApplication
+        self.shareDate: typing.Optional[int] = shareDate
+        self.reminderOrder: typing.Optional[int] = reminderOrder
+        self.reminderDoneTime: typing.Optional[int] = reminderDoneTime
+        self.reminderTime: typing.Optional[int] = reminderTime
+        self.placeName: typing.Optional[str] = placeName
+        self.contentClass: typing.Optional[str] = contentClass
+        self.applicationData: typing.Optional[LazyMap] = applicationData
+        self.lastEditedBy: typing.Optional[str] = lastEditedBy
+        self.classifications: typing.Optional[dict[str, str]] = classifications
+        self.creatorId: typing.Optional[int] = creatorId
+        self.lastEditorId: typing.Optional[int] = lastEditorId
+        self.sharedWithBusiness: typing.Optional[bool] = sharedWithBusiness
+        self.conflictSourceNoteGuid: typing.Optional[str] = conflictSourceNoteGuid
+        self.noteTitleQuality: typing.Optional[int] = noteTitleQuality
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4312,16 +4112,23 @@ class SharedNote(object):
      - serviceAssigned
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, sharerUserID = None, recipientIdentity = None, privilege = None, serviceCreated = None, serviceUpdated = None, serviceAssigned = None,):
-        self.sharerUserID = sharerUserID
-        self.recipientIdentity = recipientIdentity
-        self.privilege = privilege
-        self.serviceCreated = serviceCreated
-        self.serviceUpdated = serviceUpdated
-        self.serviceAssigned = serviceAssigned
+    def __init__(self, sharerUserID: typing.Optional[int] = None, recipientIdentity: typing.Optional[Identity] = None, privilege: typing.Optional[SharedNotePrivilegeLevel] = None, serviceCreated: typing.Optional[int] = None, serviceUpdated: typing.Optional[int] = None, serviceAssigned: typing.Optional[int] = None,):
+        self.sharerUserID: typing.Optional[int] = sharerUserID
+        self.recipientIdentity: typing.Optional[Identity] = recipientIdentity
+        self.privilege: typing.Optional[SharedNotePrivilegeLevel] = privilege
+        self.serviceCreated: typing.Optional[int] = serviceCreated
+        self.serviceUpdated: typing.Optional[int] = serviceUpdated
+        self.serviceAssigned: typing.Optional[int] = serviceAssigned
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else SharedNotePrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4345,7 +4152,7 @@ class SharedNote(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = SharedNotePrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -4384,7 +4191,7 @@ class SharedNote(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.serviceCreated is not None:
             oprot.writeFieldBegin('serviceCreated', TType.I64, 4)
@@ -4481,15 +4288,15 @@ class NoteRestrictions(object):
      - noSharePublicly
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noUpdateTitle = None, noUpdateContent = None, noEmail = None, noShare = None, noSharePublicly = None,):
-        self.noUpdateTitle = noUpdateTitle
-        self.noUpdateContent = noUpdateContent
-        self.noEmail = noEmail
-        self.noShare = noShare
-        self.noSharePublicly = noSharePublicly
+    def __init__(self, noUpdateTitle: typing.Optional[bool] = None, noUpdateContent: typing.Optional[bool] = None, noEmail: typing.Optional[bool] = None, noShare: typing.Optional[bool] = None, noSharePublicly: typing.Optional[bool] = None,):
+        self.noUpdateTitle: typing.Optional[bool] = noUpdateTitle
+        self.noUpdateContent: typing.Optional[bool] = noUpdateContent
+        self.noEmail: typing.Optional[bool] = noEmail
+        self.noShare: typing.Optional[bool] = noShare
+        self.noSharePublicly: typing.Optional[bool] = noSharePublicly
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4591,15 +4398,15 @@ class NoteLimits(object):
      - uploaded
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noteResourceCountMax = None, uploadLimit = None, resourceSizeMax = None, noteSizeMax = None, uploaded = None,):
-        self.noteResourceCountMax = noteResourceCountMax
-        self.uploadLimit = uploadLimit
-        self.resourceSizeMax = resourceSizeMax
-        self.noteSizeMax = noteSizeMax
-        self.uploaded = uploaded
+    def __init__(self, noteResourceCountMax: typing.Optional[int] = None, uploadLimit: typing.Optional[int] = None, resourceSizeMax: typing.Optional[int] = None, noteSizeMax: typing.Optional[int] = None, uploaded: typing.Optional[int] = None,):
+        self.noteResourceCountMax: typing.Optional[int] = noteResourceCountMax
+        self.uploadLimit: typing.Optional[int] = uploadLimit
+        self.resourceSizeMax: typing.Optional[int] = resourceSizeMax
+        self.noteSizeMax: typing.Optional[int] = noteSizeMax
+        self.uploaded: typing.Optional[int] = uploaded
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4850,28 +4657,28 @@ class Note(object):
      - limits
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, title = None, content = None, contentHash = None, contentLength = None, created = None, updated = None, deleted = None, active = None, updateSequenceNum = None, notebookGuid = None, tagGuids = None, resources = None, attributes = None, tagNames = None, sharedNotes = None, restrictions = None, limits = None,):
-        self.guid = guid
-        self.title = title
-        self.content = content
-        self.contentHash = contentHash
-        self.contentLength = contentLength
-        self.created = created
-        self.updated = updated
-        self.deleted = deleted
-        self.active = active
-        self.updateSequenceNum = updateSequenceNum
-        self.notebookGuid = notebookGuid
-        self.tagGuids = tagGuids
-        self.resources = resources
-        self.attributes = attributes
-        self.tagNames = tagNames
-        self.sharedNotes = sharedNotes
-        self.restrictions = restrictions
-        self.limits = limits
+    def __init__(self, guid: typing.Optional[str] = None, title: typing.Optional[str] = None, content: typing.Optional[str] = None, contentHash: typing.Optional[bytes] = None, contentLength: typing.Optional[int] = None, created: typing.Optional[int] = None, updated: typing.Optional[int] = None, deleted: typing.Optional[int] = None, active: typing.Optional[bool] = None, updateSequenceNum: typing.Optional[int] = None, notebookGuid: typing.Optional[str] = None, tagGuids: typing.Optional[list[str]] = None, resources: typing.Optional[list[Resource]] = None, attributes: typing.Optional[NoteAttributes] = None, tagNames: typing.Optional[list[str]] = None, sharedNotes: typing.Optional[list[SharedNote]] = None, restrictions: typing.Optional[NoteRestrictions] = None, limits: typing.Optional[NoteLimits] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.title: typing.Optional[str] = title
+        self.content: typing.Optional[str] = content
+        self.contentHash: typing.Optional[bytes] = contentHash
+        self.contentLength: typing.Optional[int] = contentLength
+        self.created: typing.Optional[int] = created
+        self.updated: typing.Optional[int] = updated
+        self.deleted: typing.Optional[int] = deleted
+        self.active: typing.Optional[bool] = active
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.tagGuids: typing.Optional[list[str]] = tagGuids
+        self.resources: typing.Optional[list[Resource]] = resources
+        self.attributes: typing.Optional[NoteAttributes] = attributes
+        self.tagNames: typing.Optional[list[str]] = tagNames
+        self.sharedNotes: typing.Optional[list[SharedNote]] = sharedNotes
+        self.restrictions: typing.Optional[NoteRestrictions] = restrictions
+        self.limits: typing.Optional[NoteLimits] = limits
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5159,14 +4966,21 @@ class Publishing(object):
      - publicDescription
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, uri = None, order = None, ascending = None, publicDescription = None,):
-        self.uri = uri
-        self.order = order
-        self.ascending = ascending
-        self.publicDescription = publicDescription
+    def __init__(self, uri: typing.Optional[str] = None, order: typing.Optional[NoteSortOrder] = None, ascending: typing.Optional[bool] = None, publicDescription: typing.Optional[str] = None,):
+        self.uri: typing.Optional[str] = uri
+        self.order: typing.Optional[NoteSortOrder] = order
+        self.ascending: typing.Optional[bool] = ascending
+        self.publicDescription: typing.Optional[str] = publicDescription
+
+    def __setattr__(self, name, value):
+        if name == "order":
+            super().__setattr__(name, value if hasattr(value, 'value') else NoteSortOrder.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5184,7 +4998,7 @@ class Publishing(object):
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.I32:
-                    self.order = iprot.readI32()
+                    self.order = NoteSortOrder(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 3:
@@ -5214,7 +5028,7 @@ class Publishing(object):
             oprot.writeFieldEnd()
         if self.order is not None:
             oprot.writeFieldBegin('order', TType.I32, 2)
-            oprot.writeI32(self.order)
+            oprot.writeI32(self.order.value)
             oprot.writeFieldEnd()
         if self.ascending is not None:
             oprot.writeFieldBegin('ascending', TType.BOOL, 3)
@@ -5278,13 +5092,20 @@ class BusinessNotebook(object):
      - recommended
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, notebookDescription = None, privilege = None, recommended = None,):
-        self.notebookDescription = notebookDescription
-        self.privilege = privilege
-        self.recommended = recommended
+    def __init__(self, notebookDescription: typing.Optional[str] = None, privilege: typing.Optional[SharedNotebookPrivilegeLevel] = None, recommended: typing.Optional[bool] = None,):
+        self.notebookDescription: typing.Optional[str] = notebookDescription
+        self.privilege: typing.Optional[SharedNotebookPrivilegeLevel] = privilege
+        self.recommended: typing.Optional[bool] = recommended
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else SharedNotebookPrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5302,7 +5123,7 @@ class BusinessNotebook(object):
                     iprot.skip(ftype)
             elif fid == 2:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = SharedNotebookPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 3:
@@ -5327,7 +5148,7 @@ class BusinessNotebook(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 2)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.recommended is not None:
             oprot.writeFieldBegin('recommended', TType.BOOL, 3)
@@ -5375,13 +5196,13 @@ class SavedSearchScope(object):
      - includeBusinessLinkedNotebooks
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, includeAccount = None, includePersonalLinkedNotebooks = None, includeBusinessLinkedNotebooks = None,):
-        self.includeAccount = includeAccount
-        self.includePersonalLinkedNotebooks = includePersonalLinkedNotebooks
-        self.includeBusinessLinkedNotebooks = includeBusinessLinkedNotebooks
+    def __init__(self, includeAccount: typing.Optional[bool] = None, includePersonalLinkedNotebooks: typing.Optional[bool] = None, includeBusinessLinkedNotebooks: typing.Optional[bool] = None,):
+        self.includeAccount: typing.Optional[bool] = includeAccount
+        self.includePersonalLinkedNotebooks: typing.Optional[bool] = includePersonalLinkedNotebooks
+        self.includeBusinessLinkedNotebooks: typing.Optional[bool] = includeBusinessLinkedNotebooks
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5513,16 +5334,23 @@ class SavedSearch(object):
      - scope
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, name = None, query = None, format = None, updateSequenceNum = None, scope = None,):
-        self.guid = guid
-        self.name = name
-        self.query = query
-        self.format = format
-        self.updateSequenceNum = updateSequenceNum
-        self.scope = scope
+    def __init__(self, guid: typing.Optional[str] = None, name: typing.Optional[str] = None, query: typing.Optional[str] = None, format: typing.Optional[QueryFormat] = None, updateSequenceNum: typing.Optional[int] = None, scope: typing.Optional[SavedSearchScope] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.name: typing.Optional[str] = name
+        self.query: typing.Optional[str] = query
+        self.format: typing.Optional[QueryFormat] = format
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.scope: typing.Optional[SavedSearchScope] = scope
+
+    def __setattr__(self, name, value):
+        if name == "format":
+            super().__setattr__(name, value if hasattr(value, 'value') else QueryFormat.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5550,7 +5378,7 @@ class SavedSearch(object):
                     iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I32:
-                    self.format = iprot.readI32()
+                    self.format = QueryFormat(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -5589,7 +5417,7 @@ class SavedSearch(object):
             oprot.writeFieldEnd()
         if self.format is not None:
             oprot.writeFieldBegin('format', TType.I32, 4)
-            oprot.writeI32(self.format)
+            oprot.writeI32(self.format.value)
             oprot.writeFieldEnd()
         if self.updateSequenceNum is not None:
             oprot.writeFieldBegin('updateSequenceNum', TType.I32, 5)
@@ -5650,12 +5478,12 @@ class SharedNotebookRecipientSettings(object):
      - reminderNotifyInApp
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, reminderNotifyEmail = None, reminderNotifyInApp = None,):
-        self.reminderNotifyEmail = reminderNotifyEmail
-        self.reminderNotifyInApp = reminderNotifyInApp
+    def __init__(self, reminderNotifyEmail: typing.Optional[bool] = None, reminderNotifyInApp: typing.Optional[bool] = None,):
+        self.reminderNotifyEmail: typing.Optional[bool] = reminderNotifyEmail
+        self.reminderNotifyInApp: typing.Optional[bool] = reminderNotifyInApp
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5759,15 +5587,22 @@ class NotebookRecipientSettings(object):
      - recipientStatus
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, reminderNotifyEmail = None, reminderNotifyInApp = None, inMyList = None, stack = None, recipientStatus = None,):
-        self.reminderNotifyEmail = reminderNotifyEmail
-        self.reminderNotifyInApp = reminderNotifyInApp
-        self.inMyList = inMyList
-        self.stack = stack
-        self.recipientStatus = recipientStatus
+    def __init__(self, reminderNotifyEmail: typing.Optional[bool] = None, reminderNotifyInApp: typing.Optional[bool] = None, inMyList: typing.Optional[bool] = None, stack: typing.Optional[str] = None, recipientStatus: typing.Optional[RecipientStatus] = None,):
+        self.reminderNotifyEmail: typing.Optional[bool] = reminderNotifyEmail
+        self.reminderNotifyInApp: typing.Optional[bool] = reminderNotifyInApp
+        self.inMyList: typing.Optional[bool] = inMyList
+        self.stack: typing.Optional[str] = stack
+        self.recipientStatus: typing.Optional[RecipientStatus] = recipientStatus
+
+    def __setattr__(self, name, value):
+        if name == "recipientStatus":
+            super().__setattr__(name, value if hasattr(value, 'value') else RecipientStatus.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5800,7 +5635,7 @@ class NotebookRecipientSettings(object):
                     iprot.skip(ftype)
             elif fid == 5:
                 if ftype == TType.I32:
-                    self.recipientStatus = iprot.readI32()
+                    self.recipientStatus = RecipientStatus(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -5832,7 +5667,7 @@ class NotebookRecipientSettings(object):
             oprot.writeFieldEnd()
         if self.recipientStatus is not None:
             oprot.writeFieldBegin('recipientStatus', TType.I32, 5)
-            oprot.writeI32(self.recipientStatus)
+            oprot.writeI32(self.recipientStatus.value)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -5971,26 +5806,33 @@ class SharedNotebook(object):
      - serviceAssigned
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, id = None, userId = None, notebookGuid = None, email = None, recipientIdentityId = None, notebookModifiable = None, serviceCreated = None, serviceUpdated = None, globalId = None, username = None, privilege = None, recipientSettings = None, sharerUserId = None, recipientUsername = None, recipientUserId = None, serviceAssigned = None,):
-        self.id = id
-        self.userId = userId
-        self.notebookGuid = notebookGuid
-        self.email = email
-        self.recipientIdentityId = recipientIdentityId
-        self.notebookModifiable = notebookModifiable
-        self.serviceCreated = serviceCreated
-        self.serviceUpdated = serviceUpdated
-        self.globalId = globalId
-        self.username = username
-        self.privilege = privilege
-        self.recipientSettings = recipientSettings
-        self.sharerUserId = sharerUserId
-        self.recipientUsername = recipientUsername
-        self.recipientUserId = recipientUserId
-        self.serviceAssigned = serviceAssigned
+    def __init__(self, id: typing.Optional[int] = None, userId: typing.Optional[int] = None, notebookGuid: typing.Optional[str] = None, email: typing.Optional[str] = None, recipientIdentityId: typing.Optional[int] = None, notebookModifiable: typing.Optional[bool] = None, serviceCreated: typing.Optional[int] = None, serviceUpdated: typing.Optional[int] = None, globalId: typing.Optional[str] = None, username: typing.Optional[str] = None, privilege: typing.Optional[SharedNotebookPrivilegeLevel] = None, recipientSettings: typing.Optional[SharedNotebookRecipientSettings] = None, sharerUserId: typing.Optional[int] = None, recipientUsername: typing.Optional[str] = None, recipientUserId: typing.Optional[int] = None, serviceAssigned: typing.Optional[int] = None,):
+        self.id: typing.Optional[int] = id
+        self.userId: typing.Optional[int] = userId
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.email: typing.Optional[str] = email
+        self.recipientIdentityId: typing.Optional[int] = recipientIdentityId
+        self.notebookModifiable: typing.Optional[bool] = notebookModifiable
+        self.serviceCreated: typing.Optional[int] = serviceCreated
+        self.serviceUpdated: typing.Optional[int] = serviceUpdated
+        self.globalId: typing.Optional[str] = globalId
+        self.username: typing.Optional[str] = username
+        self.privilege: typing.Optional[SharedNotebookPrivilegeLevel] = privilege
+        self.recipientSettings: typing.Optional[SharedNotebookRecipientSettings] = recipientSettings
+        self.sharerUserId: typing.Optional[int] = sharerUserId
+        self.recipientUsername: typing.Optional[str] = recipientUsername
+        self.recipientUserId: typing.Optional[int] = recipientUserId
+        self.serviceAssigned: typing.Optional[int] = serviceAssigned
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else SharedNotebookPrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -6053,7 +5895,7 @@ class SharedNotebook(object):
                     iprot.skip(ftype)
             elif fid == 11:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = SharedNotebookPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 13:
@@ -6131,7 +5973,7 @@ class SharedNotebook(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 11)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.recipientSettings is not None:
             oprot.writeFieldBegin('recipientSettings', TType.STRUCT, 13)
@@ -6183,11 +6025,18 @@ class CanMoveToContainerRestrictions(object):
      - canMoveToContainer
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, canMoveToContainer = None,):
-        self.canMoveToContainer = canMoveToContainer
+    def __init__(self, canMoveToContainer: typing.Optional[CanMoveToContainerStatus] = None,):
+        self.canMoveToContainer: typing.Optional[CanMoveToContainerStatus] = canMoveToContainer
+
+    def __setattr__(self, name, value):
+        if name == "canMoveToContainer":
+            super().__setattr__(name, value if hasattr(value, 'value') else CanMoveToContainerStatus.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -6200,7 +6049,7 @@ class CanMoveToContainerRestrictions(object):
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    self.canMoveToContainer = iprot.readI32()
+                    self.canMoveToContainer = CanMoveToContainerStatus(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -6216,7 +6065,7 @@ class CanMoveToContainerRestrictions(object):
         oprot.writeStructBegin('CanMoveToContainerRestrictions')
         if self.canMoveToContainer is not None:
             oprot.writeFieldBegin('canMoveToContainer', TType.I32, 1)
-            oprot.writeI32(self.canMoveToContainer)
+            oprot.writeI32(self.canMoveToContainer.value)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -6392,39 +6241,49 @@ class NotebookRestrictions(object):
      - noCanMoveNote
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noReadNotes = None, noCreateNotes = None, noUpdateNotes = None, noExpungeNotes = None, noShareNotes = None, noEmailNotes = None, noSendMessageToRecipients = None, noUpdateNotebook = None, noExpungeNotebook = None, noSetDefaultNotebook = None, noSetNotebookStack = None, noPublishToPublic = None, noPublishToBusinessLibrary = None, noCreateTags = None, noUpdateTags = None, noExpungeTags = None, noSetParentTag = None, noCreateSharedNotebooks = None, updateWhichSharedNotebookRestrictions = None, expungeWhichSharedNotebookRestrictions = None, noShareNotesWithBusiness = None, noRenameNotebook = None, noSetInMyList = None, noChangeContact = None, canMoveToContainerRestrictions = None, noSetReminderNotifyEmail = None, noSetReminderNotifyInApp = None, noSetRecipientSettingsStack = None, noCanMoveNote = None,):
-        self.noReadNotes = noReadNotes
-        self.noCreateNotes = noCreateNotes
-        self.noUpdateNotes = noUpdateNotes
-        self.noExpungeNotes = noExpungeNotes
-        self.noShareNotes = noShareNotes
-        self.noEmailNotes = noEmailNotes
-        self.noSendMessageToRecipients = noSendMessageToRecipients
-        self.noUpdateNotebook = noUpdateNotebook
-        self.noExpungeNotebook = noExpungeNotebook
-        self.noSetDefaultNotebook = noSetDefaultNotebook
-        self.noSetNotebookStack = noSetNotebookStack
-        self.noPublishToPublic = noPublishToPublic
-        self.noPublishToBusinessLibrary = noPublishToBusinessLibrary
-        self.noCreateTags = noCreateTags
-        self.noUpdateTags = noUpdateTags
-        self.noExpungeTags = noExpungeTags
-        self.noSetParentTag = noSetParentTag
-        self.noCreateSharedNotebooks = noCreateSharedNotebooks
-        self.updateWhichSharedNotebookRestrictions = updateWhichSharedNotebookRestrictions
-        self.expungeWhichSharedNotebookRestrictions = expungeWhichSharedNotebookRestrictions
-        self.noShareNotesWithBusiness = noShareNotesWithBusiness
-        self.noRenameNotebook = noRenameNotebook
-        self.noSetInMyList = noSetInMyList
-        self.noChangeContact = noChangeContact
-        self.canMoveToContainerRestrictions = canMoveToContainerRestrictions
-        self.noSetReminderNotifyEmail = noSetReminderNotifyEmail
-        self.noSetReminderNotifyInApp = noSetReminderNotifyInApp
-        self.noSetRecipientSettingsStack = noSetRecipientSettingsStack
-        self.noCanMoveNote = noCanMoveNote
+    def __init__(self, noReadNotes: typing.Optional[bool] = None, noCreateNotes: typing.Optional[bool] = None, noUpdateNotes: typing.Optional[bool] = None, noExpungeNotes: typing.Optional[bool] = None, noShareNotes: typing.Optional[bool] = None, noEmailNotes: typing.Optional[bool] = None, noSendMessageToRecipients: typing.Optional[bool] = None, noUpdateNotebook: typing.Optional[bool] = None, noExpungeNotebook: typing.Optional[bool] = None, noSetDefaultNotebook: typing.Optional[bool] = None, noSetNotebookStack: typing.Optional[bool] = None, noPublishToPublic: typing.Optional[bool] = None, noPublishToBusinessLibrary: typing.Optional[bool] = None, noCreateTags: typing.Optional[bool] = None, noUpdateTags: typing.Optional[bool] = None, noExpungeTags: typing.Optional[bool] = None, noSetParentTag: typing.Optional[bool] = None, noCreateSharedNotebooks: typing.Optional[bool] = None, updateWhichSharedNotebookRestrictions: typing.Optional[SharedNotebookInstanceRestrictions] = None, expungeWhichSharedNotebookRestrictions: typing.Optional[SharedNotebookInstanceRestrictions] = None, noShareNotesWithBusiness: typing.Optional[bool] = None, noRenameNotebook: typing.Optional[bool] = None, noSetInMyList: typing.Optional[bool] = None, noChangeContact: typing.Optional[bool] = None, canMoveToContainerRestrictions: typing.Optional[CanMoveToContainerRestrictions] = None, noSetReminderNotifyEmail: typing.Optional[bool] = None, noSetReminderNotifyInApp: typing.Optional[bool] = None, noSetRecipientSettingsStack: typing.Optional[bool] = None, noCanMoveNote: typing.Optional[bool] = None,):
+        self.noReadNotes: typing.Optional[bool] = noReadNotes
+        self.noCreateNotes: typing.Optional[bool] = noCreateNotes
+        self.noUpdateNotes: typing.Optional[bool] = noUpdateNotes
+        self.noExpungeNotes: typing.Optional[bool] = noExpungeNotes
+        self.noShareNotes: typing.Optional[bool] = noShareNotes
+        self.noEmailNotes: typing.Optional[bool] = noEmailNotes
+        self.noSendMessageToRecipients: typing.Optional[bool] = noSendMessageToRecipients
+        self.noUpdateNotebook: typing.Optional[bool] = noUpdateNotebook
+        self.noExpungeNotebook: typing.Optional[bool] = noExpungeNotebook
+        self.noSetDefaultNotebook: typing.Optional[bool] = noSetDefaultNotebook
+        self.noSetNotebookStack: typing.Optional[bool] = noSetNotebookStack
+        self.noPublishToPublic: typing.Optional[bool] = noPublishToPublic
+        self.noPublishToBusinessLibrary: typing.Optional[bool] = noPublishToBusinessLibrary
+        self.noCreateTags: typing.Optional[bool] = noCreateTags
+        self.noUpdateTags: typing.Optional[bool] = noUpdateTags
+        self.noExpungeTags: typing.Optional[bool] = noExpungeTags
+        self.noSetParentTag: typing.Optional[bool] = noSetParentTag
+        self.noCreateSharedNotebooks: typing.Optional[bool] = noCreateSharedNotebooks
+        self.updateWhichSharedNotebookRestrictions: typing.Optional[SharedNotebookInstanceRestrictions] = updateWhichSharedNotebookRestrictions
+        self.expungeWhichSharedNotebookRestrictions: typing.Optional[SharedNotebookInstanceRestrictions] = expungeWhichSharedNotebookRestrictions
+        self.noShareNotesWithBusiness: typing.Optional[bool] = noShareNotesWithBusiness
+        self.noRenameNotebook: typing.Optional[bool] = noRenameNotebook
+        self.noSetInMyList: typing.Optional[bool] = noSetInMyList
+        self.noChangeContact: typing.Optional[bool] = noChangeContact
+        self.canMoveToContainerRestrictions: typing.Optional[CanMoveToContainerRestrictions] = canMoveToContainerRestrictions
+        self.noSetReminderNotifyEmail: typing.Optional[bool] = noSetReminderNotifyEmail
+        self.noSetReminderNotifyInApp: typing.Optional[bool] = noSetReminderNotifyInApp
+        self.noSetRecipientSettingsStack: typing.Optional[bool] = noSetRecipientSettingsStack
+        self.noCanMoveNote: typing.Optional[bool] = noCanMoveNote
+
+    def __setattr__(self, name, value):
+        if name == "updateWhichSharedNotebookRestrictions":
+            super().__setattr__(name, value if hasattr(value, 'value') else SharedNotebookInstanceRestrictions.__members__.get(value))
+            return
+        if name == "expungeWhichSharedNotebookRestrictions":
+            super().__setattr__(name, value if hasattr(value, 'value') else SharedNotebookInstanceRestrictions.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -6527,12 +6386,12 @@ class NotebookRestrictions(object):
                     iprot.skip(ftype)
             elif fid == 19:
                 if ftype == TType.I32:
-                    self.updateWhichSharedNotebookRestrictions = iprot.readI32()
+                    self.updateWhichSharedNotebookRestrictions = SharedNotebookInstanceRestrictions(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 20:
                 if ftype == TType.I32:
-                    self.expungeWhichSharedNotebookRestrictions = iprot.readI32()
+                    self.expungeWhichSharedNotebookRestrictions = SharedNotebookInstanceRestrictions(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 21:
@@ -6666,11 +6525,11 @@ class NotebookRestrictions(object):
             oprot.writeFieldEnd()
         if self.updateWhichSharedNotebookRestrictions is not None:
             oprot.writeFieldBegin('updateWhichSharedNotebookRestrictions', TType.I32, 19)
-            oprot.writeI32(self.updateWhichSharedNotebookRestrictions)
+            oprot.writeI32(self.updateWhichSharedNotebookRestrictions.value)
             oprot.writeFieldEnd()
         if self.expungeWhichSharedNotebookRestrictions is not None:
             oprot.writeFieldBegin('expungeWhichSharedNotebookRestrictions', TType.I32, 20)
-            oprot.writeI32(self.expungeWhichSharedNotebookRestrictions)
+            oprot.writeI32(self.expungeWhichSharedNotebookRestrictions.value)
             oprot.writeFieldEnd()
         if self.noShareNotesWithBusiness is not None:
             oprot.writeFieldBegin('noShareNotesWithBusiness', TType.BOOL, 21)
@@ -6865,25 +6724,25 @@ class Notebook(object):
      - recipientSettings
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, name = None, updateSequenceNum = None, defaultNotebook = None, serviceCreated = None, serviceUpdated = None, publishing = None, published = None, stack = None, sharedNotebookIds = None, sharedNotebooks = None, businessNotebook = None, contact = None, restrictions = None, recipientSettings = None,):
-        self.guid = guid
-        self.name = name
-        self.updateSequenceNum = updateSequenceNum
-        self.defaultNotebook = defaultNotebook
-        self.serviceCreated = serviceCreated
-        self.serviceUpdated = serviceUpdated
-        self.publishing = publishing
-        self.published = published
-        self.stack = stack
-        self.sharedNotebookIds = sharedNotebookIds
-        self.sharedNotebooks = sharedNotebooks
-        self.businessNotebook = businessNotebook
-        self.contact = contact
-        self.restrictions = restrictions
-        self.recipientSettings = recipientSettings
+    def __init__(self, guid: typing.Optional[str] = None, name: typing.Optional[str] = None, updateSequenceNum: typing.Optional[int] = None, defaultNotebook: typing.Optional[bool] = None, serviceCreated: typing.Optional[int] = None, serviceUpdated: typing.Optional[int] = None, publishing: typing.Optional[Publishing] = None, published: typing.Optional[bool] = None, stack: typing.Optional[str] = None, sharedNotebookIds: typing.Optional[list[int]] = None, sharedNotebooks: typing.Optional[list[SharedNotebook]] = None, businessNotebook: typing.Optional[BusinessNotebook] = None, contact: typing.Optional[User] = None, restrictions: typing.Optional[NotebookRestrictions] = None, recipientSettings: typing.Optional[NotebookRecipientSettings] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.name: typing.Optional[str] = name
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.defaultNotebook: typing.Optional[bool] = defaultNotebook
+        self.serviceCreated: typing.Optional[int] = serviceCreated
+        self.serviceUpdated: typing.Optional[int] = serviceUpdated
+        self.publishing: typing.Optional[Publishing] = publishing
+        self.published: typing.Optional[bool] = published
+        self.stack: typing.Optional[str] = stack
+        self.sharedNotebookIds: typing.Optional[list[int]] = sharedNotebookIds
+        self.sharedNotebooks: typing.Optional[list[SharedNotebook]] = sharedNotebooks
+        self.businessNotebook: typing.Optional[BusinessNotebook] = businessNotebook
+        self.contact: typing.Optional[User] = contact
+        self.restrictions: typing.Optional[NotebookRestrictions] = restrictions
+        self.recipientSettings: typing.Optional[NotebookRecipientSettings] = recipientSettings
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7170,21 +7029,21 @@ class LinkedNotebook(object):
      - businessId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, shareName = None, username = None, shardId = None, sharedNotebookGlobalId = None, uri = None, guid = None, updateSequenceNum = None, noteStoreUrl = None, webApiUrlPrefix = None, stack = None, businessId = None,):
-        self.shareName = shareName
-        self.username = username
-        self.shardId = shardId
-        self.sharedNotebookGlobalId = sharedNotebookGlobalId
-        self.uri = uri
-        self.guid = guid
-        self.updateSequenceNum = updateSequenceNum
-        self.noteStoreUrl = noteStoreUrl
-        self.webApiUrlPrefix = webApiUrlPrefix
-        self.stack = stack
-        self.businessId = businessId
+    def __init__(self, shareName: typing.Optional[str] = None, username: typing.Optional[str] = None, shardId: typing.Optional[str] = None, sharedNotebookGlobalId: typing.Optional[str] = None, uri: typing.Optional[str] = None, guid: typing.Optional[str] = None, updateSequenceNum: typing.Optional[int] = None, noteStoreUrl: typing.Optional[str] = None, webApiUrlPrefix: typing.Optional[str] = None, stack: typing.Optional[str] = None, businessId: typing.Optional[int] = None,):
+        self.shareName: typing.Optional[str] = shareName
+        self.username: typing.Optional[str] = username
+        self.shardId: typing.Optional[str] = shardId
+        self.sharedNotebookGlobalId: typing.Optional[str] = sharedNotebookGlobalId
+        self.uri: typing.Optional[str] = uri
+        self.guid: typing.Optional[str] = guid
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.noteStoreUrl: typing.Optional[str] = noteStoreUrl
+        self.webApiUrlPrefix: typing.Optional[str] = webApiUrlPrefix
+        self.stack: typing.Optional[str] = stack
+        self.businessId: typing.Optional[int] = businessId
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7361,15 +7220,15 @@ class NotebookDescriptor(object):
      - joinedUserCount
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, notebookDisplayName = None, contactName = None, hasSharedNotebook = None, joinedUserCount = None,):
-        self.guid = guid
-        self.notebookDisplayName = notebookDisplayName
-        self.contactName = contactName
-        self.hasSharedNotebook = hasSharedNotebook
-        self.joinedUserCount = joinedUserCount
+    def __init__(self, guid: typing.Optional[str] = None, notebookDisplayName: typing.Optional[str] = None, contactName: typing.Optional[str] = None, hasSharedNotebook: typing.Optional[bool] = None, joinedUserCount: typing.Optional[int] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.notebookDisplayName: typing.Optional[str] = notebookDisplayName
+        self.contactName: typing.Optional[str] = contactName
+        self.hasSharedNotebook: typing.Optional[bool] = hasSharedNotebook
+        self.joinedUserCount: typing.Optional[int] = joinedUserCount
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7506,20 +7365,30 @@ class UserProfile(object):
      - status
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, id = None, name = None, email = None, username = None, attributes = None, joined = None, photoLastUpdated = None, photoUrl = None, role = None, status = None,):
-        self.id = id
-        self.name = name
-        self.email = email
-        self.username = username
-        self.attributes = attributes
-        self.joined = joined
-        self.photoLastUpdated = photoLastUpdated
-        self.photoUrl = photoUrl
-        self.role = role
-        self.status = status
+    def __init__(self, id: typing.Optional[int] = None, name: typing.Optional[str] = None, email: typing.Optional[str] = None, username: typing.Optional[str] = None, attributes: typing.Optional[BusinessUserAttributes] = None, joined: typing.Optional[int] = None, photoLastUpdated: typing.Optional[int] = None, photoUrl: typing.Optional[str] = None, role: typing.Optional[BusinessUserRole] = None, status: typing.Optional[BusinessUserStatus] = None,):
+        self.id: typing.Optional[int] = id
+        self.name: typing.Optional[str] = name
+        self.email: typing.Optional[str] = email
+        self.username: typing.Optional[str] = username
+        self.attributes: typing.Optional[BusinessUserAttributes] = attributes
+        self.joined: typing.Optional[int] = joined
+        self.photoLastUpdated: typing.Optional[int] = photoLastUpdated
+        self.photoUrl: typing.Optional[str] = photoUrl
+        self.role: typing.Optional[BusinessUserRole] = role
+        self.status: typing.Optional[BusinessUserStatus] = status
+
+    def __setattr__(self, name, value):
+        if name == "role":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessUserRole.__members__.get(value))
+            return
+        if name == "status":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessUserStatus.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7573,12 +7442,12 @@ class UserProfile(object):
                     iprot.skip(ftype)
             elif fid == 9:
                 if ftype == TType.I32:
-                    self.role = iprot.readI32()
+                    self.role = BusinessUserRole(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 10:
                 if ftype == TType.I32:
-                    self.status = iprot.readI32()
+                    self.status = BusinessUserStatus(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -7626,11 +7495,11 @@ class UserProfile(object):
             oprot.writeFieldEnd()
         if self.role is not None:
             oprot.writeFieldBegin('role', TType.I32, 9)
-            oprot.writeI32(self.role)
+            oprot.writeI32(self.role.value)
             oprot.writeFieldEnd()
         if self.status is not None:
             oprot.writeFieldBegin('status', TType.I32, 10)
-            oprot.writeI32(self.status)
+            oprot.writeI32(self.status.value)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -7677,15 +7546,15 @@ class RelatedContentImage(object):
      - fileSize
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, url = None, width = None, height = None, pixelRatio = None, fileSize = None,):
-        self.url = url
-        self.width = width
-        self.height = height
-        self.pixelRatio = pixelRatio
-        self.fileSize = fileSize
+    def __init__(self, url: typing.Optional[str] = None, width: typing.Optional[int] = None, height: typing.Optional[int] = None, pixelRatio: typing.Optional[float] = None, fileSize: typing.Optional[int] = None,):
+        self.url: typing.Optional[str] = url
+        self.width: typing.Optional[int] = width
+        self.height: typing.Optional[int] = height
+        self.pixelRatio: typing.Optional[float] = pixelRatio
+        self.fileSize: typing.Optional[int] = fileSize
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7854,26 +7723,36 @@ class RelatedContent(object):
      - authors
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, contentId = None, title = None, url = None, sourceId = None, sourceUrl = None, sourceFaviconUrl = None, sourceName = None, date = None, teaser = None, thumbnails = None, contentType = None, accessType = None, visibleUrl = None, clipUrl = None, contact = None, authors = None,):
-        self.contentId = contentId
-        self.title = title
-        self.url = url
-        self.sourceId = sourceId
-        self.sourceUrl = sourceUrl
-        self.sourceFaviconUrl = sourceFaviconUrl
-        self.sourceName = sourceName
-        self.date = date
-        self.teaser = teaser
-        self.thumbnails = thumbnails
-        self.contentType = contentType
-        self.accessType = accessType
-        self.visibleUrl = visibleUrl
-        self.clipUrl = clipUrl
-        self.contact = contact
-        self.authors = authors
+    def __init__(self, contentId: typing.Optional[str] = None, title: typing.Optional[str] = None, url: typing.Optional[str] = None, sourceId: typing.Optional[str] = None, sourceUrl: typing.Optional[str] = None, sourceFaviconUrl: typing.Optional[str] = None, sourceName: typing.Optional[str] = None, date: typing.Optional[int] = None, teaser: typing.Optional[str] = None, thumbnails: typing.Optional[list[RelatedContentImage]] = None, contentType: typing.Optional[RelatedContentType] = None, accessType: typing.Optional[RelatedContentAccess] = None, visibleUrl: typing.Optional[str] = None, clipUrl: typing.Optional[str] = None, contact: typing.Optional[Contact] = None, authors: typing.Optional[list[str]] = None,):
+        self.contentId: typing.Optional[str] = contentId
+        self.title: typing.Optional[str] = title
+        self.url: typing.Optional[str] = url
+        self.sourceId: typing.Optional[str] = sourceId
+        self.sourceUrl: typing.Optional[str] = sourceUrl
+        self.sourceFaviconUrl: typing.Optional[str] = sourceFaviconUrl
+        self.sourceName: typing.Optional[str] = sourceName
+        self.date: typing.Optional[int] = date
+        self.teaser: typing.Optional[str] = teaser
+        self.thumbnails: typing.Optional[list[RelatedContentImage]] = thumbnails
+        self.contentType: typing.Optional[RelatedContentType] = contentType
+        self.accessType: typing.Optional[RelatedContentAccess] = accessType
+        self.visibleUrl: typing.Optional[str] = visibleUrl
+        self.clipUrl: typing.Optional[str] = clipUrl
+        self.contact: typing.Optional[Contact] = contact
+        self.authors: typing.Optional[list[str]] = authors
+
+    def __setattr__(self, name, value):
+        if name == "contentType":
+            super().__setattr__(name, value if hasattr(value, 'value') else RelatedContentType.__members__.get(value))
+            return
+        if name == "accessType":
+            super().__setattr__(name, value if hasattr(value, 'value') else RelatedContentAccess.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -7942,12 +7821,12 @@ class RelatedContent(object):
                     iprot.skip(ftype)
             elif fid == 11:
                 if ftype == TType.I32:
-                    self.contentType = iprot.readI32()
+                    self.contentType = RelatedContentType(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 12:
                 if ftype == TType.I32:
-                    self.accessType = iprot.readI32()
+                    self.accessType = RelatedContentAccess(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 13:
@@ -8032,11 +7911,11 @@ class RelatedContent(object):
             oprot.writeFieldEnd()
         if self.contentType is not None:
             oprot.writeFieldBegin('contentType', TType.I32, 11)
-            oprot.writeI32(self.contentType)
+            oprot.writeI32(self.contentType.value)
             oprot.writeFieldEnd()
         if self.accessType is not None:
             oprot.writeFieldBegin('accessType', TType.I32, 12)
-            oprot.writeI32(self.accessType)
+            oprot.writeI32(self.accessType.value)
             oprot.writeFieldEnd()
         if self.visibleUrl is not None:
             oprot.writeFieldBegin('visibleUrl', TType.STRING, 13)
@@ -8132,18 +8011,28 @@ class BusinessInvitation(object):
      - mostRecentReminder
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, businessId = None, email = None, role = None, status = None, requesterId = None, fromWorkChat = None, created = None, mostRecentReminder = None,):
-        self.businessId = businessId
-        self.email = email
-        self.role = role
-        self.status = status
-        self.requesterId = requesterId
-        self.fromWorkChat = fromWorkChat
-        self.created = created
-        self.mostRecentReminder = mostRecentReminder
+    def __init__(self, businessId: typing.Optional[int] = None, email: typing.Optional[str] = None, role: typing.Optional[BusinessUserRole] = None, status: typing.Optional[BusinessInvitationStatus] = None, requesterId: typing.Optional[int] = None, fromWorkChat: typing.Optional[bool] = None, created: typing.Optional[int] = None, mostRecentReminder: typing.Optional[int] = None,):
+        self.businessId: typing.Optional[int] = businessId
+        self.email: typing.Optional[str] = email
+        self.role: typing.Optional[BusinessUserRole] = role
+        self.status: typing.Optional[BusinessInvitationStatus] = status
+        self.requesterId: typing.Optional[int] = requesterId
+        self.fromWorkChat: typing.Optional[bool] = fromWorkChat
+        self.created: typing.Optional[int] = created
+        self.mostRecentReminder: typing.Optional[int] = mostRecentReminder
+
+    def __setattr__(self, name, value):
+        if name == "role":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessUserRole.__members__.get(value))
+            return
+        if name == "status":
+            super().__setattr__(name, value if hasattr(value, 'value') else BusinessInvitationStatus.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -8166,12 +8055,12 @@ class BusinessInvitation(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.role = iprot.readI32()
+                    self.role = BusinessUserRole(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I32:
-                    self.status = iprot.readI32()
+                    self.status = BusinessInvitationStatus(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -8215,11 +8104,11 @@ class BusinessInvitation(object):
             oprot.writeFieldEnd()
         if self.role is not None:
             oprot.writeFieldBegin('role', TType.I32, 3)
-            oprot.writeI32(self.role)
+            oprot.writeI32(self.role.value)
             oprot.writeFieldEnd()
         if self.status is not None:
             oprot.writeFieldBegin('status', TType.I32, 4)
-            oprot.writeI32(self.status)
+            oprot.writeI32(self.status.value)
             oprot.writeFieldEnd()
         if self.requesterId is not None:
             oprot.writeFieldBegin('requesterId', TType.I32, 5)
@@ -8291,13 +8180,20 @@ class UserIdentity(object):
      - longIdentifier
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, type = None, stringIdentifier = None, longIdentifier = None,):
-        self.type = type
-        self.stringIdentifier = stringIdentifier
-        self.longIdentifier = longIdentifier
+    def __init__(self, type: typing.Optional[UserIdentityType] = None, stringIdentifier: typing.Optional[str] = None, longIdentifier: typing.Optional[int] = None,):
+        self.type: typing.Optional[UserIdentityType] = type
+        self.stringIdentifier: typing.Optional[str] = stringIdentifier
+        self.longIdentifier: typing.Optional[int] = longIdentifier
+
+    def __setattr__(self, name, value):
+        if name == "type":
+            super().__setattr__(name, value if hasattr(value, 'value') else UserIdentityType.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -8310,7 +8206,7 @@ class UserIdentity(object):
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    self.type = iprot.readI32()
+                    self.type = UserIdentityType(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
@@ -8336,7 +8232,7 @@ class UserIdentity(object):
         oprot.writeStructBegin('UserIdentity')
         if self.type is not None:
             oprot.writeFieldBegin('type', TType.I32, 1)
-            oprot.writeI32(self.type)
+            oprot.writeI32(self.type.value)
             oprot.writeFieldEnd()
         if self.stringIdentifier is not None:
             oprot.writeFieldBegin('stringIdentifier', TType.STRING, 2)

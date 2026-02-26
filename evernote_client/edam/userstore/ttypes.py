@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import evernote_client.edam.type.ttypes
@@ -59,15 +62,22 @@ class PublicUserInfo(object):
      - webApiUrlPrefix
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userId = None, serviceLevel = None, username = None, noteStoreUrl = None, webApiUrlPrefix = None,):
-        self.userId = userId
-        self.serviceLevel = serviceLevel
-        self.username = username
-        self.noteStoreUrl = noteStoreUrl
-        self.webApiUrlPrefix = webApiUrlPrefix
+    def __init__(self, userId: int = None, serviceLevel: typing.Optional[evernote_client.edam.type.ttypes.ServiceLevel] = None, username: typing.Optional[str] = None, noteStoreUrl: typing.Optional[str] = None, webApiUrlPrefix: typing.Optional[str] = None,):
+        self.userId: int = userId
+        self.serviceLevel: typing.Optional[evernote_client.edam.type.ttypes.ServiceLevel] = serviceLevel
+        self.username: typing.Optional[str] = username
+        self.noteStoreUrl: typing.Optional[str] = noteStoreUrl
+        self.webApiUrlPrefix: typing.Optional[str] = webApiUrlPrefix
+
+    def __setattr__(self, name, value):
+        if name == "serviceLevel":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.ServiceLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -85,7 +95,7 @@ class PublicUserInfo(object):
                     iprot.skip(ftype)
             elif fid == 7:
                 if ftype == TType.I32:
-                    self.serviceLevel = iprot.readI32()
+                    self.serviceLevel = evernote_client.edam.type.ttypes.ServiceLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -132,7 +142,7 @@ class PublicUserInfo(object):
             oprot.writeFieldEnd()
         if self.serviceLevel is not None:
             oprot.writeFieldBegin('serviceLevel', TType.I32, 7)
-            oprot.writeI32(self.serviceLevel)
+            oprot.writeI32(self.serviceLevel.value)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -211,16 +221,16 @@ class UserUrls(object):
      - userWebSocketUrl
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noteStoreUrl = None, webApiUrlPrefix = None, userStoreUrl = None, utilityUrl = None, messageStoreUrl = None, userWebSocketUrl = None,):
-        self.noteStoreUrl = noteStoreUrl
-        self.webApiUrlPrefix = webApiUrlPrefix
-        self.userStoreUrl = userStoreUrl
-        self.utilityUrl = utilityUrl
-        self.messageStoreUrl = messageStoreUrl
-        self.userWebSocketUrl = userWebSocketUrl
+    def __init__(self, noteStoreUrl: typing.Optional[str] = None, webApiUrlPrefix: typing.Optional[str] = None, userStoreUrl: typing.Optional[str] = None, utilityUrl: typing.Optional[str] = None, messageStoreUrl: typing.Optional[str] = None, userWebSocketUrl: typing.Optional[str] = None,):
+        self.noteStoreUrl: typing.Optional[str] = noteStoreUrl
+        self.webApiUrlPrefix: typing.Optional[str] = webApiUrlPrefix
+        self.userStoreUrl: typing.Optional[str] = userStoreUrl
+        self.utilityUrl: typing.Optional[str] = utilityUrl
+        self.messageStoreUrl: typing.Optional[str] = messageStoreUrl
+        self.userWebSocketUrl: typing.Optional[str] = userWebSocketUrl
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -392,20 +402,20 @@ class AuthenticationResult(object):
      - urls
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, currentTime = None, authenticationToken = None, expiration = None, user = None, publicUserInfo = None, noteStoreUrl = None, webApiUrlPrefix = None, secondFactorRequired = None, secondFactorDeliveryHint = None, urls = None,):
-        self.currentTime = currentTime
-        self.authenticationToken = authenticationToken
-        self.expiration = expiration
-        self.user = user
-        self.publicUserInfo = publicUserInfo
-        self.noteStoreUrl = noteStoreUrl
-        self.webApiUrlPrefix = webApiUrlPrefix
-        self.secondFactorRequired = secondFactorRequired
-        self.secondFactorDeliveryHint = secondFactorDeliveryHint
-        self.urls = urls
+    def __init__(self, currentTime: int = None, authenticationToken: str = None, expiration: int = None, user: typing.Optional[evernote_client.edam.type.ttypes.User] = None, publicUserInfo: typing.Optional[PublicUserInfo] = None, noteStoreUrl: typing.Optional[str] = None, webApiUrlPrefix: typing.Optional[str] = None, secondFactorRequired: typing.Optional[bool] = None, secondFactorDeliveryHint: typing.Optional[str] = None, urls: typing.Optional[UserUrls] = None,):
+        self.currentTime: int = currentTime
+        self.authenticationToken: str = authenticationToken
+        self.expiration: int = expiration
+        self.user: typing.Optional[evernote_client.edam.type.ttypes.User] = user
+        self.publicUserInfo: typing.Optional[PublicUserInfo] = publicUserInfo
+        self.noteStoreUrl: typing.Optional[str] = noteStoreUrl
+        self.webApiUrlPrefix: typing.Optional[str] = webApiUrlPrefix
+        self.secondFactorRequired: typing.Optional[bool] = secondFactorRequired
+        self.secondFactorDeliveryHint: typing.Optional[str] = secondFactorDeliveryHint
+        self.urls: typing.Optional[UserUrls] = urls
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -625,24 +635,24 @@ class BootstrapSettings(object):
      - enableGoogle
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, serviceHost = None, marketingUrl = None, supportUrl = None, accountEmailDomain = None, enableFacebookSharing = None, enableGiftSubscriptions = None, enableSupportTickets = None, enableSharedNotebooks = None, enableSingleNoteSharing = None, enableSponsoredAccounts = None, enableTwitterSharing = None, enableLinkedInSharing = None, enablePublicNotebooks = None, enableGoogle = None,):
-        self.serviceHost = serviceHost
-        self.marketingUrl = marketingUrl
-        self.supportUrl = supportUrl
-        self.accountEmailDomain = accountEmailDomain
-        self.enableFacebookSharing = enableFacebookSharing
-        self.enableGiftSubscriptions = enableGiftSubscriptions
-        self.enableSupportTickets = enableSupportTickets
-        self.enableSharedNotebooks = enableSharedNotebooks
-        self.enableSingleNoteSharing = enableSingleNoteSharing
-        self.enableSponsoredAccounts = enableSponsoredAccounts
-        self.enableTwitterSharing = enableTwitterSharing
-        self.enableLinkedInSharing = enableLinkedInSharing
-        self.enablePublicNotebooks = enablePublicNotebooks
-        self.enableGoogle = enableGoogle
+    def __init__(self, serviceHost: str = None, marketingUrl: str = None, supportUrl: str = None, accountEmailDomain: str = None, enableFacebookSharing: typing.Optional[bool] = None, enableGiftSubscriptions: typing.Optional[bool] = None, enableSupportTickets: typing.Optional[bool] = None, enableSharedNotebooks: typing.Optional[bool] = None, enableSingleNoteSharing: typing.Optional[bool] = None, enableSponsoredAccounts: typing.Optional[bool] = None, enableTwitterSharing: typing.Optional[bool] = None, enableLinkedInSharing: typing.Optional[bool] = None, enablePublicNotebooks: typing.Optional[bool] = None, enableGoogle: typing.Optional[bool] = None,):
+        self.serviceHost: str = serviceHost
+        self.marketingUrl: str = marketingUrl
+        self.supportUrl: str = supportUrl
+        self.accountEmailDomain: str = accountEmailDomain
+        self.enableFacebookSharing: typing.Optional[bool] = enableFacebookSharing
+        self.enableGiftSubscriptions: typing.Optional[bool] = enableGiftSubscriptions
+        self.enableSupportTickets: typing.Optional[bool] = enableSupportTickets
+        self.enableSharedNotebooks: typing.Optional[bool] = enableSharedNotebooks
+        self.enableSingleNoteSharing: typing.Optional[bool] = enableSingleNoteSharing
+        self.enableSponsoredAccounts: typing.Optional[bool] = enableSponsoredAccounts
+        self.enableTwitterSharing: typing.Optional[bool] = enableTwitterSharing
+        self.enableLinkedInSharing: typing.Optional[bool] = enableLinkedInSharing
+        self.enablePublicNotebooks: typing.Optional[bool] = enablePublicNotebooks
+        self.enableGoogle: typing.Optional[bool] = enableGoogle
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -836,12 +846,12 @@ class BootstrapProfile(object):
      - settings
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, name = None, settings = None,):
-        self.name = name
-        self.settings = settings
+    def __init__(self, name: str = None, settings: BootstrapSettings = None,):
+        self.name: str = name
+        self.settings: BootstrapSettings = settings
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -919,11 +929,11 @@ class BootstrapInfo(object):
      - profiles
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, profiles = None,):
-        self.profiles = profiles
+    def __init__(self, profiles: list[BootstrapProfile] = None,):
+        self.profiles: list[BootstrapProfile] = profiles
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:

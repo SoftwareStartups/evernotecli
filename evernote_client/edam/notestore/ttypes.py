@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import evernote_client.edam.userstore.ttypes
@@ -21,7 +24,7 @@ from thrift.transport import TTransport
 all_structs = []
 
 
-class ShareRelationshipPrivilegeLevel(object):
+class ShareRelationshipPrivilegeLevel(IntEnum):
     """
     Privilege levels for accessing shared notebooks.
 
@@ -49,19 +52,6 @@ class ShareRelationshipPrivilegeLevel(object):
     MODIFY_NOTEBOOK_PLUS_ACTIVITY = 20
     FULL_ACCESS = 30
 
-    _VALUES_TO_NAMES = {
-        0: "READ_NOTEBOOK",
-        10: "READ_NOTEBOOK_PLUS_ACTIVITY",
-        20: "MODIFY_NOTEBOOK_PLUS_ACTIVITY",
-        30: "FULL_ACCESS",
-    }
-
-    _NAMES_TO_VALUES = {
-        "READ_NOTEBOOK": 0,
-        "READ_NOTEBOOK_PLUS_ACTIVITY": 10,
-        "MODIFY_NOTEBOOK_PLUS_ACTIVITY": 20,
-        "FULL_ACCESS": 30,
-    }
 
 
 class SyncState(object):
@@ -138,16 +128,16 @@ class SyncState(object):
      - userMaxMessageEventId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, currentTime = None, fullSyncBefore = None, updateCount = None, uploaded = None, userLastUpdated = None, userMaxMessageEventId = None,):
-        self.currentTime = currentTime
-        self.fullSyncBefore = fullSyncBefore
-        self.updateCount = updateCount
-        self.uploaded = uploaded
-        self.userLastUpdated = userLastUpdated
-        self.userMaxMessageEventId = userMaxMessageEventId
+    def __init__(self, currentTime: int = None, fullSyncBefore: int = None, updateCount: int = None, uploaded: typing.Optional[int] = None, userLastUpdated: typing.Optional[int] = None, userMaxMessageEventId: typing.Optional[int] = None,):
+        self.currentTime: int = currentTime
+        self.fullSyncBefore: int = fullSyncBefore
+        self.updateCount: int = updateCount
+        self.uploaded: typing.Optional[int] = uploaded
+        self.userLastUpdated: typing.Optional[int] = userLastUpdated
+        self.userMaxMessageEventId: typing.Optional[int] = userMaxMessageEventId
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -370,24 +360,24 @@ class SyncChunk(object):
      - expungedLinkedNotebooks
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, currentTime = None, chunkHighUSN = None, updateCount = None, notes = None, notebooks = None, tags = None, searches = None, resources = None, expungedNotes = None, expungedNotebooks = None, expungedTags = None, expungedSearches = None, linkedNotebooks = None, expungedLinkedNotebooks = None,):
-        self.currentTime = currentTime
-        self.chunkHighUSN = chunkHighUSN
-        self.updateCount = updateCount
-        self.notes = notes
-        self.notebooks = notebooks
-        self.tags = tags
-        self.searches = searches
-        self.resources = resources
-        self.expungedNotes = expungedNotes
-        self.expungedNotebooks = expungedNotebooks
-        self.expungedTags = expungedTags
-        self.expungedSearches = expungedSearches
-        self.linkedNotebooks = linkedNotebooks
-        self.expungedLinkedNotebooks = expungedLinkedNotebooks
+    def __init__(self, currentTime: int = None, chunkHighUSN: typing.Optional[int] = None, updateCount: int = None, notes: typing.Optional[list[evernote_client.edam.type.ttypes.Note]] = None, notebooks: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = None, tags: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = None, searches: typing.Optional[list[evernote_client.edam.type.ttypes.SavedSearch]] = None, resources: typing.Optional[list[evernote_client.edam.type.ttypes.Resource]] = None, expungedNotes: typing.Optional[list[str]] = None, expungedNotebooks: typing.Optional[list[str]] = None, expungedTags: typing.Optional[list[str]] = None, expungedSearches: typing.Optional[list[str]] = None, linkedNotebooks: typing.Optional[list[evernote_client.edam.type.ttypes.LinkedNotebook]] = None, expungedLinkedNotebooks: typing.Optional[list[str]] = None,):
+        self.currentTime: int = currentTime
+        self.chunkHighUSN: typing.Optional[int] = chunkHighUSN
+        self.updateCount: int = updateCount
+        self.notes: typing.Optional[list[evernote_client.edam.type.ttypes.Note]] = notes
+        self.notebooks: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = notebooks
+        self.tags: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = tags
+        self.searches: typing.Optional[list[evernote_client.edam.type.ttypes.SavedSearch]] = searches
+        self.resources: typing.Optional[list[evernote_client.edam.type.ttypes.Resource]] = resources
+        self.expungedNotes: typing.Optional[list[str]] = expungedNotes
+        self.expungedNotebooks: typing.Optional[list[str]] = expungedNotebooks
+        self.expungedTags: typing.Optional[list[str]] = expungedTags
+        self.expungedSearches: typing.Optional[list[str]] = expungedSearches
+        self.linkedNotebooks: typing.Optional[list[evernote_client.edam.type.ttypes.LinkedNotebook]] = linkedNotebooks
+        self.expungedLinkedNotebooks: typing.Optional[list[str]] = expungedLinkedNotebooks
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -804,26 +794,26 @@ class SyncChunkFilter(object):
      - notebookGuids
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, includeNotes = None, includeNoteResources = None, includeNoteAttributes = None, includeNotebooks = None, includeTags = None, includeSearches = None, includeResources = None, includeLinkedNotebooks = None, includeExpunged = None, includeNoteApplicationDataFullMap = None, includeResourceApplicationDataFullMap = None, includeNoteResourceApplicationDataFullMap = None, includeSharedNotes = None, omitSharedNotebooks = None, requireNoteContentClass = None, notebookGuids = None,):
-        self.includeNotes = includeNotes
-        self.includeNoteResources = includeNoteResources
-        self.includeNoteAttributes = includeNoteAttributes
-        self.includeNotebooks = includeNotebooks
-        self.includeTags = includeTags
-        self.includeSearches = includeSearches
-        self.includeResources = includeResources
-        self.includeLinkedNotebooks = includeLinkedNotebooks
-        self.includeExpunged = includeExpunged
-        self.includeNoteApplicationDataFullMap = includeNoteApplicationDataFullMap
-        self.includeResourceApplicationDataFullMap = includeResourceApplicationDataFullMap
-        self.includeNoteResourceApplicationDataFullMap = includeNoteResourceApplicationDataFullMap
-        self.includeSharedNotes = includeSharedNotes
-        self.omitSharedNotebooks = omitSharedNotebooks
-        self.requireNoteContentClass = requireNoteContentClass
-        self.notebookGuids = notebookGuids
+    def __init__(self, includeNotes: typing.Optional[bool] = None, includeNoteResources: typing.Optional[bool] = None, includeNoteAttributes: typing.Optional[bool] = None, includeNotebooks: typing.Optional[bool] = None, includeTags: typing.Optional[bool] = None, includeSearches: typing.Optional[bool] = None, includeResources: typing.Optional[bool] = None, includeLinkedNotebooks: typing.Optional[bool] = None, includeExpunged: typing.Optional[bool] = None, includeNoteApplicationDataFullMap: typing.Optional[bool] = None, includeResourceApplicationDataFullMap: typing.Optional[bool] = None, includeNoteResourceApplicationDataFullMap: typing.Optional[bool] = None, includeSharedNotes: typing.Optional[bool] = None, omitSharedNotebooks: typing.Optional[bool] = None, requireNoteContentClass: typing.Optional[str] = None, notebookGuids: typing.Optional[set[str]] = None,):
+        self.includeNotes: typing.Optional[bool] = includeNotes
+        self.includeNoteResources: typing.Optional[bool] = includeNoteResources
+        self.includeNoteAttributes: typing.Optional[bool] = includeNoteAttributes
+        self.includeNotebooks: typing.Optional[bool] = includeNotebooks
+        self.includeTags: typing.Optional[bool] = includeTags
+        self.includeSearches: typing.Optional[bool] = includeSearches
+        self.includeResources: typing.Optional[bool] = includeResources
+        self.includeLinkedNotebooks: typing.Optional[bool] = includeLinkedNotebooks
+        self.includeExpunged: typing.Optional[bool] = includeExpunged
+        self.includeNoteApplicationDataFullMap: typing.Optional[bool] = includeNoteApplicationDataFullMap
+        self.includeResourceApplicationDataFullMap: typing.Optional[bool] = includeResourceApplicationDataFullMap
+        self.includeNoteResourceApplicationDataFullMap: typing.Optional[bool] = includeNoteResourceApplicationDataFullMap
+        self.includeSharedNotes: typing.Optional[bool] = includeSharedNotes
+        self.omitSharedNotebooks: typing.Optional[bool] = omitSharedNotebooks
+        self.requireNoteContentClass: typing.Optional[str] = requireNoteContentClass
+        self.notebookGuids: typing.Optional[set[str]] = notebookGuids
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1130,23 +1120,23 @@ class NoteFilter(object):
      - searchContextBytes
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, order = None, ascending = None, words = None, notebookGuid = None, tagGuids = None, timeZone = None, inactive = None, emphasized = None, includeAllReadableNotebooks = None, includeAllReadableWorkspaces = None, context = None, rawWords = None, searchContextBytes = None,):
-        self.order = order
-        self.ascending = ascending
-        self.words = words
-        self.notebookGuid = notebookGuid
-        self.tagGuids = tagGuids
-        self.timeZone = timeZone
-        self.inactive = inactive
-        self.emphasized = emphasized
-        self.includeAllReadableNotebooks = includeAllReadableNotebooks
-        self.includeAllReadableWorkspaces = includeAllReadableWorkspaces
-        self.context = context
-        self.rawWords = rawWords
-        self.searchContextBytes = searchContextBytes
+    def __init__(self, order: typing.Optional[int] = None, ascending: typing.Optional[bool] = None, words: typing.Optional[str] = None, notebookGuid: typing.Optional[str] = None, tagGuids: typing.Optional[list[str]] = None, timeZone: typing.Optional[str] = None, inactive: typing.Optional[bool] = None, emphasized: typing.Optional[str] = None, includeAllReadableNotebooks: typing.Optional[bool] = None, includeAllReadableWorkspaces: typing.Optional[bool] = None, context: typing.Optional[str] = None, rawWords: typing.Optional[str] = None, searchContextBytes: typing.Optional[bytes] = None,):
+        self.order: typing.Optional[int] = order
+        self.ascending: typing.Optional[bool] = ascending
+        self.words: typing.Optional[str] = words
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.tagGuids: typing.Optional[list[str]] = tagGuids
+        self.timeZone: typing.Optional[str] = timeZone
+        self.inactive: typing.Optional[bool] = inactive
+        self.emphasized: typing.Optional[str] = emphasized
+        self.includeAllReadableNotebooks: typing.Optional[bool] = includeAllReadableNotebooks
+        self.includeAllReadableWorkspaces: typing.Optional[bool] = includeAllReadableWorkspaces
+        self.context: typing.Optional[str] = context
+        self.rawWords: typing.Optional[str] = rawWords
+        self.searchContextBytes: typing.Optional[bytes] = searchContextBytes
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1385,18 +1375,18 @@ class NoteList(object):
      - debugInfo
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, startIndex = None, totalNotes = None, notes = None, stoppedWords = None, searchedWords = None, updateCount = None, searchContextBytes = None, debugInfo = None,):
-        self.startIndex = startIndex
-        self.totalNotes = totalNotes
-        self.notes = notes
-        self.stoppedWords = stoppedWords
-        self.searchedWords = searchedWords
-        self.updateCount = updateCount
-        self.searchContextBytes = searchContextBytes
-        self.debugInfo = debugInfo
+    def __init__(self, startIndex: int = None, totalNotes: int = None, notes: list[evernote_client.edam.type.ttypes.Note] = None, stoppedWords: typing.Optional[list[str]] = None, searchedWords: typing.Optional[list[str]] = None, updateCount: typing.Optional[int] = None, searchContextBytes: typing.Optional[bytes] = None, debugInfo: typing.Optional[str] = None,):
+        self.startIndex: int = startIndex
+        self.totalNotes: int = totalNotes
+        self.notes: list[evernote_client.edam.type.ttypes.Note] = notes
+        self.stoppedWords: typing.Optional[list[str]] = stoppedWords
+        self.searchedWords: typing.Optional[list[str]] = searchedWords
+        self.updateCount: typing.Optional[int] = updateCount
+        self.searchContextBytes: typing.Optional[bytes] = searchContextBytes
+        self.debugInfo: typing.Optional[str] = debugInfo
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1578,22 +1568,22 @@ class NoteMetadata(object):
      - largestResourceSize
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, title = None, contentLength = None, created = None, updated = None, deleted = None, updateSequenceNum = None, notebookGuid = None, tagGuids = None, attributes = None, largestResourceMime = None, largestResourceSize = None,):
-        self.guid = guid
-        self.title = title
-        self.contentLength = contentLength
-        self.created = created
-        self.updated = updated
-        self.deleted = deleted
-        self.updateSequenceNum = updateSequenceNum
-        self.notebookGuid = notebookGuid
-        self.tagGuids = tagGuids
-        self.attributes = attributes
-        self.largestResourceMime = largestResourceMime
-        self.largestResourceSize = largestResourceSize
+    def __init__(self, guid: str = None, title: typing.Optional[str] = None, contentLength: typing.Optional[int] = None, created: typing.Optional[int] = None, updated: typing.Optional[int] = None, deleted: typing.Optional[int] = None, updateSequenceNum: typing.Optional[int] = None, notebookGuid: typing.Optional[str] = None, tagGuids: typing.Optional[list[str]] = None, attributes: typing.Optional[evernote_client.edam.type.ttypes.NoteAttributes] = None, largestResourceMime: typing.Optional[str] = None, largestResourceSize: typing.Optional[int] = None,):
+        self.guid: str = guid
+        self.title: typing.Optional[str] = title
+        self.contentLength: typing.Optional[int] = contentLength
+        self.created: typing.Optional[int] = created
+        self.updated: typing.Optional[int] = updated
+        self.deleted: typing.Optional[int] = deleted
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.tagGuids: typing.Optional[list[str]] = tagGuids
+        self.attributes: typing.Optional[evernote_client.edam.type.ttypes.NoteAttributes] = attributes
+        self.largestResourceMime: typing.Optional[str] = largestResourceMime
+        self.largestResourceSize: typing.Optional[int] = largestResourceSize
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -1830,18 +1820,18 @@ class NotesMetadataList(object):
      - debugInfo
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, startIndex = None, totalNotes = None, notes = None, stoppedWords = None, searchedWords = None, updateCount = None, searchContextBytes = None, debugInfo = None,):
-        self.startIndex = startIndex
-        self.totalNotes = totalNotes
-        self.notes = notes
-        self.stoppedWords = stoppedWords
-        self.searchedWords = searchedWords
-        self.updateCount = updateCount
-        self.searchContextBytes = searchContextBytes
-        self.debugInfo = debugInfo
+    def __init__(self, startIndex: int = None, totalNotes: int = None, notes: list[NoteMetadata] = None, stoppedWords: typing.Optional[list[str]] = None, searchedWords: typing.Optional[list[str]] = None, updateCount: typing.Optional[int] = None, searchContextBytes: typing.Optional[bytes] = None, debugInfo: typing.Optional[str] = None,):
+        self.startIndex: int = startIndex
+        self.totalNotes: int = totalNotes
+        self.notes: list[NoteMetadata] = notes
+        self.stoppedWords: typing.Optional[list[str]] = stoppedWords
+        self.searchedWords: typing.Optional[list[str]] = searchedWords
+        self.updateCount: typing.Optional[int] = updateCount
+        self.searchContextBytes: typing.Optional[bytes] = searchContextBytes
+        self.debugInfo: typing.Optional[str] = debugInfo
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2012,21 +2002,21 @@ class NotesMetadataResultSpec(object):
      - includeLargestResourceSize
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, includeTitle = None, includeContentLength = None, includeCreated = None, includeUpdated = None, includeDeleted = None, includeUpdateSequenceNum = None, includeNotebookGuid = None, includeTagGuids = None, includeAttributes = None, includeLargestResourceMime = None, includeLargestResourceSize = None,):
-        self.includeTitle = includeTitle
-        self.includeContentLength = includeContentLength
-        self.includeCreated = includeCreated
-        self.includeUpdated = includeUpdated
-        self.includeDeleted = includeDeleted
-        self.includeUpdateSequenceNum = includeUpdateSequenceNum
-        self.includeNotebookGuid = includeNotebookGuid
-        self.includeTagGuids = includeTagGuids
-        self.includeAttributes = includeAttributes
-        self.includeLargestResourceMime = includeLargestResourceMime
-        self.includeLargestResourceSize = includeLargestResourceSize
+    def __init__(self, includeTitle: typing.Optional[bool] = None, includeContentLength: typing.Optional[bool] = None, includeCreated: typing.Optional[bool] = None, includeUpdated: typing.Optional[bool] = None, includeDeleted: typing.Optional[bool] = None, includeUpdateSequenceNum: typing.Optional[bool] = None, includeNotebookGuid: typing.Optional[bool] = None, includeTagGuids: typing.Optional[bool] = None, includeAttributes: typing.Optional[bool] = None, includeLargestResourceMime: typing.Optional[bool] = None, includeLargestResourceSize: typing.Optional[bool] = None,):
+        self.includeTitle: typing.Optional[bool] = includeTitle
+        self.includeContentLength: typing.Optional[bool] = includeContentLength
+        self.includeCreated: typing.Optional[bool] = includeCreated
+        self.includeUpdated: typing.Optional[bool] = includeUpdated
+        self.includeDeleted: typing.Optional[bool] = includeDeleted
+        self.includeUpdateSequenceNum: typing.Optional[bool] = includeUpdateSequenceNum
+        self.includeNotebookGuid: typing.Optional[bool] = includeNotebookGuid
+        self.includeTagGuids: typing.Optional[bool] = includeTagGuids
+        self.includeAttributes: typing.Optional[bool] = includeAttributes
+        self.includeLargestResourceMime: typing.Optional[bool] = includeLargestResourceMime
+        self.includeLargestResourceSize: typing.Optional[bool] = includeLargestResourceSize
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2198,13 +2188,13 @@ class NoteCollectionCounts(object):
      - trashCount
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, notebookCounts = None, tagCounts = None, trashCount = None,):
-        self.notebookCounts = notebookCounts
-        self.tagCounts = tagCounts
-        self.trashCount = trashCount
+    def __init__(self, notebookCounts: typing.Optional[dict[str, int]] = None, tagCounts: typing.Optional[dict[str, int]] = None, trashCount: typing.Optional[int] = None,):
+        self.notebookCounts: typing.Optional[dict[str, int]] = notebookCounts
+        self.tagCounts: typing.Optional[dict[str, int]] = tagCounts
+        self.trashCount: typing.Optional[int] = trashCount
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2341,18 +2331,18 @@ class NoteResultSpec(object):
      - includeAccountLimits
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, includeContent = None, includeResourcesData = None, includeResourcesRecognition = None, includeResourcesAlternateData = None, includeSharedNotes = None, includeNoteAppDataValues = None, includeResourceAppDataValues = None, includeAccountLimits = None,):
-        self.includeContent = includeContent
-        self.includeResourcesData = includeResourcesData
-        self.includeResourcesRecognition = includeResourcesRecognition
-        self.includeResourcesAlternateData = includeResourcesAlternateData
-        self.includeSharedNotes = includeSharedNotes
-        self.includeNoteAppDataValues = includeNoteAppDataValues
-        self.includeResourceAppDataValues = includeResourceAppDataValues
-        self.includeAccountLimits = includeAccountLimits
+    def __init__(self, includeContent: typing.Optional[bool] = None, includeResourcesData: typing.Optional[bool] = None, includeResourcesRecognition: typing.Optional[bool] = None, includeResourcesAlternateData: typing.Optional[bool] = None, includeSharedNotes: typing.Optional[bool] = None, includeNoteAppDataValues: typing.Optional[bool] = None, includeResourceAppDataValues: typing.Optional[bool] = None, includeAccountLimits: typing.Optional[bool] = None,):
+        self.includeContent: typing.Optional[bool] = includeContent
+        self.includeResourcesData: typing.Optional[bool] = includeResourcesData
+        self.includeResourcesRecognition: typing.Optional[bool] = includeResourcesRecognition
+        self.includeResourcesAlternateData: typing.Optional[bool] = includeResourcesAlternateData
+        self.includeSharedNotes: typing.Optional[bool] = includeSharedNotes
+        self.includeNoteAppDataValues: typing.Optional[bool] = includeNoteAppDataValues
+        self.includeResourceAppDataValues: typing.Optional[bool] = includeResourceAppDataValues
+        self.includeAccountLimits: typing.Optional[bool] = includeAccountLimits
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2522,16 +2512,16 @@ class NoteEmailParameters(object):
      - message
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, guid = None, note = None, toAddresses = None, ccAddresses = None, subject = None, message = None,):
-        self.guid = guid
-        self.note = note
-        self.toAddresses = toAddresses
-        self.ccAddresses = ccAddresses
-        self.subject = subject
-        self.message = message
+    def __init__(self, guid: typing.Optional[str] = None, note: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, toAddresses: typing.Optional[list[str]] = None, ccAddresses: typing.Optional[list[str]] = None, subject: typing.Optional[str] = None, message: typing.Optional[str] = None,):
+        self.guid: typing.Optional[str] = guid
+        self.note: typing.Optional[evernote_client.edam.type.ttypes.Note] = note
+        self.toAddresses: typing.Optional[list[str]] = toAddresses
+        self.ccAddresses: typing.Optional[list[str]] = ccAddresses
+        self.subject: typing.Optional[str] = subject
+        self.message: typing.Optional[str] = message
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2688,15 +2678,15 @@ class NoteVersionId(object):
      - lastEditorId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, updateSequenceNum = None, updated = None, saved = None, title = None, lastEditorId = None,):
-        self.updateSequenceNum = updateSequenceNum
-        self.updated = updated
-        self.saved = saved
-        self.title = title
-        self.lastEditorId = lastEditorId
+    def __init__(self, updateSequenceNum: int = None, updated: int = None, saved: int = None, title: str = None, lastEditorId: typing.Optional[int] = None,):
+        self.updateSequenceNum: int = updateSequenceNum
+        self.updated: int = updated
+        self.saved: int = saved
+        self.title: str = title
+        self.lastEditorId: typing.Optional[int] = lastEditorId
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2848,16 +2838,16 @@ class RelatedQuery(object):
      - cacheKey
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noteGuid = None, plainText = None, filter = None, referenceUri = None, context = None, cacheKey = None,):
-        self.noteGuid = noteGuid
-        self.plainText = plainText
-        self.filter = filter
-        self.referenceUri = referenceUri
-        self.context = context
-        self.cacheKey = cacheKey
+    def __init__(self, noteGuid: typing.Optional[str] = None, plainText: typing.Optional[str] = None, filter: typing.Optional[NoteFilter] = None, referenceUri: typing.Optional[str] = None, context: typing.Optional[str] = None, cacheKey: typing.Optional[str] = None,):
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.plainText: typing.Optional[str] = plainText
+        self.filter: typing.Optional[NoteFilter] = filter
+        self.referenceUri: typing.Optional[str] = referenceUri
+        self.context: typing.Optional[str] = context
+        self.cacheKey: typing.Optional[str] = cacheKey
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3047,19 +3037,19 @@ class RelatedResult(object):
      - cacheExpires
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, notes = None, notebooks = None, tags = None, containingNotebooks = None, debugInfo = None, experts = None, relatedContent = None, cacheKey = None, cacheExpires = None,):
-        self.notes = notes
-        self.notebooks = notebooks
-        self.tags = tags
-        self.containingNotebooks = containingNotebooks
-        self.debugInfo = debugInfo
-        self.experts = experts
-        self.relatedContent = relatedContent
-        self.cacheKey = cacheKey
-        self.cacheExpires = cacheExpires
+    def __init__(self, notes: typing.Optional[list[evernote_client.edam.type.ttypes.Note]] = None, notebooks: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = None, tags: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = None, containingNotebooks: typing.Optional[list[evernote_client.edam.type.ttypes.NotebookDescriptor]] = None, debugInfo: typing.Optional[str] = None, experts: typing.Optional[list[evernote_client.edam.type.ttypes.UserProfile]] = None, relatedContent: typing.Optional[list[evernote_client.edam.type.ttypes.RelatedContent]] = None, cacheKey: typing.Optional[str] = None, cacheExpires: typing.Optional[int] = None,):
+        self.notes: typing.Optional[list[evernote_client.edam.type.ttypes.Note]] = notes
+        self.notebooks: typing.Optional[list[evernote_client.edam.type.ttypes.Notebook]] = notebooks
+        self.tags: typing.Optional[list[evernote_client.edam.type.ttypes.Tag]] = tags
+        self.containingNotebooks: typing.Optional[list[evernote_client.edam.type.ttypes.NotebookDescriptor]] = containingNotebooks
+        self.debugInfo: typing.Optional[str] = debugInfo
+        self.experts: typing.Optional[list[evernote_client.edam.type.ttypes.UserProfile]] = experts
+        self.relatedContent: typing.Optional[list[evernote_client.edam.type.ttypes.RelatedContent]] = relatedContent
+        self.cacheKey: typing.Optional[str] = cacheKey
+        self.cacheExpires: typing.Optional[int] = cacheExpires
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3308,19 +3298,19 @@ class RelatedResultSpec(object):
      - relatedContentTypes
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, maxNotes = None, maxNotebooks = None, maxTags = None, writableNotebooksOnly = None, includeContainingNotebooks = None, includeDebugInfo = None, maxExperts = None, maxRelatedContent = None, relatedContentTypes = None,):
-        self.maxNotes = maxNotes
-        self.maxNotebooks = maxNotebooks
-        self.maxTags = maxTags
-        self.writableNotebooksOnly = writableNotebooksOnly
-        self.includeContainingNotebooks = includeContainingNotebooks
-        self.includeDebugInfo = includeDebugInfo
-        self.maxExperts = maxExperts
-        self.maxRelatedContent = maxRelatedContent
-        self.relatedContentTypes = relatedContentTypes
+    def __init__(self, maxNotes: typing.Optional[int] = None, maxNotebooks: typing.Optional[int] = None, maxTags: typing.Optional[int] = None, writableNotebooksOnly: typing.Optional[bool] = None, includeContainingNotebooks: typing.Optional[bool] = None, includeDebugInfo: typing.Optional[bool] = None, maxExperts: typing.Optional[int] = None, maxRelatedContent: typing.Optional[int] = None, relatedContentTypes: typing.Optional[set[evernote_client.edam.type.ttypes.RelatedContentType]] = None,):
+        self.maxNotes: typing.Optional[int] = maxNotes
+        self.maxNotebooks: typing.Optional[int] = maxNotebooks
+        self.maxTags: typing.Optional[int] = maxTags
+        self.writableNotebooksOnly: typing.Optional[bool] = writableNotebooksOnly
+        self.includeContainingNotebooks: typing.Optional[bool] = includeContainingNotebooks
+        self.includeDebugInfo: typing.Optional[bool] = includeDebugInfo
+        self.maxExperts: typing.Optional[int] = maxExperts
+        self.maxRelatedContent: typing.Optional[int] = maxRelatedContent
+        self.relatedContentTypes: typing.Optional[set[evernote_client.edam.type.ttypes.RelatedContentType]] = relatedContentTypes
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3376,7 +3366,7 @@ class RelatedResultSpec(object):
                     self.relatedContentTypes = set()
                     (_etype217, _size214) = iprot.readSetBegin()
                     for _i218 in range(_size214):
-                        _elem219 = iprot.readI32()
+                        _elem219 = evernote_client.edam.type.ttypes.RelatedContentType(iprot.readI32())
                         self.relatedContentTypes.add(_elem219)
                     iprot.readSetEnd()
                 else:
@@ -3428,7 +3418,7 @@ class RelatedResultSpec(object):
             oprot.writeFieldBegin('relatedContentTypes', TType.SET, 9)
             oprot.writeSetBegin(TType.I32, len(self.relatedContentTypes))
             for iter220 in self.relatedContentTypes:
-                oprot.writeI32(iter220)
+                oprot.writeI32(iter220.value)
             oprot.writeSetEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -3472,12 +3462,12 @@ class UpdateNoteIfUsnMatchesResult(object):
      - updated
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, note = None, updated = None,):
-        self.note = note
-        self.updated = updated
+    def __init__(self, note: typing.Optional[evernote_client.edam.type.ttypes.Note] = None, updated: typing.Optional[bool] = None,):
+        self.note: typing.Optional[evernote_client.edam.type.ttypes.Note] = note
+        self.updated: typing.Optional[bool] = updated
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3545,14 +3535,14 @@ class ShareRelationshipRestrictions(object):
      - noSetFullAccess
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noSetReadOnly = None, noSetReadPlusActivity = None, noSetModify = None, noSetFullAccess = None,):
-        self.noSetReadOnly = noSetReadOnly
-        self.noSetReadPlusActivity = noSetReadPlusActivity
-        self.noSetModify = noSetModify
-        self.noSetFullAccess = noSetFullAccess
+    def __init__(self, noSetReadOnly: typing.Optional[bool] = None, noSetReadPlusActivity: typing.Optional[bool] = None, noSetModify: typing.Optional[bool] = None, noSetFullAccess: typing.Optional[bool] = None,):
+        self.noSetReadOnly: typing.Optional[bool] = noSetReadOnly
+        self.noSetReadPlusActivity: typing.Optional[bool] = noSetReadPlusActivity
+        self.noSetModify: typing.Optional[bool] = noSetModify
+        self.noSetFullAccess: typing.Optional[bool] = noSetFullAccess
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3667,14 +3657,21 @@ class InvitationShareRelationship(object):
      - sharerUserId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, displayName = None, recipientUserIdentity = None, privilege = None, sharerUserId = None,):
-        self.displayName = displayName
-        self.recipientUserIdentity = recipientUserIdentity
-        self.privilege = privilege
-        self.sharerUserId = sharerUserId
+    def __init__(self, displayName: typing.Optional[str] = None, recipientUserIdentity: typing.Optional[evernote_client.edam.type.ttypes.UserIdentity] = None, privilege: typing.Optional[ShareRelationshipPrivilegeLevel] = None, sharerUserId: typing.Optional[int] = None,):
+        self.displayName: typing.Optional[str] = displayName
+        self.recipientUserIdentity: typing.Optional[evernote_client.edam.type.ttypes.UserIdentity] = recipientUserIdentity
+        self.privilege: typing.Optional[ShareRelationshipPrivilegeLevel] = privilege
+        self.sharerUserId: typing.Optional[int] = sharerUserId
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else ShareRelationshipPrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3698,7 +3695,7 @@ class InvitationShareRelationship(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = ShareRelationshipPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -3727,7 +3724,7 @@ class InvitationShareRelationship(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.sharerUserId is not None:
             oprot.writeFieldBegin('sharerUserId', TType.I32, 5)
@@ -3804,16 +3801,26 @@ class MemberShareRelationship(object):
      - sharerUserId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, displayName = None, recipientUserId = None, bestPrivilege = None, individualPrivilege = None, restrictions = None, sharerUserId = None,):
-        self.displayName = displayName
-        self.recipientUserId = recipientUserId
-        self.bestPrivilege = bestPrivilege
-        self.individualPrivilege = individualPrivilege
-        self.restrictions = restrictions
-        self.sharerUserId = sharerUserId
+    def __init__(self, displayName: typing.Optional[str] = None, recipientUserId: typing.Optional[int] = None, bestPrivilege: typing.Optional[ShareRelationshipPrivilegeLevel] = None, individualPrivilege: typing.Optional[ShareRelationshipPrivilegeLevel] = None, restrictions: typing.Optional[ShareRelationshipRestrictions] = None, sharerUserId: typing.Optional[int] = None,):
+        self.displayName: typing.Optional[str] = displayName
+        self.recipientUserId: typing.Optional[int] = recipientUserId
+        self.bestPrivilege: typing.Optional[ShareRelationshipPrivilegeLevel] = bestPrivilege
+        self.individualPrivilege: typing.Optional[ShareRelationshipPrivilegeLevel] = individualPrivilege
+        self.restrictions: typing.Optional[ShareRelationshipRestrictions] = restrictions
+        self.sharerUserId: typing.Optional[int] = sharerUserId
+
+    def __setattr__(self, name, value):
+        if name == "bestPrivilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else ShareRelationshipPrivilegeLevel.__members__.get(value))
+            return
+        if name == "individualPrivilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else ShareRelationshipPrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3836,12 +3843,12 @@ class MemberShareRelationship(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.bestPrivilege = iprot.readI32()
+                    self.bestPrivilege = ShareRelationshipPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
                 if ftype == TType.I32:
-                    self.individualPrivilege = iprot.readI32()
+                    self.individualPrivilege = ShareRelationshipPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -3876,11 +3883,11 @@ class MemberShareRelationship(object):
             oprot.writeFieldEnd()
         if self.bestPrivilege is not None:
             oprot.writeFieldBegin('bestPrivilege', TType.I32, 3)
-            oprot.writeI32(self.bestPrivilege)
+            oprot.writeI32(self.bestPrivilege.value)
             oprot.writeFieldEnd()
         if self.individualPrivilege is not None:
             oprot.writeFieldBegin('individualPrivilege', TType.I32, 4)
-            oprot.writeI32(self.individualPrivilege)
+            oprot.writeI32(self.individualPrivilege.value)
             oprot.writeFieldEnd()
         if self.restrictions is not None:
             oprot.writeFieldBegin('restrictions', TType.STRUCT, 5)
@@ -3941,13 +3948,13 @@ class ShareRelationships(object):
      - invitationRestrictions
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, invitations = None, memberships = None, invitationRestrictions = None,):
-        self.invitations = invitations
-        self.memberships = memberships
-        self.invitationRestrictions = invitationRestrictions
+    def __init__(self, invitations: typing.Optional[list[InvitationShareRelationship]] = None, memberships: typing.Optional[list[MemberShareRelationship]] = None, invitationRestrictions: typing.Optional[ShareRelationshipRestrictions] = None,):
+        self.invitations: typing.Optional[list[InvitationShareRelationship]] = invitations
+        self.memberships: typing.Optional[list[MemberShareRelationship]] = memberships
+        self.invitationRestrictions: typing.Optional[ShareRelationshipRestrictions] = invitationRestrictions
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4088,15 +4095,15 @@ class ManageNotebookSharesParameters(object):
      - unshares
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, notebookGuid = None, inviteMessage = None, membershipsToUpdate = None, invitationsToCreateOrUpdate = None, unshares = None,):
-        self.notebookGuid = notebookGuid
-        self.inviteMessage = inviteMessage
-        self.membershipsToUpdate = membershipsToUpdate
-        self.invitationsToCreateOrUpdate = invitationsToCreateOrUpdate
-        self.unshares = unshares
+    def __init__(self, notebookGuid: typing.Optional[str] = None, inviteMessage: typing.Optional[str] = None, membershipsToUpdate: typing.Optional[list[MemberShareRelationship]] = None, invitationsToCreateOrUpdate: typing.Optional[list[InvitationShareRelationship]] = None, unshares: typing.Optional[list[evernote_client.edam.type.ttypes.UserIdentity]] = None,):
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.inviteMessage: typing.Optional[str] = inviteMessage
+        self.membershipsToUpdate: typing.Optional[list[MemberShareRelationship]] = membershipsToUpdate
+        self.invitationsToCreateOrUpdate: typing.Optional[list[InvitationShareRelationship]] = invitationsToCreateOrUpdate
+        self.unshares: typing.Optional[list[evernote_client.edam.type.ttypes.UserIdentity]] = unshares
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4241,13 +4248,13 @@ class ManageNotebookSharesError(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userIdentity = None, userException = None, notFoundException = None,):
-        self.userIdentity = userIdentity
-        self.userException = userException
-        self.notFoundException = notFoundException
+    def __init__(self, userIdentity: typing.Optional[evernote_client.edam.type.ttypes.UserIdentity] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.userIdentity: typing.Optional[evernote_client.edam.type.ttypes.UserIdentity] = userIdentity
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4331,11 +4338,11 @@ class ManageNotebookSharesResult(object):
      - errors
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, errors = None,):
-        self.errors = errors
+    def __init__(self, errors: typing.Optional[list[ManageNotebookSharesError]] = None,):
+        self.errors: typing.Optional[list[ManageNotebookSharesError]] = errors
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4425,14 +4432,21 @@ class SharedNoteTemplate(object):
      - privilege
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noteGuid = None, recipientThreadId = None, recipientContacts = None, privilege = None,):
-        self.noteGuid = noteGuid
-        self.recipientThreadId = recipientThreadId
-        self.recipientContacts = recipientContacts
-        self.privilege = privilege
+    def __init__(self, noteGuid: typing.Optional[str] = None, recipientThreadId: typing.Optional[int] = None, recipientContacts: typing.Optional[list[evernote_client.edam.type.ttypes.Contact]] = None, privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = None,):
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.recipientThreadId: typing.Optional[int] = recipientThreadId
+        self.recipientContacts: typing.Optional[list[evernote_client.edam.type.ttypes.Contact]] = recipientContacts
+        self.privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = privilege
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4466,7 +4480,7 @@ class SharedNoteTemplate(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -4493,7 +4507,7 @@ class SharedNoteTemplate(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.recipientThreadId is not None:
             oprot.writeFieldBegin('recipientThreadId', TType.I64, 4)
@@ -4549,14 +4563,21 @@ class NotebookShareTemplate(object):
      - privilege
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, notebookGuid = None, recipientThreadId = None, recipientContacts = None, privilege = None,):
-        self.notebookGuid = notebookGuid
-        self.recipientThreadId = recipientThreadId
-        self.recipientContacts = recipientContacts
-        self.privilege = privilege
+    def __init__(self, notebookGuid: typing.Optional[str] = None, recipientThreadId: typing.Optional[int] = None, recipientContacts: typing.Optional[list[evernote_client.edam.type.ttypes.Contact]] = None, privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebookPrivilegeLevel] = None,):
+        self.notebookGuid: typing.Optional[str] = notebookGuid
+        self.recipientThreadId: typing.Optional[int] = recipientThreadId
+        self.recipientContacts: typing.Optional[list[evernote_client.edam.type.ttypes.Contact]] = recipientContacts
+        self.privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotebookPrivilegeLevel] = privilege
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.SharedNotebookPrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4590,7 +4611,7 @@ class NotebookShareTemplate(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = evernote_client.edam.type.ttypes.SharedNotebookPrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -4617,7 +4638,7 @@ class NotebookShareTemplate(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.recipientThreadId is not None:
             oprot.writeFieldBegin('recipientThreadId', TType.I64, 4)
@@ -4661,12 +4682,12 @@ class CreateOrUpdateNotebookSharesResult(object):
      - matchingShares
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, updateSequenceNum = None, matchingShares = None,):
-        self.updateSequenceNum = updateSequenceNum
-        self.matchingShares = matchingShares
+    def __init__(self, updateSequenceNum: typing.Optional[int] = None, matchingShares: typing.Optional[list[evernote_client.edam.type.ttypes.SharedNotebook]] = None,):
+        self.updateSequenceNum: typing.Optional[int] = updateSequenceNum
+        self.matchingShares: typing.Optional[list[evernote_client.edam.type.ttypes.SharedNotebook]] = matchingShares
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4759,13 +4780,13 @@ class NoteShareRelationshipRestrictions(object):
      - noSetFullAccess
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noSetReadNote = None, noSetModifyNote = None, noSetFullAccess = None,):
-        self.noSetReadNote = noSetReadNote
-        self.noSetModifyNote = noSetModifyNote
-        self.noSetFullAccess = noSetFullAccess
+    def __init__(self, noSetReadNote: typing.Optional[bool] = None, noSetModifyNote: typing.Optional[bool] = None, noSetFullAccess: typing.Optional[bool] = None,):
+        self.noSetReadNote: typing.Optional[bool] = noSetReadNote
+        self.noSetModifyNote: typing.Optional[bool] = noSetModifyNote
+        self.noSetFullAccess: typing.Optional[bool] = noSetFullAccess
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4872,15 +4893,22 @@ class NoteMemberShareRelationship(object):
      - sharerUserId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, displayName = None, recipientUserId = None, privilege = None, restrictions = None, sharerUserId = None,):
-        self.displayName = displayName
-        self.recipientUserId = recipientUserId
-        self.privilege = privilege
-        self.restrictions = restrictions
-        self.sharerUserId = sharerUserId
+    def __init__(self, displayName: typing.Optional[str] = None, recipientUserId: typing.Optional[int] = None, privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = None, restrictions: typing.Optional[NoteShareRelationshipRestrictions] = None, sharerUserId: typing.Optional[int] = None,):
+        self.displayName: typing.Optional[str] = displayName
+        self.recipientUserId: typing.Optional[int] = recipientUserId
+        self.privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = privilege
+        self.restrictions: typing.Optional[NoteShareRelationshipRestrictions] = restrictions
+        self.sharerUserId: typing.Optional[int] = sharerUserId
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4903,7 +4931,7 @@ class NoteMemberShareRelationship(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 4:
@@ -4938,7 +4966,7 @@ class NoteMemberShareRelationship(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.restrictions is not None:
             oprot.writeFieldBegin('restrictions', TType.STRUCT, 4)
@@ -5000,14 +5028,21 @@ class NoteInvitationShareRelationship(object):
      - sharerUserId
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, displayName = None, recipientIdentityId = None, privilege = None, sharerUserId = None,):
-        self.displayName = displayName
-        self.recipientIdentityId = recipientIdentityId
-        self.privilege = privilege
-        self.sharerUserId = sharerUserId
+    def __init__(self, displayName: typing.Optional[str] = None, recipientIdentityId: typing.Optional[int] = None, privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = None, sharerUserId: typing.Optional[int] = None,):
+        self.displayName: typing.Optional[str] = displayName
+        self.recipientIdentityId: typing.Optional[int] = recipientIdentityId
+        self.privilege: typing.Optional[evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel] = privilege
+        self.sharerUserId: typing.Optional[int] = sharerUserId
+
+    def __setattr__(self, name, value):
+        if name == "privilege":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5030,7 +5065,7 @@ class NoteInvitationShareRelationship(object):
                     iprot.skip(ftype)
             elif fid == 3:
                 if ftype == TType.I32:
-                    self.privilege = iprot.readI32()
+                    self.privilege = evernote_client.edam.type.ttypes.SharedNotePrivilegeLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 5:
@@ -5059,7 +5094,7 @@ class NoteInvitationShareRelationship(object):
             oprot.writeFieldEnd()
         if self.privilege is not None:
             oprot.writeFieldBegin('privilege', TType.I32, 3)
-            oprot.writeI32(self.privilege)
+            oprot.writeI32(self.privilege.value)
             oprot.writeFieldEnd()
         if self.sharerUserId is not None:
             oprot.writeFieldBegin('sharerUserId', TType.I32, 5)
@@ -5115,13 +5150,13 @@ class NoteShareRelationships(object):
      - invitationRestrictions
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, invitations = None, memberships = None, invitationRestrictions = None,):
-        self.invitations = invitations
-        self.memberships = memberships
-        self.invitationRestrictions = invitationRestrictions
+    def __init__(self, invitations: typing.Optional[list[NoteInvitationShareRelationship]] = None, memberships: typing.Optional[list[NoteMemberShareRelationship]] = None, invitationRestrictions: typing.Optional[NoteShareRelationshipRestrictions] = None,):
+        self.invitations: typing.Optional[list[NoteInvitationShareRelationship]] = invitations
+        self.memberships: typing.Optional[list[NoteMemberShareRelationship]] = memberships
+        self.invitationRestrictions: typing.Optional[NoteShareRelationshipRestrictions] = invitationRestrictions
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5250,15 +5285,15 @@ class ManageNoteSharesParameters(object):
      - invitationsToUnshare
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, noteGuid = None, membershipsToUpdate = None, invitationsToUpdate = None, membershipsToUnshare = None, invitationsToUnshare = None,):
-        self.noteGuid = noteGuid
-        self.membershipsToUpdate = membershipsToUpdate
-        self.invitationsToUpdate = invitationsToUpdate
-        self.membershipsToUnshare = membershipsToUnshare
-        self.invitationsToUnshare = invitationsToUnshare
+    def __init__(self, noteGuid: typing.Optional[str] = None, membershipsToUpdate: typing.Optional[list[NoteMemberShareRelationship]] = None, invitationsToUpdate: typing.Optional[list[NoteInvitationShareRelationship]] = None, membershipsToUnshare: typing.Optional[list[int]] = None, invitationsToUnshare: typing.Optional[list[int]] = None,):
+        self.noteGuid: typing.Optional[str] = noteGuid
+        self.membershipsToUpdate: typing.Optional[list[NoteMemberShareRelationship]] = membershipsToUpdate
+        self.invitationsToUpdate: typing.Optional[list[NoteInvitationShareRelationship]] = invitationsToUpdate
+        self.membershipsToUnshare: typing.Optional[list[int]] = membershipsToUnshare
+        self.invitationsToUnshare: typing.Optional[list[int]] = invitationsToUnshare
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5416,14 +5451,14 @@ class ManageNoteSharesError(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, identityID = None, userID = None, userException = None, notFoundException = None,):
-        self.identityID = identityID
-        self.userID = userID
-        self.userException = userException
-        self.notFoundException = notFoundException
+    def __init__(self, identityID: typing.Optional[int] = None, userID: typing.Optional[int] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.identityID: typing.Optional[int] = identityID
+        self.userID: typing.Optional[int] = userID
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -5514,11 +5549,11 @@ class ManageNoteSharesResult(object):
      - errors
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, errors = None,):
-        self.errors = errors
+    def __init__(self, errors: typing.Optional[list[ManageNoteSharesError]] = None,):
+        self.errors: typing.Optional[list[ManageNoteSharesError]] = errors
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:

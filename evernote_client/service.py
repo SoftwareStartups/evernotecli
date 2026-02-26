@@ -38,8 +38,8 @@ def resolve_notebook_guid(client: EvernoteClient, name: str) -> str:
     """
     notebooks = client.list_notebooks()
     for nb in notebooks:
-        if nb.name == name:
-            return nb.guid  # type: ignore[return-value]
+        if nb.name == name and nb.guid is not None:
+            return nb.guid
     msg = f"Notebook not found: {name}"
     raise ValueError(msg)
 
@@ -92,8 +92,9 @@ def get_note_content(guid: str) -> NoteContent:
     client = get_client()
     note = client.get_note(guid)
     content = client.get_note_content(guid)
+    assert note.guid is not None, "Note returned without GUID"
     return NoteContent(
-        guid=note.guid,  # type: ignore[arg-type]
+        guid=note.guid,
         title=note.title or "Untitled",
         content=content,
     )
@@ -104,12 +105,9 @@ def list_notebooks() -> list[NotebookInfo]:
     client = get_client()
     notebooks = client.list_notebooks()
     return [
-        NotebookInfo(
-            guid=nb.guid,  # type: ignore[arg-type]
-            name=nb.name,  # type: ignore[arg-type]
-            stack=nb.stack,
-        )
+        NotebookInfo(guid=nb.guid, name=nb.name, stack=nb.stack)
         for nb in notebooks
+        if nb.guid is not None and nb.name is not None
     ]
 
 
@@ -118,11 +116,9 @@ def list_tags() -> list[TagInfo]:
     client = get_client()
     tags = client.list_tags()
     return [
-        TagInfo(
-            guid=t.guid,  # type: ignore[arg-type]
-            name=t.name,  # type: ignore[arg-type]
-        )
+        TagInfo(guid=t.guid, name=t.name)
         for t in tags
+        if t.guid is not None and t.name is not None
     ]
 
 
@@ -148,9 +144,10 @@ def create_note(
         notebook_guid=notebook_guid,
         tag_names=tags,
     )
+    assert note.guid is not None and note.title is not None
     return CreatedNote(
-        guid=note.guid,  # type: ignore[arg-type]
-        title=note.title,  # type: ignore[arg-type]
+        guid=note.guid,
+        title=note.title,
         notebook_guid=note.notebookGuid,
     )
 

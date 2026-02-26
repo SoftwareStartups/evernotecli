@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import evernote_client.edam.type.ttypes
@@ -18,7 +21,7 @@ from thrift.transport import TTransport
 all_structs = []
 
 
-class EDAMErrorCode(object):
+class EDAMErrorCode(IntEnum):
     """
     * Numeric codes indicating the type of error that occurred on the
     * service.
@@ -127,70 +130,9 @@ class EDAMErrorCode(object):
     ACCOUNT_CLEAR = 27
     SSO_AUTHENTICATION_REQUIRED = 28
 
-    _VALUES_TO_NAMES = {
-        1: "UNKNOWN",
-        2: "BAD_DATA_FORMAT",
-        3: "PERMISSION_DENIED",
-        4: "INTERNAL_ERROR",
-        5: "DATA_REQUIRED",
-        6: "LIMIT_REACHED",
-        7: "QUOTA_REACHED",
-        8: "INVALID_AUTH",
-        9: "AUTH_EXPIRED",
-        10: "DATA_CONFLICT",
-        11: "ENML_VALIDATION",
-        12: "SHARD_UNAVAILABLE",
-        13: "LEN_TOO_SHORT",
-        14: "LEN_TOO_LONG",
-        15: "TOO_FEW",
-        16: "TOO_MANY",
-        17: "UNSUPPORTED_OPERATION",
-        18: "TAKEN_DOWN",
-        19: "RATE_LIMIT_REACHED",
-        20: "BUSINESS_SECURITY_LOGIN_REQUIRED",
-        21: "DEVICE_LIMIT_REACHED",
-        22: "OPENID_ALREADY_TAKEN",
-        23: "INVALID_OPENID_TOKEN",
-        24: "USER_NOT_ASSOCIATED",
-        25: "USER_NOT_REGISTERED",
-        26: "USER_ALREADY_ASSOCIATED",
-        27: "ACCOUNT_CLEAR",
-        28: "SSO_AUTHENTICATION_REQUIRED",
-    }
-
-    _NAMES_TO_VALUES = {
-        "UNKNOWN": 1,
-        "BAD_DATA_FORMAT": 2,
-        "PERMISSION_DENIED": 3,
-        "INTERNAL_ERROR": 4,
-        "DATA_REQUIRED": 5,
-        "LIMIT_REACHED": 6,
-        "QUOTA_REACHED": 7,
-        "INVALID_AUTH": 8,
-        "AUTH_EXPIRED": 9,
-        "DATA_CONFLICT": 10,
-        "ENML_VALIDATION": 11,
-        "SHARD_UNAVAILABLE": 12,
-        "LEN_TOO_SHORT": 13,
-        "LEN_TOO_LONG": 14,
-        "TOO_FEW": 15,
-        "TOO_MANY": 16,
-        "UNSUPPORTED_OPERATION": 17,
-        "TAKEN_DOWN": 18,
-        "RATE_LIMIT_REACHED": 19,
-        "BUSINESS_SECURITY_LOGIN_REQUIRED": 20,
-        "DEVICE_LIMIT_REACHED": 21,
-        "OPENID_ALREADY_TAKEN": 22,
-        "INVALID_OPENID_TOKEN": 23,
-        "USER_NOT_ASSOCIATED": 24,
-        "USER_NOT_REGISTERED": 25,
-        "USER_ALREADY_ASSOCIATED": 26,
-        "ACCOUNT_CLEAR": 27,
-        "SSO_AUTHENTICATION_REQUIRED": 28,
-    }
 
 
-class EDAMInvalidContactReason(object):
+class EDAMInvalidContactReason(IntEnum):
     """
     An enumeration that provides a reason for why a given contact was invalid, for example,
     as thrown via an EDAMInvalidContactsException.
@@ -229,17 +171,6 @@ class EDAMInvalidContactReason(object):
     DUPLICATE_CONTACT = 1
     NO_CONNECTION = 2
 
-    _VALUES_TO_NAMES = {
-        0: "BAD_ADDRESS",
-        1: "DUPLICATE_CONTACT",
-        2: "NO_CONNECTION",
-    }
-
-    _NAMES_TO_VALUES = {
-        "BAD_ADDRESS": 0,
-        "DUPLICATE_CONTACT": 1,
-        "NO_CONNECTION": 2,
-    }
 
 
 class EDAMUserException(TException):
@@ -266,11 +197,11 @@ class EDAMUserException(TException):
      - parameter
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, errorCode = None, parameter = None,):
-        super(EDAMUserException, self).__setattr__('errorCode', errorCode)
+    def __init__(self, errorCode: EDAMErrorCode = None, parameter: typing.Optional[str] = None,):
+        super(EDAMUserException, self).__setattr__('errorCode', errorCode if hasattr(errorCode, 'value') else EDAMErrorCode.__members__.get(errorCode))
         super(EDAMUserException, self).__setattr__('parameter', parameter)
 
     def __setattr__(self, *args):
@@ -295,7 +226,7 @@ class EDAMUserException(TException):
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    errorCode = iprot.readI32()
+                    errorCode = EDAMErrorCode(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
@@ -320,7 +251,7 @@ class EDAMUserException(TException):
         oprot.writeStructBegin('EDAMUserException')
         if self.errorCode is not None:
             oprot.writeFieldBegin('errorCode', TType.I32, 1)
-            oprot.writeI32(self.errorCode)
+            oprot.writeI32(self.errorCode.value)
             oprot.writeFieldEnd()
         if self.parameter is not None:
             oprot.writeFieldBegin('parameter', TType.STRING, 2)
@@ -370,11 +301,11 @@ class EDAMSystemException(TException):
      - rateLimitDuration
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, errorCode = None, message = None, rateLimitDuration = None,):
-        super(EDAMSystemException, self).__setattr__('errorCode', errorCode)
+    def __init__(self, errorCode: EDAMErrorCode = None, message: typing.Optional[str] = None, rateLimitDuration: typing.Optional[int] = None,):
+        super(EDAMSystemException, self).__setattr__('errorCode', errorCode if hasattr(errorCode, 'value') else EDAMErrorCode.__members__.get(errorCode))
         super(EDAMSystemException, self).__setattr__('message', message)
         super(EDAMSystemException, self).__setattr__('rateLimitDuration', rateLimitDuration)
 
@@ -401,7 +332,7 @@ class EDAMSystemException(TException):
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    errorCode = iprot.readI32()
+                    errorCode = EDAMErrorCode(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             elif fid == 2:
@@ -432,7 +363,7 @@ class EDAMSystemException(TException):
         oprot.writeStructBegin('EDAMSystemException')
         if self.errorCode is not None:
             oprot.writeFieldBegin('errorCode', TType.I32, 1)
-            oprot.writeI32(self.errorCode)
+            oprot.writeI32(self.errorCode.value)
             oprot.writeFieldEnd()
         if self.message is not None:
             oprot.writeFieldBegin('message', TType.STRING, 2)
@@ -484,10 +415,10 @@ class EDAMNotFoundException(TException):
      - key
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, identifier = None, key = None,):
+    def __init__(self, identifier: typing.Optional[str] = None, key: typing.Optional[str] = None,):
         super(EDAMNotFoundException, self).__setattr__('identifier', identifier)
         super(EDAMNotFoundException, self).__setattr__('key', key)
 
@@ -594,10 +525,10 @@ class EDAMInvalidContactsException(TException):
      - reasons
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, contacts = None, parameter = None, reasons = None,):
+    def __init__(self, contacts: list[evernote_client.edam.type.ttypes.Contact] = None, parameter: typing.Optional[str] = None, reasons: typing.Optional[list[EDAMInvalidContactReason]] = None,):
         super(EDAMInvalidContactsException, self).__setattr__('contacts', contacts)
         super(EDAMInvalidContactsException, self).__setattr__('parameter', parameter)
         super(EDAMInvalidContactsException, self).__setattr__('reasons', reasons)
@@ -644,7 +575,7 @@ class EDAMInvalidContactsException(TException):
                     reasons = []
                     (_etype9, _size6) = iprot.readListBegin()
                     for _i10 in range(_size6):
-                        _elem11 = iprot.readI32()
+                        _elem11 = EDAMInvalidContactReason(iprot.readI32())
                         reasons.append(_elem11)
                     iprot.readListEnd()
                 else:
@@ -680,7 +611,7 @@ class EDAMInvalidContactsException(TException):
             oprot.writeFieldBegin('reasons', TType.LIST, 3)
             oprot.writeListBegin(TType.I32, len(self.reasons))
             for iter13 in self.reasons:
-                oprot.writeI32(iter13)
+                oprot.writeI32(iter13.value)
             oprot.writeListEnd()
             oprot.writeFieldEnd()
         oprot.writeFieldStop()

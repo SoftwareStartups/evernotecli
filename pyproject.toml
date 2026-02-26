@@ -36,7 +36,7 @@ evernote-client = { path = "." }
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-extend-exclude = ["resources", "evernote_client/edam"]
+extend-exclude = ["resources", "evernote_client/edam", "gen-py"]
 
 [tool.ruff.lint]
 select = [

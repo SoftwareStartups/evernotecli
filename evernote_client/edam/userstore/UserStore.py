@@ -3,13 +3,16 @@
 #
 # DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 #
-#  options string: py
+#  options string: py:enum,type_hints
 #
 
+from __future__ import annotations
+import typing
 from thrift.Thrift import TType, TMessageType, TFrozenDict, TException, TApplicationException
 from thrift.protocol.TProtocol import TProtocolException
 from thrift.TRecursive import fix_spec
 from uuid import UUID
+from enum import IntEnum
 
 import sys
 import logging
@@ -40,7 +43,7 @@ class Iface(object):
     </ul>
 
     """
-    def checkVersion(self, clientName, edamVersionMajor, edamVersionMinor):
+    def checkVersion(self, clientName: str, edamVersionMajor: int, edamVersionMinor: int) -> bool:
         """
         This should be the first call made by a client to the EDAM service.  It
         tells the service what protocol version is used by the client.  The
@@ -75,7 +78,7 @@ class Iface(object):
         """
         pass
 
-    def getBootstrapInfo(self, locale):
+    def getBootstrapInfo(self, locale: str) -> BootstrapInfo:
         """
         This provides bootstrap information to the client. Various bootstrap
         profiles and settings may be used by the client to configure itself.
@@ -94,7 +97,7 @@ class Iface(object):
         """
         pass
 
-    def authenticateLongSession(self, username, password, consumerKey, consumerSecret, deviceIdentifier, deviceDescription, supportsTwoFactor):
+    def authenticateLongSession(self, username: str, password: str, consumerKey: str, consumerSecret: str, deviceIdentifier: str, deviceDescription: str, supportsTwoFactor: bool) -> AuthenticationResult:
         """
         This is used to check a username and password in order to create a
         long-lived authentication token that can be used for further actions.
@@ -193,7 +196,7 @@ class Iface(object):
         """
         pass
 
-    def completeTwoFactorAuthentication(self, authenticationToken, oneTimeCode, deviceIdentifier, deviceDescription):
+    def completeTwoFactorAuthentication(self, authenticationToken: str, oneTimeCode: str, deviceIdentifier: str, deviceDescription: str) -> AuthenticationResult:
         """
         Complete the authentication process when a second factor is required. This
         call is made after a successful call to authenticate or authenticateLongSession
@@ -241,7 +244,7 @@ class Iface(object):
         """
         pass
 
-    def revokeLongSession(self, authenticationToken):
+    def revokeLongSession(self, authenticationToken: str) -> None:
         """
         Revoke an existing long lived authentication token. This can be used to
         revoke OAuth tokens or tokens created by calling authenticateLongSession,
@@ -266,7 +269,7 @@ class Iface(object):
         """
         pass
 
-    def authenticateToBusiness(self, authenticationToken):
+    def authenticateToBusiness(self, authenticationToken: str) -> AuthenticationResult:
         """
         This is used to take an existing authentication token that grants access
         to an individual user account (returned from 'authenticate',
@@ -306,7 +309,7 @@ class Iface(object):
         """
         pass
 
-    def getUser(self, authenticationToken):
+    def getUser(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.User:
         """
         Returns the User corresponding to the provided authentication token,
         or throws an exception if this token is not valid.
@@ -320,7 +323,7 @@ class Iface(object):
         """
         pass
 
-    def getPublicUserInfo(self, username):
+    def getPublicUserInfo(self, username: str) -> PublicUserInfo:
         """
         Asks the UserStore about the publicly available location information for
         a particular username.
@@ -335,7 +338,7 @@ class Iface(object):
         """
         pass
 
-    def getUserUrls(self, authenticationToken):
+    def getUserUrls(self, authenticationToken: str) -> UserUrls:
         """
         <p>Returns the URLs that should be used when sending requests to the service on
         behalf of the account represented by the provided authenticationToken.</p>
@@ -351,7 +354,7 @@ class Iface(object):
         """
         pass
 
-    def inviteToBusiness(self, authenticationToken, emailAddress):
+    def inviteToBusiness(self, authenticationToken: str, emailAddress: str) -> None:
         """
         Invite a user to join an Evernote Business account.
 
@@ -402,7 +405,7 @@ class Iface(object):
         """
         pass
 
-    def removeFromBusiness(self, authenticationToken, emailAddress):
+    def removeFromBusiness(self, authenticationToken: str, emailAddress: str) -> None:
         """
         Remove a user from an Evernote Business account. Once removed, the user will no
         longer be able to access content within the Evernote Business account.
@@ -434,7 +437,7 @@ class Iface(object):
         """
         pass
 
-    def updateBusinessUserIdentifier(self, authenticationToken, oldEmailAddress, newEmailAddress):
+    def updateBusinessUserIdentifier(self, authenticationToken: str, oldEmailAddress: str, newEmailAddress: str) -> None:
         """
         Update the email address used to uniquely identify an Evernote Business user.
 
@@ -485,7 +488,7 @@ class Iface(object):
         """
         pass
 
-    def listBusinessUsers(self, authenticationToken):
+    def listBusinessUsers(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.UserProfile]:
         """
         Returns a list of active business users in a given business.
 
@@ -510,7 +513,7 @@ class Iface(object):
         """
         pass
 
-    def listBusinessInvitations(self, authenticationToken, includeRequestedInvitations):
+    def listBusinessInvitations(self, authenticationToken: str, includeRequestedInvitations: bool) -> list[evernote_client.edam.type.ttypes.BusinessInvitation]:
         """
         Returns a list of outstanding invitations to join an Evernote Business account.
 
@@ -532,7 +535,7 @@ class Iface(object):
         """
         pass
 
-    def getAccountLimits(self, serviceLevel):
+    def getAccountLimits(self, serviceLevel: evernote_client.edam.type.ttypes.ServiceLevel) -> evernote_client.edam.type.ttypes.AccountLimits:
         """
         Retrieve the standard account limits for a given service level. This should only be
         called when necessary, e.g. to determine if a higher level is available should the
@@ -577,7 +580,7 @@ class Client(Iface):
             self._oprot = oprot
         self._seqid = 0
 
-    def checkVersion(self, clientName, edamVersionMajor, edamVersionMinor):
+    def checkVersion(self, clientName: str, edamVersionMajor: int, edamVersionMinor: int) -> bool:
         """
         This should be the first call made by a client to the EDAM service.  It
         tells the service what protocol version is used by the client.  The
@@ -613,7 +616,7 @@ class Client(Iface):
         self.send_checkVersion(clientName, edamVersionMajor, edamVersionMinor)
         return self.recv_checkVersion()
 
-    def send_checkVersion(self, clientName, edamVersionMajor, edamVersionMinor):
+    def send_checkVersion(self, clientName: str, edamVersionMajor: int, edamVersionMinor: int):
         self._oprot.writeMessageBegin('checkVersion', TMessageType.CALL, self._seqid)
         args = checkVersion_args()
         args.clientName = clientName
@@ -623,7 +626,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_checkVersion(self):
+    def recv_checkVersion(self) -> bool:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -638,7 +641,7 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "checkVersion failed: unknown result")
 
-    def getBootstrapInfo(self, locale):
+    def getBootstrapInfo(self, locale: str) -> BootstrapInfo:
         """
         This provides bootstrap information to the client. Various bootstrap
         profiles and settings may be used by the client to configure itself.
@@ -658,7 +661,7 @@ class Client(Iface):
         self.send_getBootstrapInfo(locale)
         return self.recv_getBootstrapInfo()
 
-    def send_getBootstrapInfo(self, locale):
+    def send_getBootstrapInfo(self, locale: str):
         self._oprot.writeMessageBegin('getBootstrapInfo', TMessageType.CALL, self._seqid)
         args = getBootstrapInfo_args()
         args.locale = locale
@@ -666,7 +669,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getBootstrapInfo(self):
+    def recv_getBootstrapInfo(self) -> BootstrapInfo:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -681,7 +684,7 @@ class Client(Iface):
             return result.success
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getBootstrapInfo failed: unknown result")
 
-    def authenticateLongSession(self, username, password, consumerKey, consumerSecret, deviceIdentifier, deviceDescription, supportsTwoFactor):
+    def authenticateLongSession(self, username: str, password: str, consumerKey: str, consumerSecret: str, deviceIdentifier: str, deviceDescription: str, supportsTwoFactor: bool) -> AuthenticationResult:
         """
         This is used to check a username and password in order to create a
         long-lived authentication token that can be used for further actions.
@@ -781,7 +784,7 @@ class Client(Iface):
         self.send_authenticateLongSession(username, password, consumerKey, consumerSecret, deviceIdentifier, deviceDescription, supportsTwoFactor)
         return self.recv_authenticateLongSession()
 
-    def send_authenticateLongSession(self, username, password, consumerKey, consumerSecret, deviceIdentifier, deviceDescription, supportsTwoFactor):
+    def send_authenticateLongSession(self, username: str, password: str, consumerKey: str, consumerSecret: str, deviceIdentifier: str, deviceDescription: str, supportsTwoFactor: bool):
         self._oprot.writeMessageBegin('authenticateLongSession', TMessageType.CALL, self._seqid)
         args = authenticateLongSession_args()
         args.username = username
@@ -795,7 +798,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_authenticateLongSession(self):
+    def recv_authenticateLongSession(self) -> AuthenticationResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -814,7 +817,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "authenticateLongSession failed: unknown result")
 
-    def completeTwoFactorAuthentication(self, authenticationToken, oneTimeCode, deviceIdentifier, deviceDescription):
+    def completeTwoFactorAuthentication(self, authenticationToken: str, oneTimeCode: str, deviceIdentifier: str, deviceDescription: str) -> AuthenticationResult:
         """
         Complete the authentication process when a second factor is required. This
         call is made after a successful call to authenticate or authenticateLongSession
@@ -863,7 +866,7 @@ class Client(Iface):
         self.send_completeTwoFactorAuthentication(authenticationToken, oneTimeCode, deviceIdentifier, deviceDescription)
         return self.recv_completeTwoFactorAuthentication()
 
-    def send_completeTwoFactorAuthentication(self, authenticationToken, oneTimeCode, deviceIdentifier, deviceDescription):
+    def send_completeTwoFactorAuthentication(self, authenticationToken: str, oneTimeCode: str, deviceIdentifier: str, deviceDescription: str):
         self._oprot.writeMessageBegin('completeTwoFactorAuthentication', TMessageType.CALL, self._seqid)
         args = completeTwoFactorAuthentication_args()
         args.authenticationToken = authenticationToken
@@ -874,7 +877,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_completeTwoFactorAuthentication(self):
+    def recv_completeTwoFactorAuthentication(self) -> AuthenticationResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -893,7 +896,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "completeTwoFactorAuthentication failed: unknown result")
 
-    def revokeLongSession(self, authenticationToken):
+    def revokeLongSession(self, authenticationToken: str) -> None:
         """
         Revoke an existing long lived authentication token. This can be used to
         revoke OAuth tokens or tokens created by calling authenticateLongSession,
@@ -919,7 +922,7 @@ class Client(Iface):
         self.send_revokeLongSession(authenticationToken)
         self.recv_revokeLongSession()
 
-    def send_revokeLongSession(self, authenticationToken):
+    def send_revokeLongSession(self, authenticationToken: str):
         self._oprot.writeMessageBegin('revokeLongSession', TMessageType.CALL, self._seqid)
         args = revokeLongSession_args()
         args.authenticationToken = authenticationToken
@@ -927,7 +930,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_revokeLongSession(self):
+    def recv_revokeLongSession(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -944,7 +947,7 @@ class Client(Iface):
             raise result.systemException
         return
 
-    def authenticateToBusiness(self, authenticationToken):
+    def authenticateToBusiness(self, authenticationToken: str) -> AuthenticationResult:
         """
         This is used to take an existing authentication token that grants access
         to an individual user account (returned from 'authenticate',
@@ -985,7 +988,7 @@ class Client(Iface):
         self.send_authenticateToBusiness(authenticationToken)
         return self.recv_authenticateToBusiness()
 
-    def send_authenticateToBusiness(self, authenticationToken):
+    def send_authenticateToBusiness(self, authenticationToken: str):
         self._oprot.writeMessageBegin('authenticateToBusiness', TMessageType.CALL, self._seqid)
         args = authenticateToBusiness_args()
         args.authenticationToken = authenticationToken
@@ -993,7 +996,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_authenticateToBusiness(self):
+    def recv_authenticateToBusiness(self) -> AuthenticationResult:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1012,7 +1015,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "authenticateToBusiness failed: unknown result")
 
-    def getUser(self, authenticationToken):
+    def getUser(self, authenticationToken: str) -> evernote_client.edam.type.ttypes.User:
         """
         Returns the User corresponding to the provided authentication token,
         or throws an exception if this token is not valid.
@@ -1027,7 +1030,7 @@ class Client(Iface):
         self.send_getUser(authenticationToken)
         return self.recv_getUser()
 
-    def send_getUser(self, authenticationToken):
+    def send_getUser(self, authenticationToken: str):
         self._oprot.writeMessageBegin('getUser', TMessageType.CALL, self._seqid)
         args = getUser_args()
         args.authenticationToken = authenticationToken
@@ -1035,7 +1038,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getUser(self):
+    def recv_getUser(self) -> evernote_client.edam.type.ttypes.User:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1054,7 +1057,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getUser failed: unknown result")
 
-    def getPublicUserInfo(self, username):
+    def getPublicUserInfo(self, username: str) -> PublicUserInfo:
         """
         Asks the UserStore about the publicly available location information for
         a particular username.
@@ -1070,7 +1073,7 @@ class Client(Iface):
         self.send_getPublicUserInfo(username)
         return self.recv_getPublicUserInfo()
 
-    def send_getPublicUserInfo(self, username):
+    def send_getPublicUserInfo(self, username: str):
         self._oprot.writeMessageBegin('getPublicUserInfo', TMessageType.CALL, self._seqid)
         args = getPublicUserInfo_args()
         args.username = username
@@ -1078,7 +1081,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getPublicUserInfo(self):
+    def recv_getPublicUserInfo(self) -> PublicUserInfo:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1099,7 +1102,7 @@ class Client(Iface):
             raise result.userException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getPublicUserInfo failed: unknown result")
 
-    def getUserUrls(self, authenticationToken):
+    def getUserUrls(self, authenticationToken: str) -> UserUrls:
         """
         <p>Returns the URLs that should be used when sending requests to the service on
         behalf of the account represented by the provided authenticationToken.</p>
@@ -1116,7 +1119,7 @@ class Client(Iface):
         self.send_getUserUrls(authenticationToken)
         return self.recv_getUserUrls()
 
-    def send_getUserUrls(self, authenticationToken):
+    def send_getUserUrls(self, authenticationToken: str):
         self._oprot.writeMessageBegin('getUserUrls', TMessageType.CALL, self._seqid)
         args = getUserUrls_args()
         args.authenticationToken = authenticationToken
@@ -1124,7 +1127,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getUserUrls(self):
+    def recv_getUserUrls(self) -> UserUrls:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1143,7 +1146,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "getUserUrls failed: unknown result")
 
-    def inviteToBusiness(self, authenticationToken, emailAddress):
+    def inviteToBusiness(self, authenticationToken: str, emailAddress: str) -> None:
         """
         Invite a user to join an Evernote Business account.
 
@@ -1195,7 +1198,7 @@ class Client(Iface):
         self.send_inviteToBusiness(authenticationToken, emailAddress)
         self.recv_inviteToBusiness()
 
-    def send_inviteToBusiness(self, authenticationToken, emailAddress):
+    def send_inviteToBusiness(self, authenticationToken: str, emailAddress: str):
         self._oprot.writeMessageBegin('inviteToBusiness', TMessageType.CALL, self._seqid)
         args = inviteToBusiness_args()
         args.authenticationToken = authenticationToken
@@ -1204,7 +1207,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_inviteToBusiness(self):
+    def recv_inviteToBusiness(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1221,7 +1224,7 @@ class Client(Iface):
             raise result.systemException
         return
 
-    def removeFromBusiness(self, authenticationToken, emailAddress):
+    def removeFromBusiness(self, authenticationToken: str, emailAddress: str) -> None:
         """
         Remove a user from an Evernote Business account. Once removed, the user will no
         longer be able to access content within the Evernote Business account.
@@ -1254,7 +1257,7 @@ class Client(Iface):
         self.send_removeFromBusiness(authenticationToken, emailAddress)
         self.recv_removeFromBusiness()
 
-    def send_removeFromBusiness(self, authenticationToken, emailAddress):
+    def send_removeFromBusiness(self, authenticationToken: str, emailAddress: str):
         self._oprot.writeMessageBegin('removeFromBusiness', TMessageType.CALL, self._seqid)
         args = removeFromBusiness_args()
         args.authenticationToken = authenticationToken
@@ -1263,7 +1266,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_removeFromBusiness(self):
+    def recv_removeFromBusiness(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1282,7 +1285,7 @@ class Client(Iface):
             raise result.notFoundException
         return
 
-    def updateBusinessUserIdentifier(self, authenticationToken, oldEmailAddress, newEmailAddress):
+    def updateBusinessUserIdentifier(self, authenticationToken: str, oldEmailAddress: str, newEmailAddress: str) -> None:
         """
         Update the email address used to uniquely identify an Evernote Business user.
 
@@ -1334,7 +1337,7 @@ class Client(Iface):
         self.send_updateBusinessUserIdentifier(authenticationToken, oldEmailAddress, newEmailAddress)
         self.recv_updateBusinessUserIdentifier()
 
-    def send_updateBusinessUserIdentifier(self, authenticationToken, oldEmailAddress, newEmailAddress):
+    def send_updateBusinessUserIdentifier(self, authenticationToken: str, oldEmailAddress: str, newEmailAddress: str):
         self._oprot.writeMessageBegin('updateBusinessUserIdentifier', TMessageType.CALL, self._seqid)
         args = updateBusinessUserIdentifier_args()
         args.authenticationToken = authenticationToken
@@ -1344,7 +1347,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_updateBusinessUserIdentifier(self):
+    def recv_updateBusinessUserIdentifier(self) -> None:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1363,7 +1366,7 @@ class Client(Iface):
             raise result.notFoundException
         return
 
-    def listBusinessUsers(self, authenticationToken):
+    def listBusinessUsers(self, authenticationToken: str) -> list[evernote_client.edam.type.ttypes.UserProfile]:
         """
         Returns a list of active business users in a given business.
 
@@ -1389,7 +1392,7 @@ class Client(Iface):
         self.send_listBusinessUsers(authenticationToken)
         return self.recv_listBusinessUsers()
 
-    def send_listBusinessUsers(self, authenticationToken):
+    def send_listBusinessUsers(self, authenticationToken: str):
         self._oprot.writeMessageBegin('listBusinessUsers', TMessageType.CALL, self._seqid)
         args = listBusinessUsers_args()
         args.authenticationToken = authenticationToken
@@ -1397,7 +1400,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listBusinessUsers(self):
+    def recv_listBusinessUsers(self) -> list[evernote_client.edam.type.ttypes.UserProfile]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1416,7 +1419,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listBusinessUsers failed: unknown result")
 
-    def listBusinessInvitations(self, authenticationToken, includeRequestedInvitations):
+    def listBusinessInvitations(self, authenticationToken: str, includeRequestedInvitations: bool) -> list[evernote_client.edam.type.ttypes.BusinessInvitation]:
         """
         Returns a list of outstanding invitations to join an Evernote Business account.
 
@@ -1439,7 +1442,7 @@ class Client(Iface):
         self.send_listBusinessInvitations(authenticationToken, includeRequestedInvitations)
         return self.recv_listBusinessInvitations()
 
-    def send_listBusinessInvitations(self, authenticationToken, includeRequestedInvitations):
+    def send_listBusinessInvitations(self, authenticationToken: str, includeRequestedInvitations: bool):
         self._oprot.writeMessageBegin('listBusinessInvitations', TMessageType.CALL, self._seqid)
         args = listBusinessInvitations_args()
         args.authenticationToken = authenticationToken
@@ -1448,7 +1451,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_listBusinessInvitations(self):
+    def recv_listBusinessInvitations(self) -> list[evernote_client.edam.type.ttypes.BusinessInvitation]:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1467,7 +1470,7 @@ class Client(Iface):
             raise result.systemException
         raise TApplicationException(TApplicationException.MISSING_RESULT, "listBusinessInvitations failed: unknown result")
 
-    def getAccountLimits(self, serviceLevel):
+    def getAccountLimits(self, serviceLevel: evernote_client.edam.type.ttypes.ServiceLevel) -> evernote_client.edam.type.ttypes.AccountLimits:
         """
         Retrieve the standard account limits for a given service level. This should only be
         called when necessary, e.g. to determine if a higher level is available should the
@@ -1485,7 +1488,7 @@ class Client(Iface):
         self.send_getAccountLimits(serviceLevel)
         return self.recv_getAccountLimits()
 
-    def send_getAccountLimits(self, serviceLevel):
+    def send_getAccountLimits(self, serviceLevel: evernote_client.edam.type.ttypes.ServiceLevel):
         self._oprot.writeMessageBegin('getAccountLimits', TMessageType.CALL, self._seqid)
         args = getAccountLimits_args()
         args.serviceLevel = serviceLevel
@@ -1493,7 +1496,7 @@ class Client(Iface):
         self._oprot.writeMessageEnd()
         self._oprot.trans.flush()
 
-    def recv_getAccountLimits(self):
+    def recv_getAccountLimits(self) -> evernote_client.edam.type.ttypes.AccountLimits:
         iprot = self._iprot
         (fname, mtype, rseqid) = iprot.readMessageBegin()
         if mtype == TMessageType.EXCEPTION:
@@ -1992,13 +1995,13 @@ class checkVersion_args(object):
      - edamVersionMinor
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, clientName = None, edamVersionMajor = 1, edamVersionMinor = 28,):
-        self.clientName = clientName
-        self.edamVersionMajor = edamVersionMajor
-        self.edamVersionMinor = edamVersionMinor
+    def __init__(self, clientName: typing.Optional[str] = None, edamVersionMajor: typing.Optional[int] = 1, edamVersionMinor: typing.Optional[int] = 28,):
+        self.clientName: typing.Optional[str] = clientName
+        self.edamVersionMajor: typing.Optional[int] = edamVersionMajor
+        self.edamVersionMinor: typing.Optional[int] = edamVersionMinor
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2078,11 +2081,11 @@ class checkVersion_result(object):
      - success
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None,):
-        self.success = success
+    def __init__(self, success: typing.Optional[bool] = None,):
+        self.success: typing.Optional[bool] = success
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2141,11 +2144,11 @@ class getBootstrapInfo_args(object):
      - locale
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, locale = None,):
-        self.locale = locale
+    def __init__(self, locale: typing.Optional[str] = None,):
+        self.locale: typing.Optional[str] = locale
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2205,11 +2208,11 @@ class getBootstrapInfo_result(object):
      - success
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None,):
-        self.success = success
+    def __init__(self, success: typing.Optional[BootstrapInfo] = None,):
+        self.success: typing.Optional[BootstrapInfo] = success
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2275,17 +2278,17 @@ class authenticateLongSession_args(object):
      - supportsTwoFactor
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, username = None, password = None, consumerKey = None, consumerSecret = None, deviceIdentifier = None, deviceDescription = None, supportsTwoFactor = None,):
-        self.username = username
-        self.password = password
-        self.consumerKey = consumerKey
-        self.consumerSecret = consumerSecret
-        self.deviceIdentifier = deviceIdentifier
-        self.deviceDescription = deviceDescription
-        self.supportsTwoFactor = supportsTwoFactor
+    def __init__(self, username: typing.Optional[str] = None, password: typing.Optional[str] = None, consumerKey: typing.Optional[str] = None, consumerSecret: typing.Optional[str] = None, deviceIdentifier: typing.Optional[str] = None, deviceDescription: typing.Optional[str] = None, supportsTwoFactor: typing.Optional[bool] = None,):
+        self.username: typing.Optional[str] = username
+        self.password: typing.Optional[str] = password
+        self.consumerKey: typing.Optional[str] = consumerKey
+        self.consumerSecret: typing.Optional[str] = consumerSecret
+        self.deviceIdentifier: typing.Optional[str] = deviceIdentifier
+        self.deviceDescription: typing.Optional[str] = deviceDescription
+        self.supportsTwoFactor: typing.Optional[bool] = supportsTwoFactor
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2407,13 +2410,13 @@ class authenticateLongSession_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[AuthenticationResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[AuthenticationResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2496,14 +2499,14 @@ class completeTwoFactorAuthentication_args(object):
      - deviceDescription
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, oneTimeCode = None, deviceIdentifier = None, deviceDescription = None,):
-        self.authenticationToken = authenticationToken
-        self.oneTimeCode = oneTimeCode
-        self.deviceIdentifier = deviceIdentifier
-        self.deviceDescription = deviceDescription
+    def __init__(self, authenticationToken: typing.Optional[str] = None, oneTimeCode: typing.Optional[str] = None, deviceIdentifier: typing.Optional[str] = None, deviceDescription: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.oneTimeCode: typing.Optional[str] = oneTimeCode
+        self.deviceIdentifier: typing.Optional[str] = deviceIdentifier
+        self.deviceDescription: typing.Optional[str] = deviceDescription
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2595,13 +2598,13 @@ class completeTwoFactorAuthentication_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[AuthenticationResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[AuthenticationResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2681,11 +2684,11 @@ class revokeLongSession_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2746,12 +2749,12 @@ class revokeLongSession_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, systemException = None,):
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2821,11 +2824,11 @@ class authenticateToBusiness_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2887,13 +2890,13 @@ class authenticateToBusiness_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[AuthenticationResult] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[AuthenticationResult] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -2973,11 +2976,11 @@ class getUser_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3039,13 +3042,13 @@ class getUser_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.User] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.User] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3125,11 +3128,11 @@ class getPublicUserInfo_args(object):
      - username
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, username = None,):
-        self.username = username
+    def __init__(self, username: typing.Optional[str] = None,):
+        self.username: typing.Optional[str] = username
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3192,14 +3195,14 @@ class getPublicUserInfo_result(object):
      - userException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, notFoundException = None, systemException = None, userException = None,):
-        self.success = success
-        self.notFoundException = notFoundException
-        self.systemException = systemException
-        self.userException = userException
+    def __init__(self, success: typing.Optional[PublicUserInfo] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None,):
+        self.success: typing.Optional[PublicUserInfo] = success
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3289,11 +3292,11 @@ class getUserUrls_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3355,13 +3358,13 @@ class getUserUrls_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[UserUrls] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[UserUrls] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3442,12 +3445,12 @@ class inviteToBusiness_args(object):
      - emailAddress
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, emailAddress = None,):
-        self.authenticationToken = authenticationToken
-        self.emailAddress = emailAddress
+    def __init__(self, authenticationToken: typing.Optional[str] = None, emailAddress: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.emailAddress: typing.Optional[str] = emailAddress
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3518,12 +3521,12 @@ class inviteToBusiness_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, systemException = None,):
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3594,12 +3597,12 @@ class removeFromBusiness_args(object):
      - emailAddress
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, emailAddress = None,):
-        self.authenticationToken = authenticationToken
-        self.emailAddress = emailAddress
+    def __init__(self, authenticationToken: typing.Optional[str] = None, emailAddress: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.emailAddress: typing.Optional[str] = emailAddress
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3671,13 +3674,13 @@ class removeFromBusiness_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, systemException = None, notFoundException = None,):
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3759,13 +3762,13 @@ class updateBusinessUserIdentifier_args(object):
      - newEmailAddress
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, oldEmailAddress = None, newEmailAddress = None,):
-        self.authenticationToken = authenticationToken
-        self.oldEmailAddress = oldEmailAddress
-        self.newEmailAddress = newEmailAddress
+    def __init__(self, authenticationToken: typing.Optional[str] = None, oldEmailAddress: typing.Optional[str] = None, newEmailAddress: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.oldEmailAddress: typing.Optional[str] = oldEmailAddress
+        self.newEmailAddress: typing.Optional[str] = newEmailAddress
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3847,13 +3850,13 @@ class updateBusinessUserIdentifier_result(object):
      - notFoundException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, userException = None, systemException = None, notFoundException = None,):
-        self.userException = userException
-        self.systemException = systemException
-        self.notFoundException = notFoundException
+    def __init__(self, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None, notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = None,):
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
+        self.notFoundException: typing.Optional[evernote_client.edam.error.ttypes.EDAMNotFoundException] = notFoundException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3933,11 +3936,11 @@ class listBusinessUsers_args(object):
      - authenticationToken
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None,):
-        self.authenticationToken = authenticationToken
+    def __init__(self, authenticationToken: typing.Optional[str] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -3999,13 +4002,13 @@ class listBusinessUsers_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.UserProfile]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.UserProfile]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4094,12 +4097,12 @@ class listBusinessInvitations_args(object):
      - includeRequestedInvitations
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, authenticationToken = None, includeRequestedInvitations = None,):
-        self.authenticationToken = authenticationToken
-        self.includeRequestedInvitations = includeRequestedInvitations
+    def __init__(self, authenticationToken: typing.Optional[str] = None, includeRequestedInvitations: typing.Optional[bool] = None,):
+        self.authenticationToken: typing.Optional[str] = authenticationToken
+        self.includeRequestedInvitations: typing.Optional[bool] = includeRequestedInvitations
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4171,13 +4174,13 @@ class listBusinessInvitations_result(object):
      - systemException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None, systemException = None,):
-        self.success = success
-        self.userException = userException
-        self.systemException = systemException
+    def __init__(self, success: typing.Optional[list[evernote_client.edam.type.ttypes.BusinessInvitation]] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None, systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = None,):
+        self.success: typing.Optional[list[evernote_client.edam.type.ttypes.BusinessInvitation]] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
+        self.systemException: typing.Optional[evernote_client.edam.error.ttypes.EDAMSystemException] = systemException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4265,11 +4268,18 @@ class getAccountLimits_args(object):
      - serviceLevel
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, serviceLevel = None,):
-        self.serviceLevel = serviceLevel
+    def __init__(self, serviceLevel: typing.Optional[evernote_client.edam.type.ttypes.ServiceLevel] = None,):
+        self.serviceLevel: typing.Optional[evernote_client.edam.type.ttypes.ServiceLevel] = serviceLevel
+
+    def __setattr__(self, name, value):
+        if name == "serviceLevel":
+            super().__setattr__(name, value if hasattr(value, 'value') else evernote_client.edam.type.ttypes.ServiceLevel.__members__.get(value))
+            return
+        super().__setattr__(name, value)
+
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
@@ -4282,7 +4292,7 @@ class getAccountLimits_args(object):
                 break
             if fid == 1:
                 if ftype == TType.I32:
-                    self.serviceLevel = iprot.readI32()
+                    self.serviceLevel = evernote_client.edam.type.ttypes.ServiceLevel(iprot.readI32())
                 else:
                     iprot.skip(ftype)
             else:
@@ -4298,7 +4308,7 @@ class getAccountLimits_args(object):
         oprot.writeStructBegin('getAccountLimits_args')
         if self.serviceLevel is not None:
             oprot.writeFieldBegin('serviceLevel', TType.I32, 1)
-            oprot.writeI32(self.serviceLevel)
+            oprot.writeI32(self.serviceLevel.value)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
         oprot.writeStructEnd()
@@ -4330,12 +4340,12 @@ class getAccountLimits_result(object):
      - userException
 
     """
-    thrift_spec = None
+    thrift_spec: typing.Any = None
 
 
-    def __init__(self, success = None, userException = None,):
-        self.success = success
-        self.userException = userException
+    def __init__(self, success: typing.Optional[evernote_client.edam.type.ttypes.AccountLimits] = None, userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = None,):
+        self.success: typing.Optional[evernote_client.edam.type.ttypes.AccountLimits] = success
+        self.userException: typing.Optional[evernote_client.edam.error.ttypes.EDAMUserException] = userException
 
     def read(self, iprot):
         if iprot._fast_decode is not None and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None:
