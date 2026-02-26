@@ -9,17 +9,22 @@ from __future__ import annotations
 
 import functools
 import inspect
+from collections.abc import Callable
 from http.client import HTTPException
 from typing import Any
 
+from ratelimit import limits, sleep_and_retry
 from tenacity import (
+    RetryCallState,
     retry,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
 from thrift.transport.THttpClient import THttpClient
+
+from evernote_client.edam.error.ttypes import EDAMErrorCode, EDAMSystemException
 
 # --- Token parsing ---
 
@@ -64,6 +69,40 @@ class THttpClientHotfix(THttpClient):
             raise HTTPException(msg)
 
 
+# --- Rate limiting ---
+
+CALLS_PER_HOUR: int = 500  # Conservative Evernote API limit
+
+
+def _is_retriable(exc: BaseException) -> bool:
+    if isinstance(exc, (HTTPException, ConnectionError)):
+        return True
+    if isinstance(exc, EDAMSystemException):
+        return exc.errorCode in (  # type: ignore[attr-defined]
+            EDAMErrorCode.RATE_LIMIT_REACHED,
+            EDAMErrorCode.SHARD_UNAVAILABLE,
+        )
+    return False
+
+
+def _edam_wait(retry_state: RetryCallState) -> float:
+    exc = retry_state.outcome.exception()  # type: ignore[union-attr]
+    if (
+        isinstance(exc, EDAMSystemException)
+        and exc.errorCode == EDAMErrorCode.RATE_LIMIT_REACHED  # type: ignore[attr-defined]
+        and exc.rateLimitDuration  # type: ignore[attr-defined]
+    ):
+        return float(exc.rateLimitDuration)  # type: ignore[attr-defined]
+    return wait_exponential(multiplier=0.25, exp_base=2)(retry_state)
+
+
+@sleep_and_retry
+@limits(calls=CALLS_PER_HOUR, period=3600)
+def _execute_api_call(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    """Rate-limited executor shared across all Store instances."""
+    return fn(*args, **kwargs)
+
+
 # --- Store proxy ---
 
 
@@ -86,23 +125,26 @@ class Store:
             return target_method
 
         @retry(
-            retry=retry_if_exception_type((HTTPException, ConnectionError)),
+            retry=retry_if_exception(_is_retriable),
             stop=stop_after_attempt(4),  # 1 initial + 3 retries
-            wait=wait_exponential(multiplier=0.25, exp_base=2),  # 0.5, 1.0, 2.0
+            wait=_edam_wait,
             reraise=True,
         )
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             org_args = inspect.getfullargspec(target_method).args
             if len(org_args) == len(args) + 1:
-                return target_method(*args, **kwargs)
+                return _execute_api_call(target_method, *args, **kwargs)
             if self.token and "authenticationToken" in org_args:
                 skip_args = ["self", "authenticationToken"]
                 arg_names = [i for i in org_args if i not in skip_args]
-                return functools.partial(
+                fn = functools.partial(
                     target_method,
                     authenticationToken=self.token,
-                )(**dict(zip(arg_names, args, strict=False)), **kwargs)
-            return target_method(*args, **kwargs)
+                )
+                return _execute_api_call(
+                    fn, **dict(zip(arg_names, args, strict=False)), **kwargs
+                )
+            return _execute_api_call(target_method, *args, **kwargs)
 
         return wrapper
 

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 from evernote_client.auth import OAuthError, get_token
 from evernote_client.client import EvernoteClient
 from evernote_client.config import settings
@@ -172,3 +175,31 @@ def move_note(guid: str, notebook_name: str) -> NoteMetadata:
     notebook_guid = resolve_notebook_guid(client, notebook_name)
     note = client.move_note(guid, notebook_guid)
     return NoteMetadata.from_thrift(note)
+
+
+# --- Write queue ---
+
+_WRITE_DISPATCHER: dict[str, Callable[..., Any]] = {
+    "create_note": create_note,
+    "tag_note": tag_note,
+    "untag_note": untag_note,
+    "move_note": move_note,
+}
+
+
+def enqueue_write(operation: str, **params: Any) -> None:
+    """Persist a write operation for later execution."""
+    from evernote_client.client.queue import OperationQueue
+
+    OperationQueue(settings.queue_path).put(operation, **params)
+
+
+def drain_pending_writes() -> int:
+    """Process all queued write operations. Returns count processed."""
+    from evernote_client.client.queue import OperationQueue
+
+    queue = OperationQueue(settings.queue_path)
+    if queue.is_empty():
+        return 0
+    results = queue.process_all(_WRITE_DISPATCHER)
+    return len(results)

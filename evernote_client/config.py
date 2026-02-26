@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     consumer_secret: str = ""
     token: str = ""
     token_path: Path = Path.home() / ".evernote-client" / "token.json"
+    queue_path: Path = Path.home() / ".evernote-client" / "queue"
 
 
 settings = Settings()
