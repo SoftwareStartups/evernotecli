@@ -102,11 +102,7 @@ class EvernoteClient:
 
     def _build_tag_map(self) -> dict[str, str]:
         """Build a name→guid map from all tags."""
-        return {
-            t.name: t.guid
-            for t in self.list_tags()
-            if t.name and t.guid
-        }
+        return {t.name: t.guid for t in self.list_tags() if t.name and t.guid}
 
     def _get_note_tag_guids(
         self, guid: str, tag_map: dict[str, str] | None = None

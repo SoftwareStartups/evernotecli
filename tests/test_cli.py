@@ -28,9 +28,7 @@ class TestReadCommands:
         mock_service.search_notes.assert_called_once()
 
     def test_note(self, mock_service: MagicMock) -> None:
-        mock_service.get_note.return_value = NoteMetadata(
-            guid="g1", title="Test"
-        )
+        mock_service.get_note.return_value = NoteMetadata(guid="g1", title="Test")
         result = CliRunner().invoke(main, ["note", "g1"])
         assert result.exit_code == 0
         assert "g1" in result.output
@@ -52,9 +50,7 @@ class TestReadCommands:
         assert "Work" in result.output
 
     def test_tags(self, mock_service: MagicMock) -> None:
-        mock_service.list_tags.return_value = [
-            TagInfo(guid="t-1", name="python")
-        ]
+        mock_service.list_tags.return_value = [TagInfo(guid="t-1", name="python")]
         result = CliRunner().invoke(main, ["tags"])
         assert result.exit_code == 0
         assert "python" in result.output
@@ -63,31 +59,23 @@ class TestReadCommands:
 @patch("evernote_client.cli.write_commands.service")
 class TestWriteCommands:
     def test_create(self, mock_service: MagicMock) -> None:
-        mock_service.create_note.return_value = CreatedNote(
-            guid="g1", title="New Note"
-        )
+        mock_service.create_note.return_value = CreatedNote(guid="g1", title="New Note")
         result = CliRunner().invoke(main, ["create", "New Note", "-c", "body"])
         assert result.exit_code == 0
         assert "g1" in result.output
 
     def test_tag(self, mock_service: MagicMock) -> None:
-        mock_service.tag_note.return_value = NoteMetadata(
-            guid="g1", title="Test"
-        )
+        mock_service.tag_note.return_value = NoteMetadata(guid="g1", title="Test")
         result = CliRunner().invoke(main, ["tag", "g1", "python"])
         assert result.exit_code == 0
 
     def test_untag(self, mock_service: MagicMock) -> None:
-        mock_service.untag_note.return_value = NoteMetadata(
-            guid="g1", title="Test"
-        )
+        mock_service.untag_note.return_value = NoteMetadata(guid="g1", title="Test")
         result = CliRunner().invoke(main, ["untag", "g1", "python"])
         assert result.exit_code == 0
 
     def test_move(self, mock_service: MagicMock) -> None:
-        mock_service.move_note.return_value = NoteMetadata(
-            guid="g1", title="Test"
-        )
+        mock_service.move_note.return_value = NoteMetadata(guid="g1", title="Test")
         result = CliRunner().invoke(main, ["move", "g1", "Archive"])
         assert result.exit_code == 0
 

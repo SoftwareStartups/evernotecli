@@ -100,9 +100,7 @@ class TestGetClient:
 
     def test_oauth_error_raises_value_error(self) -> None:
         with (
-            patch.object(
-                service, "get_token", side_effect=OAuthError("bad token")
-            ),
+            patch.object(service, "get_token", side_effect=OAuthError("bad token")),
             pytest.raises(ValueError, match="authentication failed"),
         ):
             service.get_client()
@@ -138,18 +136,14 @@ class TestSearchNotes:
         assert result.notes[0].guid == "note-1"
 
     def test_caps_max_results_at_100(self, mock_client: MagicMock) -> None:
-        mock_client.search_notes.return_value = _make_search_result(
-            notes=[], total=0
-        )
+        mock_client.search_notes.return_value = _make_search_result(notes=[], total=0)
         service.search_notes(query="test", max_results=500)
         _, kwargs = mock_client.search_notes.call_args
         assert kwargs["max_results"] == 100
 
     def test_filters_by_notebook(self, mock_client: MagicMock) -> None:
         mock_client.list_notebooks.return_value = [_make_notebook("nb-1", "Work")]
-        mock_client.search_notes.return_value = _make_search_result(
-            notes=[], total=0
-        )
+        mock_client.search_notes.return_value = _make_search_result(notes=[], total=0)
         service.search_notes(query="", notebook_name="Work")
         _, kwargs = mock_client.search_notes.call_args
         assert kwargs["notebook_guid"] == "nb-1"
@@ -160,9 +154,7 @@ class TestSearchNotes:
             service.search_notes(query="", notebook_name="Missing")
 
     def test_empty_notebook_name_passes_none(self, mock_client: MagicMock) -> None:
-        mock_client.search_notes.return_value = _make_search_result(
-            notes=[], total=0
-        )
+        mock_client.search_notes.return_value = _make_search_result(notes=[], total=0)
         service.search_notes(query="test", notebook_name="")
         _, kwargs = mock_client.search_notes.call_args
         assert kwargs["notebook_guid"] is None
