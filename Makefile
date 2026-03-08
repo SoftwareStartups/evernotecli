@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck check test serve clean thrift
+.PHONY: install lint format typecheck check test test-unit test-integration test-e2e serve clean thrift
 
 install:
 	uv sync
@@ -15,7 +15,16 @@ typecheck:
 check: lint typecheck
 
 test:
-	uv run pytest
+	uv run pytest tests/unit tests/integration
+
+test-unit:
+	uv run pytest tests/unit
+
+test-integration:
+	uv run pytest tests/integration
+
+test-e2e:
+	uv run pytest tests/e2e -m e2e
 
 serve:
 	uv run encl serve

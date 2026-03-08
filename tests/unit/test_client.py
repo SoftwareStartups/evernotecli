@@ -12,6 +12,8 @@ from evernote_client.client.thrift import (
     get_token_shard,
 )
 
+from tests.conftest import make_note, make_tag
+
 
 class TestTokenParsing:
     def test_get_token_shard(self) -> None:
@@ -129,30 +131,12 @@ def _patch_store(client: EvernoteClient, mock_store: MagicMock):  # type: ignore
     )
 
 
-def _make_tag(name: str, guid: str) -> SimpleNamespace:
-    return SimpleNamespace(name=name, guid=guid)
-
-
-def _make_note(
-    guid: str = "note-1",
-    title: str = "Test",
-    tag_guids: list[str] | None = None,
-    notebook_guid: str = "nb-1",
-) -> SimpleNamespace:
-    return SimpleNamespace(
-        guid=guid,
-        title=title,
-        tagGuids=tag_guids,
-        notebookGuid=notebook_guid,
-    )
-
-
 class TestResolveTagGuids:
     def test_finds_existing_tags(self) -> None:
         client, mock_store = _make_client()
         mock_store.listTags.return_value = [
-            _make_tag("python", "tag-1"),
-            _make_tag("coding", "tag-2"),
+            make_tag(name="python", guid="tag-1"),
+            make_tag(name="coding", guid="tag-2"),
         ]
         with _patch_store(client, mock_store):
             guids = client._resolve_tag_guids(["python"])
@@ -161,7 +145,7 @@ class TestResolveTagGuids:
 
     def test_creates_missing_tags(self) -> None:
         client, mock_store = _make_client()
-        mock_store.listTags.return_value = [_make_tag("python", "tag-1")]
+        mock_store.listTags.return_value = [make_tag(name="python", guid="tag-1")]
         mock_store.createTag.return_value = SimpleNamespace(guid="tag-new")
         with _patch_store(client, mock_store):
             guids = client._resolve_tag_guids(["newtagname"])
@@ -179,12 +163,12 @@ class TestResolveTagGuids:
 class TestTagNote:
     def test_merges_guids(self) -> None:
         client, mock_store = _make_client()
-        tags = [_make_tag("existing", "tag-1"), _make_tag("newtag", "tag-2")]
+        tags = [make_tag(name="existing", guid="tag-1"), make_tag(name="newtag", guid="tag-2")]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["existing"]
-        note = _make_note()
+        note = make_note()
         mock_store.getNote.return_value = note
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             result = client.tag_note("note-1", ["newtag"])
@@ -197,11 +181,11 @@ class TestTagNote:
     def test_api_call_count(self) -> None:
         """tag_note should call getNote once and listTags once."""
         client, mock_store = _make_client()
-        mock_store.listTags.return_value = [_make_tag("t", "tag-1")]
+        mock_store.listTags.return_value = [make_tag(name="t", guid="tag-1")]
         mock_store.getNoteTagNames.return_value = []
-        note = _make_note()
+        note = make_note()
         mock_store.getNote.return_value = note
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             result = client.tag_note("note-1", ["t"])
@@ -213,11 +197,11 @@ class TestTagNote:
     def test_listTags_called_once(self) -> None:
         """listTags should be called exactly once even with existing + new tags."""
         client, mock_store = _make_client()
-        tags = [_make_tag("old", "tag-1"), _make_tag("new", "tag-2")]
+        tags = [make_tag(name="old", guid="tag-1"), make_tag(name="new", guid="tag-2")]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["old"]
-        mock_store.getNote.return_value = _make_note()
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.getNote.return_value = make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             client.tag_note("note-1", ["new"])
@@ -228,12 +212,12 @@ class TestTagNote:
 class TestUntagNote:
     def test_removes_guids(self) -> None:
         client, mock_store = _make_client()
-        tags = [_make_tag("keep", "tag-1"), _make_tag("remove", "tag-2")]
+        tags = [make_tag(name="keep", guid="tag-1"), make_tag(name="remove", guid="tag-2")]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["keep", "remove"]
-        note = _make_note()
+        note = make_note()
         mock_store.getNote.return_value = note
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             result = client.untag_note("note-1", ["remove"])
@@ -245,11 +229,11 @@ class TestUntagNote:
     def test_listTags_called_once(self) -> None:
         """listTags should be called exactly once in untag_note."""
         client, mock_store = _make_client()
-        tags = [_make_tag("keep", "tag-1"), _make_tag("remove", "tag-2")]
+        tags = [make_tag(name="keep", guid="tag-1"), make_tag(name="remove", guid="tag-2")]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["keep", "remove"]
-        mock_store.getNote.return_value = _make_note()
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.getNote.return_value = make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             client.untag_note("note-1", ["remove"])
@@ -262,7 +246,7 @@ class TestUpdateNote:
     def test_preserves_title(self) -> None:
         """_update_note fetches existing title when not provided (for move_note)."""
         client, mock_store = _make_client()
-        existing = _make_note(title="Original Title")
+        existing = make_note(title="Original Title")
         mock_store.getNote.return_value = existing
         mock_store.updateNote.return_value = existing
 
@@ -276,7 +260,7 @@ class TestUpdateNote:
     def test_explicit_kwargs(self) -> None:
         """_update_note accepts explicit keyword arguments."""
         client, mock_store = _make_client()
-        mock_store.updateNote.return_value = _make_note()
+        mock_store.updateNote.return_value = make_note()
 
         with _patch_store(client, mock_store):
             client._update_note(

@@ -11,7 +11,10 @@ uv sync                              # Install dependencies
 uv run ruff check .                  # Lint
 uv run ruff format .                 # Format
 uv run pyright                       # Type check
-uv run pytest                        # Run tests
+make test                            # Run unit + integration tests (no token needed)
+make test-unit                       # Unit tests only
+make test-integration                # Integration tests only
+make test-e2e                        # E2E tests (requires EVERNOTE_TOKEN)
 uv run encl --help                   # Show CLI help
 uv run encl serve                    # Start MCP server
 uv run encl notebooks                # List notebooks
@@ -56,6 +59,29 @@ evernote_client/
 │   └── write_commands.py    # create, tag, untag, move, drain, login, serve
 └── py.typed
 ```
+
+## Test Structure
+
+```
+tests/
+├── conftest.py              # Shared factories (make_note, make_tag, make_notebook,
+│                            #   make_search_result) + fixtures (reset_client, mock_client)
+├── unit/                    # Tests mocking at module boundary (no service layer)
+│   ├── test_callback_server.py
+│   ├── test_cli.py
+│   ├── test_client.py
+│   ├── test_enml.py
+│   └── test_token_store.py
+├── integration/             # Tests exercising the service layer with mocked HTTP
+│   ├── test_private_tag.py
+│   ├── test_rate_limiting.py
+│   └── test_server_tools.py
+└── e2e/                     # Tests requiring a live Evernote token (@pytest.mark.e2e)
+    ├── conftest.py          # Session-scoped fixtures (token, runner, known_notebooks, …)
+    └── test_cli.py
+```
+
+`make test` (unit + integration) requires no token. `make test-e2e` requires `EVERNOTE_TOKEN`.
 
 ## Key Design Decisions
 

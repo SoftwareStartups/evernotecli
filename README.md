@@ -54,11 +54,14 @@ Configure your MCP client (e.g. Claude Desktop) to run `uv run encl serve` as th
 ### Development
 
 ```bash
-uv run ruff check .      # lint
-uv run ruff format .     # format
-uv run pyright           # type check
-uv run pytest            # run tests
-make thrift              # regenerate Thrift clients (requires brew install thrift)
+uv run ruff check .          # lint
+uv run ruff format .         # format
+uv run pyright               # type check
+make test                    # unit + integration tests (no token needed)
+make test-unit               # unit tests only
+make test-integration        # integration tests only
+make test-e2e                # e2e tests (requires EVERNOTE_TOKEN)
+make thrift                  # regenerate Thrift clients (requires brew install thrift)
 ```
 
 For architecture and design details, see `CLAUDE.md`.

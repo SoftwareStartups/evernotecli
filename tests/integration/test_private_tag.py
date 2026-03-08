@@ -10,42 +10,14 @@ import pytest
 from evernote_client import service
 from evernote_client.service import PrivateNoteError
 
+from tests.conftest import make_note, make_search_result
+
 PRIVATE_GUID = "tag-private"
 PUBLIC_GUID = "tag-public"
 
 
-def _make_note(
-    guid: str = "note-1",
-    title: str = "Test Note",
-    notebook_guid: str = "nb-1",
-    tag_guids: list[str] | None = None,
-) -> SimpleNamespace:
-    return SimpleNamespace(
-        guid=guid,
-        title=title,
-        notebookGuid=notebook_guid,
-        tagGuids=tag_guids or [],
-        created=1700000000000,
-        updated=1700000001000,
-        contentLength=42,
-    )
-
-
-def _make_search_result(
-    notes: list[SimpleNamespace] | None = None, total: int = 1
-) -> SimpleNamespace:
-    return SimpleNamespace(notes=notes or [], totalNotes=total)
-
-
-@pytest.fixture(autouse=True)
-def _reset_client():
-    service._client = None
-    yield
-    service._client = None
-
-
 @pytest.fixture()
-def mock_client():
+def mock_client(reset_client: None) -> MagicMock:  # noqa: ARG001
     client = MagicMock()
     client.private_tag_guid = PRIVATE_GUID
     with patch.object(service, "get_client", return_value=client):
@@ -57,9 +29,9 @@ def mock_client():
 
 class TestSearchNotesPrivate:
     def test_excludes_private_notes(self, mock_client: MagicMock) -> None:
-        public = _make_note("note-1", tag_guids=[PUBLIC_GUID])
-        private = _make_note("note-2", tag_guids=[PRIVATE_GUID])
-        mock_client.search_notes.return_value = _make_search_result(
+        public = make_note("note-1", tag_guids=[PUBLIC_GUID])
+        private = make_note("note-2", tag_guids=[PRIVATE_GUID])
+        mock_client.search_notes.return_value = make_search_result(
             notes=[public, private], total=2
         )
         result = service.search_notes()
@@ -67,29 +39,29 @@ class TestSearchNotesPrivate:
         assert result.notes[0].guid == "note-1"
 
     def test_adjusts_total_after_filtering(self, mock_client: MagicMock) -> None:
-        public = _make_note("note-1", tag_guids=[PUBLIC_GUID])
-        private = _make_note("note-2", tag_guids=[PRIVATE_GUID])
-        mock_client.search_notes.return_value = _make_search_result(
+        public = make_note("note-1", tag_guids=[PUBLIC_GUID])
+        private = make_note("note-2", tag_guids=[PRIVATE_GUID])
+        mock_client.search_notes.return_value = make_search_result(
             notes=[public, private], total=5
         )
         result = service.search_notes()
         assert result.total == 4  # 5 - 1 filtered
 
     def test_strips_private_from_tag_filter(self, mock_client: MagicMock) -> None:
-        mock_client.search_notes.return_value = _make_search_result(notes=[], total=0)
+        mock_client.search_notes.return_value = make_search_result(notes=[], total=0)
         service.search_notes(tags=["private", "python"])
         _, kwargs = mock_client.search_notes.call_args
         assert kwargs["tag_names"] == ["python"]
 
     def test_strips_private_case_insensitive(self, mock_client: MagicMock) -> None:
-        mock_client.search_notes.return_value = _make_search_result(notes=[], total=0)
+        mock_client.search_notes.return_value = make_search_result(notes=[], total=0)
         service.search_notes(tags=["PRIVATE"])
         _, kwargs = mock_client.search_notes.call_args
         assert kwargs["tag_names"] is None
 
     def test_non_private_notes_unaffected(self, mock_client: MagicMock) -> None:
-        note = _make_note("note-1", tag_guids=[PUBLIC_GUID])
-        mock_client.search_notes.return_value = _make_search_result(
+        note = make_note("note-1", tag_guids=[PUBLIC_GUID])
+        mock_client.search_notes.return_value = make_search_result(
             notes=[note], total=1
         )
         result = service.search_notes()
@@ -102,12 +74,12 @@ class TestSearchNotesPrivate:
 
 class TestGetNotePrivate:
     def test_raises_for_private_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         with pytest.raises(PrivateNoteError):
             service.get_note("note-1")
 
     def test_allows_public_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
         result = service.get_note("note-1")
         assert result.guid == "note-1"
 
@@ -117,12 +89,12 @@ class TestGetNotePrivate:
 
 class TestGetNoteContentPrivate:
     def test_raises_for_private_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         with pytest.raises(PrivateNoteError):
             service.get_note_content("note-1")
 
     def test_allows_public_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
         mock_client.get_note_content.return_value = "# Hello"
         result = service.get_note_content("note-1")
         assert result.content == "# Hello"
@@ -157,25 +129,25 @@ class TestListTagsPrivate:
 
 class TestUntagNotePrivate:
     def test_raises_for_private_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         with pytest.raises(PrivateNoteError):
             service.untag_note("note-1", ["python"])
 
     def test_raises_when_removing_private_tag(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
         with pytest.raises(PrivateNoteError):
             service.untag_note("note-1", ["private"])
 
     def test_raises_when_removing_private_tag_case_insensitive(
         self, mock_client: MagicMock
     ) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
         with pytest.raises(PrivateNoteError):
             service.untag_note("note-1", ["PRIVATE"])
 
     def test_allows_removing_public_tag(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
-        mock_client.untag_note.return_value = _make_note(tag_guids=[])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.untag_note.return_value = make_note(tag_guids=[])
         result = service.untag_note("note-1", ["python"])
         assert result.guid == "note-1"
 
@@ -185,13 +157,13 @@ class TestUntagNotePrivate:
 
 class TestTagNotePrivate:
     def test_raises_for_private_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         with pytest.raises(PrivateNoteError):
             service.tag_note("note-1", ["work"])
 
     def test_allows_tagging_public_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
-        mock_client.tag_note.return_value = _make_note(tag_guids=[PUBLIC_GUID, "tag-2"])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.tag_note.return_value = make_note(tag_guids=[PUBLIC_GUID, "tag-2"])
         result = service.tag_note("note-1", ["work"])
         assert result.guid == "note-1"
 
@@ -201,7 +173,7 @@ class TestTagNotePrivate:
 
 class TestMoveNotePrivate:
     def test_raises_for_private_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         mock_client.list_notebooks.return_value = [
             SimpleNamespace(guid="nb-2", name="Archive", stack=None)
         ]
@@ -209,11 +181,11 @@ class TestMoveNotePrivate:
             service.move_note("note-1", "Archive")
 
     def test_allows_moving_public_note(self, mock_client: MagicMock) -> None:
-        mock_client.get_note.return_value = _make_note(tag_guids=[PUBLIC_GUID])
+        mock_client.get_note.return_value = make_note(tag_guids=[PUBLIC_GUID])
         mock_client.list_notebooks.return_value = [
             SimpleNamespace(guid="nb-2", name="Archive", stack=None)
         ]
-        mock_client.move_note.return_value = _make_note(
+        mock_client.move_note.return_value = make_note(
             notebook_guid="nb-2", tag_guids=[PUBLIC_GUID]
         )
         result = service.move_note("note-1", "Archive")
@@ -225,7 +197,7 @@ class TestMoveNotePrivate:
 
 class TestCreateNotePrivate:
     def test_creating_private_note_is_allowed(self, mock_client: MagicMock) -> None:
-        mock_client.create_note.return_value = _make_note(tag_guids=[PRIVATE_GUID])
+        mock_client.create_note.return_value = make_note(tag_guids=[PRIVATE_GUID])
         result = service.create_note(title="Secret", content="body", tags=["private"])
         assert result.guid == "note-1"
         _, kwargs = mock_client.create_note.call_args
