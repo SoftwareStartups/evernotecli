@@ -33,6 +33,16 @@ uv run encl drain                        # process queued writes
 
 Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `encl drain` later to replay them.
 
+### Private notes
+
+Notes tagged `private` are protected at the service layer:
+
+- **Hidden from search results** — never appear in `search` output, even with `tag:private` queries
+- **Blocked from direct access** — `note` and `content` commands return an error
+- **Blocked from write operations** — `tag`, `untag`, and `move` refuse to operate on private notes
+- **Tag protected** — the `private` tag cannot be removed via `untag`; it is also hidden from `tags` listing
+- **Creating private notes is allowed** — `create -t private` works as expected
+
 ### MCP server
 
 ```bash
