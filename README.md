@@ -1,40 +1,54 @@
-## Evernote MCP Server
+## Evernote Client
 
-A Python-based Model Context Protocol (MCP) server that connects tools/agents to your Evernote account. It provides read-only access to existing notes plus limited write actions (create notes, tag notes, move notes), but does not edit or delete existing note content.
+A Python-based Evernote client exposing both a CLI (`encl`) and a Model Context Protocol (MCP) server. Provides full read access and limited write access (create notes, tag notes, move notes). Does not edit or delete existing note content.
 
 ### Prerequisites
 
 - **Python**: 3.12+
-- **uv**: for dependency management (`pip install uv`)
-- An **Evernote API token** (see `evernote_mcp/auth.py` and your Evernote developer settings)
+- **uv**: `pip install uv`
+- An **Evernote API token** (OAuth flow via `encl login`)
 
 ### Setup
 
 ```bash
-make install
+uv sync
+uv run encl login      # authenticate via OAuth
 ```
+
+### CLI usage
+
+```bash
+uv run encl --help
+uv run encl search "query"               # search notes
+uv run encl notebooks                    # list notebooks
+uv run encl tags                         # list tags
+uv run encl note <guid>                  # note metadata
+uv run encl content <guid>               # note content (Markdown)
+uv run encl create "Title" -c "body"     # create a note
+uv run encl tag <guid> tag1 tag2         # add tags
+uv run encl untag <guid> tag1            # remove tags
+uv run encl move <guid> "Notebook"       # move to notebook
+uv run encl drain                        # process queued writes
+```
+
+Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `encl drain` later to replay them.
+
+### MCP server
+
+```bash
+uv run encl serve
+```
+
+Configure your MCP client (e.g. Claude Desktop) to run `uv run encl serve` as the server command.
 
 ### Development
 
-Common commands:
+```bash
+uv run ruff check .      # lint
+uv run ruff format .     # format
+uv run pyright           # type check
+uv run pytest            # run tests
+make thrift              # regenerate Thrift clients (requires brew install thrift)
+```
 
-- **Format**: `make format`
-- **Lint & Type check**: `make check`
-- **Tests**: `make test`
-- **Run MCP server (dev)**: `make serve`
-- **Regenerate Thrift clients**: `make thrift` (requires the `thrift` compiler, e.g. `brew install thrift`)
-
-### Using the MCP Inspector (`make serve`)
-
-`make serve` launches the MCP Inspector for **manual, local testing** and starts a local proxy that requires a session token.
-
-1. Run `make serve`.
-2. In the terminal output, copy the **Session token** (or use the printed “Open inspector with token pre-filled” link).
-3. In the Inspector UI:
-   - Open the printed URL that includes `MCP_PROXY_AUTH_TOKEN=...`, or
-   - Expand **Configuration** and paste the token into the proxy auth/session token field.
-4. Click **Connect**, then browse the available **Tools** and run calls to verify behavior.
-
-### Notes
-
-For project architecture and design details, see `CLAUDE.md` and the `evernote_mcp/` package.
+For architecture and design details, see `CLAUDE.md`.

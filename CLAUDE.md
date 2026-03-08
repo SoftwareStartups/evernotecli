@@ -16,6 +16,7 @@ uv run encl --help                   # Show CLI help
 uv run encl serve                    # Start MCP server
 uv run encl notebooks                # List notebooks
 uv run encl search "query"           # Search notes
+uv run encl drain                    # Process queued write operations
 make thrift                          # Regenerate Thrift clients (requires thrift compiler)
 ```
 
@@ -34,6 +35,7 @@ evernote_client/
 │   └── callback_server.py
 ├── client/                  # Low-level Evernote API
 │   ├── evernote_client.py   # High-level API client
+│   ├── queue.py             # Persistent write queue (OperationQueue)
 │   └── thrift.py            # Store proxy, retry, TBinaryProtocol/THttpClient hotfixes
 ├── edam/                    # Generated Thrift clients (do not edit — run `make thrift`)
 │   ├── notestore/           # NoteStore service + types
@@ -51,7 +53,7 @@ evernote_client/
 ├── cli/                     # Click CLI
 │   ├── __init__.py          # Click group + main()
 │   ├── read_commands.py     # search, note, content, notebooks, tags
-│   └── write_commands.py    # create, tag, untag, move, login, serve
+│   └── write_commands.py    # create, tag, untag, move, drain, login, serve
 └── py.typed
 ```
 
@@ -64,6 +66,8 @@ evernote_client/
 - Required Thrift headers: `x-feature-version: 3`, `accept: application/x-thrift`
 - Service layer (`service.py`) shared between MCP tools and CLI commands
 - `NoteMetadata.from_thrift()` classmethod keeps Thrift→Pydantic conversion on the model
+- Write commands catch `EvernoteRateLimitError` and enqueue via `service.enqueue_write`; `encl drain` replays them
+- Read commands propagate `EvernoteRateLimitError` → caught by `_EvernoteGroup.invoke` → user-friendly message
 
 ## Code Style
 
