@@ -14,16 +14,22 @@ import re
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 
+from evernote_client.enml.types import ResourceInfo
+
 _BlockHandler = Callable[[ET.Element, list[str]], None]
 _InlineHandler = Callable[[ET.Element], str]
 
 logger = logging.getLogger(__name__)
 
 
-def enml_to_markdown(enml: str) -> str:
+def enml_to_markdown(enml: str, resources: list[ResourceInfo] | None = None) -> str:
     """Convert ENML to Markdown."""
     if not enml:
         return ""
+
+    resource_map: dict[str, ResourceInfo] = (
+        {r.hash_hex: r for r in resources} if resources else {}
+    )
 
     # Strip XML declaration and DOCTYPE
     enml = re.sub(r"<\?xml[^>]*\?>", "", enml)
@@ -49,7 +55,7 @@ def enml_to_markdown(enml: str) -> str:
         return _strip_tags(enml)
 
     lines: list[str] = []
-    _walk(root, lines)
+    _walk(root, lines, resource_map)
     result = "\n".join(lines)
     # Clean up excessive blank lines
     result = re.sub(r"\n{3,}", "\n\n", result)
@@ -106,19 +112,36 @@ def _handle_todo_unchecked(el: ET.Element, lines: list[str]) -> None:
     lines.append("- [ ] ")
 
 
-def _handle_media(el: ET.Element, lines: list[str]) -> None:
-    hash_val = el.get("hash", "")
+def _handle_media(
+    el: ET.Element,
+    lines: list[str],
+    resource_map: dict[str, ResourceInfo] | None = None,
+) -> None:
+    hash_hex = el.get("hash", "")
     mime = el.get("type", "")
-    lines.append(f"![attachment:{mime}]({hash_val})")
+    info = (resource_map or {}).get(hash_hex)
+    if info:
+        display = info.filename if info.filename else hash_hex[:8]
+        mime = info.mime_type or mime
+    else:
+        display = hash_hex[:8] if hash_hex else "attachment"
+    if mime.startswith("image/"):
+        lines.append(f"![{display}](evernote-resource:{hash_hex})")
+    else:
+        lines.append(f"[{display}](evernote-resource:{hash_hex})")
 
 
 def _handle_crypt(el: ET.Element, lines: list[str]) -> None:
     lines.append("[Encrypted Content]")
 
 
-def _handle_en_note(el: ET.Element, lines: list[str]) -> None:
+def _handle_en_note(
+    el: ET.Element,
+    lines: list[str],
+    resource_map: dict[str, ResourceInfo] | None = None,
+) -> None:
     for child in el:
-        _walk(child, lines)
+        _walk(child, lines, resource_map)
     text = el.text or ""
     if text.strip():
         lines.append(text.strip())
@@ -155,9 +178,7 @@ _BLOCK_HANDLERS: dict[str, _BlockHandler] = {
     "table": _handle_table,
     "en-todo-checked": _handle_todo_checked,
     "en-todo-unchecked": _handle_todo_unchecked,
-    "en-media": _handle_media,
     "en-crypt": _handle_crypt,
-    "en-note": _handle_en_note,
     "pre": _handle_pre,
     "a": _handle_anchor,
 }
@@ -214,21 +235,27 @@ _INLINE_HANDLERS: dict[str, _InlineHandler] = {
 def _walk(
     el: ET.Element,
     lines: list[str],
+    resource_map: dict[str, ResourceInfo] | None = None,
 ) -> None:
     """Recursively walk ENML element tree and build markdown lines."""
     tag = _local_tag(el.tag)
     tail = el.tail or ""
 
-    handler = _BLOCK_HANDLERS.get(tag)
-    if handler:
-        handler(el, lines)
+    if tag == "en-media":
+        _handle_media(el, lines, resource_map)
+    elif tag == "en-note":
+        _handle_en_note(el, lines, resource_map)
     else:
-        # Unknown block element — recurse
-        text = el.text or ""
-        if text.strip():
-            lines.append(text.strip())
-        for child in el:
-            _walk(child, lines)
+        handler = _BLOCK_HANDLERS.get(tag)
+        if handler:
+            handler(el, lines)
+        else:
+            # Unknown block element — recurse
+            text = el.text or ""
+            if text.strip():
+                lines.append(text.strip())
+            for child in el:
+                _walk(child, lines, resource_map)
 
     # Append tail text
     if tail.strip():

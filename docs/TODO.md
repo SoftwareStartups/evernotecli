@@ -17,11 +17,9 @@
 ## Todo items
 
 
-- Update docs
 - Claude security review
 - Add Evernote creds as MCP env (already supported?) when not in .env
 - Refactor tests with shared conftest?
-- Return tag names, not only tag guids on get note
 - More advanced search
 
 - More features, see full-evernote-mcp and tools-evernote-mcp
@@ -36,5 +34,5 @@ https://dev.evernote.com/doc/articles/rate_limits.php
 https://moldstud.com/articles/p-effective-strategies-for-managing-api-rate-limit-exceedances-in-evernote-solutions
 Solution: Queue API requests to evernote to handle rate limits. Persist tasks to file to make sure the client survices restarts. Combine with tenacity for API errors.
 
+- Implement integrations from https://github.com/verygoodplugins/mcp-evernote
 
-- Implement resilience and integrations and Markdown convert options from https://github.com/verygoodplugins/mcp-evernote

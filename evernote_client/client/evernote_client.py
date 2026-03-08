@@ -11,10 +11,18 @@ from evernote_client.edam.notestore.ttypes import (
     NotesMetadataList,
     NotesMetadataResultSpec,
 )
-from evernote_client.edam.type.ttypes import Note, Notebook, Tag
+from evernote_client.edam.type.ttypes import (
+    Data,
+    Note,
+    Notebook,
+    Resource,
+    ResourceAttributes,
+    Tag,
+)
 from evernote_client.edam.userstore import UserStore
 from evernote_client.enml.to_enml import markdown_to_enml
 from evernote_client.enml.to_markdown import enml_to_markdown
+from evernote_client.enml.types import ResourceInfo
 
 PRIVATE_TAG_NAME = "private"
 
@@ -101,10 +109,28 @@ class EvernoteClient:
         return note
 
     def get_note_content(self, guid: str) -> str:
-        enml = self.note_store.getNoteContent(guid)
+        note = self.note_store.getNote(guid, False, False, False, True)
+        enml = self.note_store.getNoteContent(_s(note.guid) if note.guid else guid)
         if isinstance(enml, bytes):
             enml = enml.decode("utf-8", errors="replace")
-        return enml_to_markdown(enml)
+        resources: list[ResourceInfo] = []
+        for r in note.resources or []:
+            if r.data and r.data.bodyHash:
+                hash_hex = (
+                    r.data.bodyHash.hex()
+                    if isinstance(r.data.bodyHash, bytes)
+                    else r.data.bodyHash
+                )
+                mime = _s(r.mime) if r.mime else ""
+                filename = (
+                    _s(r.attributes.fileName)
+                    if (r.attributes and r.attributes.fileName)
+                    else ""
+                )
+                resources.append(
+                    ResourceInfo(hash_hex=hash_hex, mime_type=mime, filename=filename)
+                )
+        return enml_to_markdown(enml, resources=resources or None)
 
     # --- Write operations ---
 
@@ -117,7 +143,23 @@ class EvernoteClient:
     ) -> Note:
         note = Note()
         note.title = title
-        note.content = markdown_to_enml(markdown)
+        result = markdown_to_enml(markdown)
+        note.content = result.enml
+        if result.attachments:
+            note.resources = []
+            for att in result.attachments:
+                d = Data()
+                d.body = att.data
+                d.bodyHash = att.hash_bytes
+                d.size = len(att.data)
+                r = Resource()
+                r.data = d
+                r.mime = att.mime_type
+                if att.filename:
+                    ra = ResourceAttributes()
+                    ra.fileName = att.filename
+                    r.attributes = ra
+                note.resources.append(r)
         if notebook_guid:
             note.notebookGuid = notebook_guid
         if tag_names:

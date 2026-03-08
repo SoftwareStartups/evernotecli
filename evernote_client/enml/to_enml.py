@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
+import mimetypes
 import re
 from collections.abc import Callable
+from pathlib import Path
+
+from evernote_client.enml.types import Attachment, EnmlResult, ResourceInfo
+
+logger = logging.getLogger(__name__)
 
 ENML_HEADER = (
     '<?xml version="1.0" encoding="UTF-8"?>'
@@ -29,12 +37,23 @@ _RE_BOLD = re.compile(r"\*\*(.+?)\*\*")
 _RE_ITALIC = re.compile(r"\*(.+?)\*")
 _RE_LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 _RE_INLINE_CODE = re.compile(r"`([^`]+)`")
+_RE_IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+_RE_EVERNOTE_RESOURCE = re.compile(r"^evernote-resource:([0-9a-f]{32})$")
 
 
-def markdown_to_enml(md: str) -> str:
+def markdown_to_enml(
+    md: str,
+    existing_resources: list[ResourceInfo] | None = None,
+) -> EnmlResult:
     """Convert Markdown to valid ENML for note creation."""
     if not md:
-        return f"{ENML_HEADER}{ENML_FOOTER}"
+        return EnmlResult(enml=f"{ENML_HEADER}{ENML_FOOTER}")
+
+    existing_map: dict[str, ResourceInfo] = (
+        {r.hash_hex: r for r in existing_resources} if existing_resources else {}
+    )
+    attachments: list[Attachment] = []
+    seen_hashes: set[str] = set()
 
     lines = md.split("\n")
     enml_parts: list[str] = [ENML_HEADER]
@@ -44,32 +63,159 @@ def markdown_to_enml(md: str) -> str:
         line = lines[i]
 
         for parser in _BLOCK_PARSERS:
-            result, consumed = parser(lines, i)
+            result, consumed = parser(lines, i, existing_map, attachments, seen_hashes)
             if result is not None:
                 enml_parts.append(result)
                 i += consumed
                 break
         else:
             if line.strip():
-                text = _escape_xml(line)
-                text = _inline_md_to_enml(text)
-                enml_parts.append(f"<div>{text}</div>")
+                # Check if line is a standalone image
+                img_result = _parse_image_line(
+                    line, existing_map, attachments, seen_hashes
+                )
+                if img_result is not None:
+                    enml_parts.append(img_result)
+                else:
+                    text = _escape_xml(line)
+                    text = _inline_md_to_enml(
+                        text, existing_map, attachments, seen_hashes
+                    )
+                    enml_parts.append(f"<div>{text}</div>")
             i += 1
 
     enml_parts.append(ENML_FOOTER)
-    return "".join(enml_parts)
+    return EnmlResult(enml="".join(enml_parts), attachments=attachments)
+
+
+# --- Image rendering ---
+
+
+def _render_image(
+    alt: str,
+    url: str,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> str:
+    """Render a Markdown image to ENML."""
+    # evernote-resource:<hash> scheme
+    m = _RE_EVERNOTE_RESOURCE.match(url)
+    if m:
+        hash_hex = m.group(1)
+        info = existing_map.get(hash_hex)
+        if info:
+            return f'<en-media type="{info.mime_type}" hash="{hash_hex}"/>'
+        # Unknown resource — fall back to link
+        display = alt or hash_hex
+        return f'<a href="evernote-resource:{hash_hex}">{_escape_xml(display)}</a>'
+
+    # HTTP/HTTPS — render as link, not downloadable attachment
+    if url.startswith("http://") or url.startswith("https://"):
+        display = _escape_xml(alt or url)
+        return f'<a href="{_escape_xml(url)}">{display}</a>'
+
+    # Local file
+    path = _resolve_local_path(url)
+    if path is None or not path.exists():
+        logger.warning("Image path not found: %s", url)
+        display = _escape_xml(alt or url)
+        return f'<a href="{_escape_xml(url)}">{display}</a>'
+
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        logger.warning("Cannot read image file %s: %s", path, exc)
+        display = _escape_xml(alt or url)
+        return f'<a href="{_escape_xml(url)}">{display}</a>'
+
+    hash_bytes = hashlib.md5(data).digest()
+    hash_hex = hash_bytes.hex()
+    mime_type, _ = mimetypes.guess_type(path.name)
+    mime_type = mime_type or "application/octet-stream"
+
+    if hash_hex not in seen_hashes:
+        seen_hashes.add(hash_hex)
+        attachments.append(
+            Attachment(
+                hash_hex=hash_hex,
+                hash_bytes=hash_bytes,
+                mime_type=mime_type,
+                data=data,
+                filename=path.name,
+                source_path=str(path),
+            )
+        )
+
+    return f'<en-media type="{mime_type}" hash="{hash_hex}"/>'
+
+
+def _resolve_local_path(url: str) -> Path | None:
+    """Resolve a URL or path string to a Path, or return None."""
+    if url.startswith("file://"):
+        url = url[7:]
+    try:
+        return Path(url).expanduser()
+    except Exception:
+        return None
+
+
+def _parse_image_line(
+    line: str,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> str | None:
+    """If the line is *only* a Markdown image, return ENML for it."""
+    stripped = line.strip()
+    m = _RE_IMAGE.fullmatch(stripped)
+    if not m:
+        return None
+    alt, url = m.group(1), m.group(2)
+    return _render_image(alt, url, existing_map, attachments, seen_hashes)
 
 
 # --- Block parser infrastructure ---
 
+_BlockParser = Callable[
+    [list[str], int, dict[str, ResourceInfo], list[Attachment], set[str]],
+    tuple[str | None, int],
+]
+
 
 def _single(
     fn: Callable[[str], str | None],
-) -> Callable[[list[str], int], tuple[str | None, int]]:
-    """Adapt a single-line parser to the multi-line ``(lines, i)`` signature."""
+) -> _BlockParser:
+    """Adapt a single-line parser (no resource state) to the full signature."""
 
-    def wrapper(lines: list[str], i: int) -> tuple[str | None, int]:
+    def wrapper(
+        lines: list[str],
+        i: int,
+        existing_map: dict[str, ResourceInfo],
+        attachments: list[Attachment],
+        seen_hashes: set[str],
+    ) -> tuple[str | None, int]:
         result = fn(lines[i])
+        return (result, 1) if result is not None else (None, 0)
+
+    return wrapper
+
+
+def _single_inline(
+    fn: Callable[
+        [str, dict[str, ResourceInfo], list[Attachment], set[str]], str | None
+    ],
+) -> _BlockParser:
+    """Adapt a single-line parser that receives resource state."""
+
+    def wrapper(
+        lines: list[str],
+        i: int,
+        existing_map: dict[str, ResourceInfo],
+        attachments: list[Attachment],
+        seen_hashes: set[str],
+    ) -> tuple[str | None, int]:
+        result = fn(lines[i], existing_map, attachments, seen_hashes)
         return (result, 1) if result is not None else (None, 0)
 
     return wrapper
@@ -84,7 +230,7 @@ def _parse_heading(line: str) -> str | None:
         return None
     level = len(heading_match.group(1))
     text = _escape_xml(heading_match.group(2))
-    text = _inline_md_to_enml(text)
+    text = _inline_md_to_enml(text, {}, [], set())
     return f"<h{level}>{text}</h{level}>"
 
 
@@ -100,7 +246,7 @@ def _parse_checkbox(line: str) -> str | None:
         return None
     checked = checkbox_match.group(1).lower() == "x"
     text = _escape_xml(checkbox_match.group(2))
-    text = _inline_md_to_enml(text)
+    text = _inline_md_to_enml(text, {}, [], set())
     if checked:
         return f'<div><en-todo checked="true"/>{text}</div>'
     return f"<div><en-todo/>{text}</div>"
@@ -112,6 +258,9 @@ def _parse_list(
     prefix_re: re.Pattern[str],
     lines: list[str],
     i: int,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
 ) -> tuple[str | None, int]:
     if not item_re.match(lines[i]):
         return None, 0
@@ -124,20 +273,57 @@ def _parse_list(
         i += 1
     parts = [f"<{tag}>"]
     for item in items:
-        parts.append(f"<li>{_inline_md_to_enml(item)}</li>")
+        inner = _inline_md_to_enml(item, existing_map, attachments, seen_hashes)
+        parts.append(f"<li>{inner}</li>")
     parts.append(f"</{tag}>")
     return "".join(parts), i - start
 
 
-def _parse_ul(lines: list[str], i: int) -> tuple[str | None, int]:
-    return _parse_list("ul", _RE_UL_ITEM, _RE_UL_PREFIX, lines, i)
+def _parse_ul(
+    lines: list[str],
+    i: int,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> tuple[str | None, int]:
+    return _parse_list(
+        "ul",
+        _RE_UL_ITEM,
+        _RE_UL_PREFIX,
+        lines,
+        i,
+        existing_map,
+        attachments,
+        seen_hashes,
+    )
 
 
-def _parse_ol(lines: list[str], i: int) -> tuple[str | None, int]:
-    return _parse_list("ol", _RE_OL_ITEM, _RE_OL_PREFIX, lines, i)
+def _parse_ol(
+    lines: list[str],
+    i: int,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> tuple[str | None, int]:
+    return _parse_list(
+        "ol",
+        _RE_OL_ITEM,
+        _RE_OL_PREFIX,
+        lines,
+        i,
+        existing_map,
+        attachments,
+        seen_hashes,
+    )
 
 
-def _parse_code_block(lines: list[str], i: int) -> tuple[str | None, int]:
+def _parse_code_block(
+    lines: list[str],
+    i: int,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> tuple[str | None, int]:
     if not _RE_CODE_FENCE_OPEN.match(lines[i]):
         return None, 0
     start = i
@@ -153,7 +339,13 @@ def _parse_code_block(lines: list[str], i: int) -> tuple[str | None, int]:
     return f"<pre><code>{content}</code></pre>", i - start
 
 
-def _parse_table(lines: list[str], i: int) -> tuple[str | None, int]:
+def _parse_table(
+    lines: list[str],
+    i: int,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> tuple[str | None, int]:
     if not _RE_TABLE_ROW.match(lines[i]):
         return None, 0
     start = i
@@ -172,15 +364,19 @@ def _parse_table(lines: list[str], i: int) -> tuple[str | None, int]:
     parts = ["<table>"]
     for idx, row in enumerate(rows):
         tag = "th" if idx == 0 else "td"
-        cells_html = "".join(
-            f"<{tag}>{_inline_md_to_enml(_escape_xml(c))}</{tag}>" for c in row
-        )
+        cell_parts: list[str] = []
+        for c in row:
+            inner = _inline_md_to_enml(
+                _escape_xml(c), existing_map, attachments, seen_hashes
+            )
+            cell_parts.append(f"<{tag}>{inner}</{tag}>")
+        cells_html = "".join(cell_parts)
         parts.append(f"<tr>{cells_html}</tr>")
     parts.append("</table>")
     return "".join(parts), i - start
 
 
-_BLOCK_PARSERS: list[Callable[[list[str], int], tuple[str | None, int]]] = [
+_BLOCK_PARSERS: list[_BlockParser] = [
     _parse_code_block,
     _parse_table,
     _single(_parse_heading),
@@ -206,11 +402,25 @@ def _escape_xml(text: str) -> str:
     return text.replace('"', "&quot;")
 
 
-def _inline_md_to_enml(text: str) -> str:
+def _inline_md_to_enml(
+    text: str,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> str:
     """Convert inline markdown formatting to ENML tags.
 
     Operates on already XML-escaped text, so we match escaped markers.
+    Images (![alt](url)) are processed first.
     """
+
+    # Images: ![alt](url) — must come before link processing
+    def replace_image(m: re.Match[str]) -> str:
+        alt = m.group(1)
+        url = m.group(2)
+        return _render_image(alt, url, existing_map, attachments, seen_hashes)
+
+    text = _RE_IMAGE.sub(replace_image, text)
     # Bold: **text**
     text = _RE_BOLD.sub(r"<b>\1</b>", text)
     # Italic: *text*
