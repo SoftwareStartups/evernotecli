@@ -2,7 +2,6 @@
 
 **IMPORTANT FOR AI: IGNORE THIS FILE**
 
-- Fix bugs, end-end test
  ```
  given this note: {                                                                                                                                                                                                                                                                                                                                                             
     "guid": "01767038-6860-852a-4240-e1b23757e346",                                                                                                                                                                                                                                                                                                                              
@@ -13,22 +12,10 @@
     "updated": "2026-02-24T19:24:47Z",                                                                                                                                                                                                                                                                                                                                       
     "content_length": 2303                                                                                                                                                                                                                                                                                                                                                       
   }\                                                                                                                                                                                                                                                                                                                                                                         
-  test and debug all encl cli commands, add and remove a tag "fcto", create a new note, etc. Once these are debugged and fixed, plan the creation of a proper end-end testsuite on the cli using the real evernote client                                                                                                                                                    
-  ⎿  You've hit your limit · resets 2pm (Europe/Amsterdam)
   ```
 
 ## Todo items
 
-- Add support for notes with a "private" tag:
-```
-Add support for ignoring notes with a "private" tag:
-- Never read content of these notes
-- Never remove the private tag on a note
-- Never remove the private tag from the tags set
-- Exclude the note from search results
-- Add proper tests
-- Think of other ways a hacker still could try to get access to these notes, and prevent this.
-```
 
 - Update docs
 - Claude security review
@@ -48,60 +35,6 @@ Exact numerical limits aren’t publicly specified and vary by API key, but thir
 https://dev.evernote.com/doc/articles/rate_limits.php
 https://moldstud.com/articles/p-effective-strategies-for-managing-api-rate-limit-exceedances-in-evernote-solutions
 Solution: Queue API requests to evernote to handle rate limits. Persist tasks to file to make sure the client survices restarts. Combine with tenacity for API errors.
-Sample code:
-import time
-import requests
-from requests.exceptions import HTTPError
 
-from persistqueue import Queue
-from ratelimit import limits, sleep_and_retry
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_random_exponential,
-    retry_if_exception_type,
-)
-
-API_URL = "https://api.example.com/endpoint"
-QUEUE_PATH = "api_tasks"
-
-# Persistent queue survives restarts
-task_queue = Queue(QUEUE_PATH)
-
-
-# Rate-limited + retrying API call
-@sleep_and_retry
-@limits(calls=10, period=60)  # 10 calls per minute
-@retry(
-    stop=stop_after_attempt(5),
-    wait=wait_random_exponential(min=1, max=60),
-    retry=retry_if_exception_type(HTTPError),
-)
-def make_api_call(payload: dict) -> dict:
-    response = requests.post(API_URL, json=payload, timeout=10)
-    response.raise_for_status()
-    return response.json()
-
-
-def add_task(payload: dict) -> None:
-    task_queue.put(payload)
-
-
-def process_queue(poll_interval: float = 0.5) -> None:
-    while True:
-        if task_queue.empty():
-            time.sleep(poll_interval)
-            continue
-
-        task = task_queue.get()
-        try:
-            result = make_api_call(task)
-            print(f"SUCCESS: {task} → {result}")
-        except Exception as exc:
-            print(f"FAILED after retries: {exc} | Task: {task}")
-        finally:
-            task_queue.task_done()
-
-```
 
 - Implement resilience and integrations and Markdown convert options from https://github.com/verygoodplugins/mcp-evernote

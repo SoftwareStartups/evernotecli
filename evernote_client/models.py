@@ -33,6 +33,7 @@ class NoteMetadata(BaseModel):
     title: str
     notebook_guid: str | None = None
     tag_guids: list[str] = []
+    tag_names: list[str] = []
     created: datetime | None = None
     updated: datetime | None = None
     content_length: int | None = None
@@ -41,11 +42,15 @@ class NoteMetadata(BaseModel):
     def from_thrift(cls, note: Note | ThriftNoteMetadata) -> NoteMetadata:
         """Convert a Thrift Note object to NoteMetadata."""
         assert note.guid is not None, "Note returned without GUID"
+        tag_names: list[str] = []
+        if isinstance(note, Note) and note.tagNames:
+            tag_names = [n for n in note.tagNames if n]
         return cls(
             guid=note.guid,
             title=note.title or "Untitled",
             notebook_guid=note.notebookGuid,
             tag_guids=list(note.tagGuids or []),
+            tag_names=tag_names,
             created=_ts_to_dt(note.created),
             updated=_ts_to_dt(note.updated),
             content_length=note.contentLength,

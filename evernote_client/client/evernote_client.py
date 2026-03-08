@@ -93,7 +93,11 @@ class EvernoteClient:
 
     def get_note(self, guid: str) -> Note:
         note = self.note_store.getNote(guid, False, False, False, False)
-        note.tagGuids = self._get_note_tag_guids(guid)
+        raw_names = self.note_store.getNoteTagNames(guid) or []
+        names = [_s(n) for n in raw_names]
+        tag_map = self._build_tag_map() if names else {}
+        note.tagNames = names
+        note.tagGuids = [tag_map[n] for n in names if n in tag_map]
         return note
 
     def get_note_content(self, guid: str) -> str:
