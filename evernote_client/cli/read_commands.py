@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import sys
 
 import click
 
 from evernote_client import service
+from evernote_client.service import PrivateNoteError
 
 
 @click.command()
@@ -37,16 +39,24 @@ def search(
 @click.argument("guid")
 def note(guid: str) -> None:
     """Show note metadata."""
-    result = service.get_note(guid)
-    click.echo(result.model_dump_json(indent=2))
+    try:
+        result = service.get_note(guid)
+        click.echo(result.model_dump_json(indent=2))
+    except PrivateNoteError:
+        click.echo("Error: note is private.", err=True)
+        sys.exit(1)
 
 
 @click.command()
 @click.argument("guid")
 def content(guid: str) -> None:
     """Show note content as Markdown."""
-    result = service.get_note_content(guid)
-    click.echo(result.content)
+    try:
+        result = service.get_note_content(guid)
+        click.echo(result.content)
+    except PrivateNoteError:
+        click.echo("Error: note is private.", err=True)
+        sys.exit(1)
 
 
 @click.command()

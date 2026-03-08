@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import sys
+
 import click
 
 from evernote_client import service
 from evernote_client.auth import get_token
 from evernote_client.client.thrift import EvernoteRateLimitError
 from evernote_client.config import settings
+from evernote_client.service import PrivateNoteError
 
 
 @click.command()
@@ -48,6 +51,9 @@ def tag(guid: str, tag_names: tuple[str, ...]) -> None:
     try:
         result = service.tag_note(guid, list(tag_names))
         click.echo(result.model_dump_json(indent=2))
+    except PrivateNoteError:
+        click.echo("Error: note is private.", err=True)
+        sys.exit(1)
     except EvernoteRateLimitError as exc:
         service.enqueue_write("tag_note", guid=guid, tags=list(tag_names))
         click.echo(
@@ -65,6 +71,9 @@ def untag(guid: str, tag_names: tuple[str, ...]) -> None:
     try:
         result = service.untag_note(guid, list(tag_names))
         click.echo(result.model_dump_json(indent=2))
+    except PrivateNoteError:
+        click.echo("Error: note is private.", err=True)
+        sys.exit(1)
     except EvernoteRateLimitError as exc:
         service.enqueue_write("untag_note", guid=guid, tags=list(tag_names))
         click.echo(
@@ -82,6 +91,9 @@ def move(guid: str, notebook: str) -> None:
     try:
         result = service.move_note(guid, notebook)
         click.echo(result.model_dump_json(indent=2))
+    except PrivateNoteError:
+        click.echo("Error: note is private.", err=True)
+        sys.exit(1)
     except EvernoteRateLimitError as exc:
         service.enqueue_write("move_note", guid=guid, notebook_name=notebook)
         click.echo(

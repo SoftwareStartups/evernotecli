@@ -17,6 +17,11 @@ from evernote_client.models import (
     TagInfo,
 )
 
+
+class PrivateNoteError(PermissionError):
+    """Raised when an operation targets a note tagged 'private'."""
+
+
 _client: EvernoteClient | None = None
 
 
@@ -31,6 +36,11 @@ def get_client() -> EvernoteClient:
             raise ValueError(msg) from e
         _client = EvernoteClient(token)
     return _client
+
+
+def _is_private(tag_guids: list[str]) -> bool:
+    guid = get_client().private_tag_guid
+    return guid is not None and guid in tag_guids
 
 
 def resolve_notebook_guid(client: EvernoteClient, name: str) -> str:
@@ -65,19 +75,24 @@ def search_notes(
     if notebook_name:
         notebook_guid = resolve_notebook_guid(client, notebook_name)
 
+    # Strip "private" from tag filters to prevent direct targeting
+    safe_tags = ([t for t in tags if t.lower() != "private"] if tags else tags) or None
+
     result = client.search_notes(
         query=query,
         notebook_guid=notebook_guid,
-        tag_names=tags,
+        tag_names=safe_tags,
         max_results=max_results,
         offset=offset,
     )
 
-    notes = [NoteMetadata.from_thrift(n) for n in (result.notes or [])]
+    all_notes = [NoteMetadata.from_thrift(n) for n in (result.notes or [])]
+    notes = [n for n in all_notes if not _is_private(n.tag_guids)]
+    filtered = len(all_notes) - len(notes)
 
     return SearchResult(
         notes=notes,
-        total=result.totalNotes or 0,
+        total=max(0, (result.totalNotes or 0) - filtered),
         offset=offset,
         max_results=max_results,
     )
@@ -87,6 +102,8 @@ def get_note(guid: str) -> NoteMetadata:
     """Get note metadata."""
     client = get_client()
     note = client.get_note(guid)
+    if _is_private(note.tagGuids or []):
+        raise PrivateNoteError(guid)
     return NoteMetadata.from_thrift(note)
 
 
@@ -94,6 +111,8 @@ def get_note_content(guid: str) -> NoteContent:
     """Get full note content as Markdown."""
     client = get_client()
     note = client.get_note(guid)
+    if _is_private(note.tagGuids or []):
+        raise PrivateNoteError(guid)
     content = client.get_note_content(guid)
     assert note.guid is not None, "Note returned without GUID"
     return NoteContent(
@@ -121,7 +140,7 @@ def list_tags() -> list[TagInfo]:
     return [
         TagInfo(guid=t.guid, name=t.name)
         for t in tags
-        if t.guid is not None and t.name is not None
+        if t.guid is not None and t.name is not None and t.name.lower() != "private"
     ]
 
 
@@ -158,13 +177,21 @@ def create_note(
 def tag_note(guid: str, tags: list[str]) -> NoteMetadata:
     """Add tags to an existing note."""
     client = get_client()
+    existing = client.get_note(guid)
+    if _is_private(existing.tagGuids or []):
+        raise PrivateNoteError(guid)
     note = client.tag_note(guid, tags)
     return NoteMetadata.from_thrift(note)
 
 
 def untag_note(guid: str, tags: list[str]) -> NoteMetadata:
     """Remove tags from an existing note."""
+    if any(t.lower() == "private" for t in tags):
+        raise PrivateNoteError("Cannot remove 'private' tag")
     client = get_client()
+    existing = client.get_note(guid)
+    if _is_private(existing.tagGuids or []):
+        raise PrivateNoteError(guid)
     note = client.untag_note(guid, tags)
     return NoteMetadata.from_thrift(note)
 
@@ -173,6 +200,9 @@ def move_note(guid: str, notebook_name: str) -> NoteMetadata:
     """Move a note to a different notebook."""
     client = get_client()
     notebook_guid = resolve_notebook_guid(client, notebook_name)
+    existing = client.get_note(guid)
+    if _is_private(existing.tagGuids or []):
+        raise PrivateNoteError(guid)
     note = client.move_note(guid, notebook_guid)
     return NoteMetadata.from_thrift(note)
 

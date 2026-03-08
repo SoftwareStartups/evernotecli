@@ -16,6 +16,8 @@ from evernote_client.edam.userstore import UserStore
 from evernote_client.enml.to_enml import markdown_to_enml
 from evernote_client.enml.to_markdown import enml_to_markdown
 
+PRIVATE_TAG_NAME = "private"
+
 
 def _s(value: str | bytes | None) -> str:
     """Decode a Thrift string field that may arrive as bytes."""
@@ -30,6 +32,15 @@ class EvernoteClient:
     def __init__(self, token: str) -> None:
         self.token = token
         self.shard = get_token_shard(token)
+
+    @functools.cached_property
+    def private_tag_guid(self) -> str | None:
+        """GUID of the 'private' tag, or None if it doesn't exist."""
+        for t in self.list_tags():
+            name = _s(t.name)
+            if name.lower() == PRIVATE_TAG_NAME and t.guid:
+                return _s(t.guid)
+        return None
 
     @functools.cached_property
     def note_store(self) -> Store:

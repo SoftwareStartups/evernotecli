@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from evernote_client import service
 from evernote_client.models import CreatedNote, NoteMetadata
+from evernote_client.service import PrivateNoteError
 
 from .app import mcp
 
@@ -32,33 +33,42 @@ def create_note(
 
 
 @mcp.tool()
-def tag_note(guid: str, tags: list[str]) -> NoteMetadata:
+def tag_note(guid: str, tags: list[str]) -> NoteMetadata | str:
     """Add tags to an existing note.
 
     Args:
         guid: Note GUID
         tags: Tag names to add
     """
-    return service.tag_note(guid, tags)
+    try:
+        return service.tag_note(guid, tags)
+    except PrivateNoteError:
+        return "Access denied: note is private."
 
 
 @mcp.tool()
-def untag_note(guid: str, tags: list[str]) -> NoteMetadata:
+def untag_note(guid: str, tags: list[str]) -> NoteMetadata | str:
     """Remove tags from an existing note.
 
     Args:
         guid: Note GUID
         tags: Tag names to remove
     """
-    return service.untag_note(guid, tags)
+    try:
+        return service.untag_note(guid, tags)
+    except PrivateNoteError:
+        return "Access denied: note is private."
 
 
 @mcp.tool()
-def move_note(guid: str, notebook_name: str) -> NoteMetadata:
+def move_note(guid: str, notebook_name: str) -> NoteMetadata | str:
     """Move a note to a different notebook.
 
     Args:
         guid: Note GUID
         notebook_name: Target notebook name
     """
-    return service.move_note(guid, notebook_name)
+    try:
+        return service.move_note(guid, notebook_name)
+    except PrivateNoteError:
+        return "Access denied: note is private."
