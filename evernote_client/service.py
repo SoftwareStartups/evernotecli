@@ -194,6 +194,13 @@ def enqueue_write(operation: str, **params: Any) -> None:
     OperationQueue(settings.queue_path).put(operation, **params)
 
 
+def pending_write_count() -> int:
+    """Return the number of pending queued write operations."""
+    from evernote_client.client.queue import OperationQueue
+
+    return OperationQueue(settings.queue_path).size()
+
+
 def drain_pending_writes() -> int:
     """Process all queued write operations. Returns count processed."""
     from evernote_client.client.queue import OperationQueue
