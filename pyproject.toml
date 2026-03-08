@@ -73,3 +73,4 @@ exclude = ["resources", "evernote_client/edam"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["e2e: end-to-end tests against the live Evernote API"]

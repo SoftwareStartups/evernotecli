@@ -17,6 +17,13 @@ from evernote_client.enml.to_enml import markdown_to_enml
 from evernote_client.enml.to_markdown import enml_to_markdown
 
 
+def _s(value: str | bytes | None) -> str:
+    """Decode a Thrift string field that may arrive as bytes."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""
+
+
 class EvernoteClient:
     """High-level Evernote API client."""
 
@@ -80,6 +87,8 @@ class EvernoteClient:
 
     def get_note_content(self, guid: str) -> str:
         enml = self.note_store.getNoteContent(guid)
+        if isinstance(enml, bytes):
+            enml = enml.decode("utf-8", errors="replace")
         return enml_to_markdown(enml)
 
     # --- Write operations ---
@@ -102,7 +111,7 @@ class EvernoteClient:
 
     def _build_tag_map(self) -> dict[str, str]:
         """Build a name→guid map from all tags."""
-        return {t.name: t.guid for t in self.list_tags() if t.name and t.guid}
+        return {_s(t.name): _s(t.guid) for t in self.list_tags() if t.name and t.guid}
 
     def _get_note_tag_guids(
         self, guid: str, tag_map: dict[str, str] | None = None
@@ -117,7 +126,7 @@ class EvernoteClient:
             return []
         if tag_map is None:
             tag_map = self._build_tag_map()
-        return [tag_map[n] for n in tag_names if n in tag_map]
+        return [tag_map[n] for n in (_s(n) for n in tag_names) if n in tag_map]
 
     def _resolve_tag_guids(
         self, tag_names: list[str], tag_map: dict[str, str] | None = None
@@ -133,7 +142,7 @@ class EvernoteClient:
                 tag = Tag()
                 tag.name = name
                 created = self.note_store.createTag(tag)
-                guids.append(created.guid)
+                guids.append(_s(created.guid))
         return guids
 
     def _update_note(
@@ -150,7 +159,7 @@ class EvernoteClient:
         """
         if title is None:
             existing = self.note_store.getNote(guid, False, False, False, False)
-            title = existing.title
+            title = _s(existing.title)
         update = Note()
         update.guid = guid
         update.title = title
@@ -166,7 +175,7 @@ class EvernoteClient:
         new_guids = self._resolve_tag_guids(tag_names, tag_map=all_tags)
         merged = list(set(existing_guids + new_guids))
         note = self.note_store.getNote(guid, False, False, False, False)
-        result = self._update_note(guid=guid, title=note.title, tag_guids=merged)
+        result = self._update_note(guid=guid, title=_s(note.title), tag_guids=merged)
         result.tagGuids = merged
         return result
 
@@ -176,7 +185,7 @@ class EvernoteClient:
         remove_guids = {all_tags[n] for n in tag_names if n in all_tags}
         remaining = list(existing_guids - remove_guids)
         note = self.note_store.getNote(guid, False, False, False, False)
-        result = self._update_note(guid=guid, title=note.title, tag_guids=remaining)
+        result = self._update_note(guid=guid, title=_s(note.title), tag_guids=remaining)
         result.tagGuids = remaining
         return result
 

@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import functools
 import inspect
+import logging
 from collections.abc import Callable
 from http.client import HTTPException
 from typing import Any
 
-from ratelimit import limits, sleep_and_retry
 from tenacity import (
     RetryCallState,
+    before_sleep_log,
     retry,
     retry_if_exception,
     stop_after_attempt,
@@ -24,7 +25,77 @@ from tenacity import (
 from thrift.protocol.TBinaryProtocol import TBinaryProtocol
 from thrift.transport.THttpClient import THttpClient
 
-from evernote_client.edam.error.ttypes import EDAMErrorCode, EDAMSystemException
+from evernote_client.edam.error.ttypes import (
+    EDAMErrorCode,
+    EDAMNotFoundException,
+    EDAMSystemException,
+    EDAMUserException,
+)
+
+# --- Native exception types ---
+
+
+class EvernoteError(Exception):
+    """Base class for Evernote API errors."""
+
+
+class EvernoteAuthError(EvernoteError):
+    """Authentication/authorisation failure (AUTH_EXPIRED, INVALID_AUTH, …)."""
+
+
+class EvernoteNotFoundError(EvernoteError):
+    """Requested resource not found."""
+
+
+class EvernotePermissionError(EvernoteError):
+    """Permission denied."""
+
+
+class EvernoteRateLimitError(EvernoteError):
+    """Server-side rate limit reached. Retry after ``retry_after`` seconds."""
+
+    def __init__(self, retry_after: int) -> None:
+        self.retry_after = retry_after
+        super().__init__(
+            f"Evernote rate limit reached — retry after {retry_after}s "
+            f"({retry_after // 60}m {retry_after % 60}s)"
+        )
+
+
+def _convert_edam(
+    exc: EDAMUserException | EDAMNotFoundException | EDAMSystemException,
+) -> EvernoteError:
+    """Convert an immutable Thrift exception to a Python-native one."""
+    if isinstance(exc, EDAMNotFoundException):
+        identifier = getattr(exc, "identifier", None)
+        key = getattr(exc, "key", None)
+        return EvernoteNotFoundError(
+            f"Not found: identifier={identifier!r}, key={key!r}"
+        )
+    if isinstance(exc, EDAMSystemException):
+        error_code = getattr(exc, "errorCode", None)
+        if error_code == EDAMErrorCode.RATE_LIMIT_REACHED:
+            raw = getattr(exc, "rateLimitDuration", None)
+            retry_after = int(raw) if raw else 60
+            logger.warning(
+                "Evernote rate limit reached (rateLimitDuration=%s s) — not retrying",
+                raw,
+            )
+            return EvernoteRateLimitError(retry_after)
+        return EvernoteError(f"Evernote system error: {error_code}")
+    # EDAMUserException
+    error_code = getattr(exc, "errorCode", None)
+    parameter = getattr(exc, "parameter", None)
+    if error_code in (EDAMErrorCode.AUTH_EXPIRED, EDAMErrorCode.INVALID_AUTH):
+        code_name = error_code.name if error_code is not None else str(error_code)
+        return EvernoteAuthError(
+            f"Evernote auth error: {code_name} (parameter={parameter!r}). "
+            "Run 'encl login' to re-authenticate."
+        )
+    if error_code == EDAMErrorCode.PERMISSION_DENIED:
+        return EvernotePermissionError(f"Permission denied (parameter={parameter!r})")
+    return EvernoteError(f"Evernote API error: {error_code} (parameter={parameter!r})")
+
 
 # --- Token parsing ---
 
@@ -69,37 +140,36 @@ class THttpClientHotfix(THttpClient):
             raise HTTPException(msg)
 
 
-# --- Rate limiting ---
+HTTP_TIMEOUT_MS: int = 30_000  # 30-second socket timeout
 
-CALLS_PER_HOUR: int = 500  # Conservative Evernote API limit
+logger = logging.getLogger(__name__)
 
 
 def _is_retriable(exc: BaseException) -> bool:
+    # Transient network errors only.
+    # RATE_LIMIT_REACHED is NOT retried — it is immediately converted to
+    # EvernoteRateLimitError by safe_wrapper so the caller sees a clear message.
+    # TimeoutError is NOT retried — a 30 s timeout already waited long enough.
     if isinstance(exc, (HTTPException, ConnectionError)):
         return True
     if isinstance(exc, EDAMSystemException):
-        return exc.errorCode in (  # type: ignore[attr-defined]
-            EDAMErrorCode.RATE_LIMIT_REACHED,
-            EDAMErrorCode.SHARD_UNAVAILABLE,
-        )
+        return exc.errorCode == EDAMErrorCode.SHARD_UNAVAILABLE  # type: ignore[attr-defined]
     return False
 
 
 def _edam_wait(retry_state: RetryCallState) -> float:
-    exc = retry_state.outcome.exception()  # type: ignore[union-attr]
-    if (
-        isinstance(exc, EDAMSystemException)
-        and exc.errorCode == EDAMErrorCode.RATE_LIMIT_REACHED  # type: ignore[attr-defined]
-        and exc.rateLimitDuration  # type: ignore[attr-defined]
-    ):
-        return float(exc.rateLimitDuration)  # type: ignore[attr-defined]
     return wait_exponential(multiplier=0.25, exp_base=2)(retry_state)
 
 
-@sleep_and_retry
-@limits(calls=CALLS_PER_HOUR, period=3600)
 def _execute_api_call(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-    """Rate-limited executor shared across all Store instances."""
+    """Executor shared across all Store instances.
+
+    Client-side rate limiting is intentionally omitted: the Evernote server
+    returns EDAMSystemException(RATE_LIMIT_REACHED) with rateLimitDuration
+    when throttled, which the tenacity retry in Store.__getattr__ handles
+    correctly.  A ratelimit.sleep_and_retry decorator with a 3600-second
+    period would sleep for up to one hour, causing process hangs.
+    """
     return fn(*args, **kwargs)
 
 
@@ -129,6 +199,7 @@ class Store:
             stop=stop_after_attempt(4),  # 1 initial + 3 retries
             wait=_edam_wait,
             reraise=True,
+            before_sleep=before_sleep_log(logger, logging.WARNING),
         )
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             org_args = inspect.getfullargspec(target_method).args
@@ -146,11 +217,22 @@ class Store:
                 )
             return _execute_api_call(target_method, *args, **kwargs)
 
-        return wrapper
+        def safe_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return wrapper(*args, **kwargs)
+            except (
+                EDAMUserException,
+                EDAMNotFoundException,
+                EDAMSystemException,
+            ) as exc:
+                raise _convert_edam(exc) from None
+
+        return safe_wrapper
 
     @staticmethod
     def _get_thrift_client(client_class: type, url: str) -> Any:
         http_client = THttpClientHotfix(url)
+        http_client.setTimeout(HTTP_TIMEOUT_MS)
         http_client.setCustomHeaders(
             {
                 "User-Agent": "evernote-client/0.1.0",
