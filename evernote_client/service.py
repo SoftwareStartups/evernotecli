@@ -31,9 +31,8 @@ def get_client() -> EvernoteClient:
     if _client is None:
         try:
             token = get_token(settings)
-        except OAuthError as e:
-            msg = f"Evernote authentication failed: {e}"
-            raise ValueError(msg) from e
+        except OAuthError:
+            raise
         _client = EvernoteClient(token)
     return _client
 
@@ -114,7 +113,8 @@ def get_note_content(guid: str) -> NoteContent:
     if _is_private(note.tagGuids or []):
         raise PrivateNoteError(guid)
     content = client.get_note_content(guid)
-    assert note.guid is not None, "Note returned without GUID"
+    if note.guid is None:
+        raise ValueError("Note returned without GUID")
     return NoteContent(
         guid=note.guid,
         title=note.title or "Untitled",
@@ -166,7 +166,8 @@ def create_note(
         notebook_guid=notebook_guid,
         tag_names=tags,
     )
-    assert note.guid is not None and note.title is not None
+    if note.guid is None or note.title is None:
+        raise ValueError("Created note missing GUID or title")
     return CreatedNote(
         guid=note.guid,
         title=note.title,
@@ -176,6 +177,8 @@ def create_note(
 
 def tag_note(guid: str, tags: list[str]) -> NoteMetadata:
     """Add tags to an existing note."""
+    if any(t.lower() == "private" for t in tags):
+        raise PrivateNoteError("Cannot add 'private' tag")
     client = get_client()
     existing = client.get_note(guid)
     if _is_private(existing.tagGuids or []):

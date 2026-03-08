@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -52,7 +53,7 @@ def make_search_result(
 
 
 @pytest.fixture(autouse=True)
-def reset_client() -> None:
+def reset_client() -> Generator[None, None, None]:
     """Reset the cached service client between tests."""
     service._client = None
     yield
@@ -60,7 +61,7 @@ def reset_client() -> None:
 
 
 @pytest.fixture()
-def mock_client() -> MagicMock:
+def mock_client() -> Generator[MagicMock, None, None]:
     """Return a MagicMock EvernoteClient and patch get_client to return it."""
     client = MagicMock()
     with patch.object(service, "get_client", return_value=client):

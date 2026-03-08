@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -9,7 +10,6 @@ import pytest
 
 from evernote_client import service
 from evernote_client.service import PrivateNoteError
-
 from tests.conftest import make_note, make_search_result
 
 PRIVATE_GUID = "tag-private"
@@ -17,7 +17,7 @@ PUBLIC_GUID = "tag-public"
 
 
 @pytest.fixture()
-def mock_client(reset_client: None) -> MagicMock:  # noqa: ARG001
+def mock_client(reset_client: None) -> Generator[MagicMock, None, None]:  # noqa: ARG001
     client = MagicMock()
     client.private_tag_guid = PRIVATE_GUID
     with patch.object(service, "get_client", return_value=client):

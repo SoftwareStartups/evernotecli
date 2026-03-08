@@ -16,6 +16,11 @@
 
 ## Todo items
 
+- Global _client singleton — requires DI refactor
+- EvernoteClient SRP — splitting into NoteStoreClient / TagResolver
+- Token plaintext storage — acceptable for local dev tool; keyring integration is a separate feature
+- CSRF in OAuth callback — OAuth 1.0a uses verifier, not state param; depends on Evernote's flow
+
 
 - Claude security review
 - Add Evernote creds as MCP env (already supported?) when not in .env

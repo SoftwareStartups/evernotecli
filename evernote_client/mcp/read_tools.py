@@ -10,7 +10,6 @@ from evernote_client.models import (
     SearchResult,
     TagInfo,
 )
-from evernote_client.service import PrivateNoteError
 
 from .app import mcp
 
@@ -42,29 +41,23 @@ def search_notes(
 
 
 @mcp.tool()
-def get_note(guid: str) -> NoteMetadata | str:
+def get_note(guid: str) -> NoteMetadata:
     """Get note metadata (title, tags, notebook, dates).
 
     Args:
         guid: Note GUID
     """
-    try:
-        return service.get_note(guid)
-    except PrivateNoteError:
-        return "Access denied: note is private."
+    return service.get_note(guid)
 
 
 @mcp.tool()
-def get_note_content(guid: str) -> NoteContent | str:
+def get_note_content(guid: str) -> NoteContent:
     """Get full note content as Markdown.
 
     Args:
         guid: Note GUID
     """
-    try:
-        return service.get_note_content(guid)
-    except PrivateNoteError:
-        return "Access denied: note is private."
+    return service.get_note_content(guid)
 
 
 @mcp.tool()

@@ -50,14 +50,13 @@ def wait_for_callback() -> str:
     thread = threading.Thread(target=server.serve_forever)
     thread.start()
     try:
-        elapsed = 0.0
+        start = time.monotonic()
         while not server.callback_response:
-            if elapsed >= CALLBACK_TIMEOUT:
+            if time.monotonic() - start >= CALLBACK_TIMEOUT:
                 raise TimeoutError(
                     f"OAuth callback not received within {CALLBACK_TIMEOUT}s"
                 )
             time.sleep(0.1)
-            elapsed += 0.1
     finally:
         server.shutdown()
         thread.join()

@@ -224,13 +224,18 @@ def _single_inline(
 # --- Block parsers ---
 
 
-def _parse_heading(line: str) -> str | None:
+def _parse_heading(
+    line: str,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> str | None:
     heading_match = _RE_HEADING.match(line)
     if not heading_match:
         return None
     level = len(heading_match.group(1))
     text = _escape_xml(heading_match.group(2))
-    text = _inline_md_to_enml(text, {}, [], set())
+    text = _inline_md_to_enml(text, existing_map, attachments, seen_hashes)
     return f"<h{level}>{text}</h{level}>"
 
 
@@ -240,13 +245,18 @@ def _parse_hr(line: str) -> str | None:
     return None
 
 
-def _parse_checkbox(line: str) -> str | None:
+def _parse_checkbox(
+    line: str,
+    existing_map: dict[str, ResourceInfo],
+    attachments: list[Attachment],
+    seen_hashes: set[str],
+) -> str | None:
     checkbox_match = _RE_CHECKBOX.match(line)
     if not checkbox_match:
         return None
     checked = checkbox_match.group(1).lower() == "x"
     text = _escape_xml(checkbox_match.group(2))
-    text = _inline_md_to_enml(text, {}, [], set())
+    text = _inline_md_to_enml(text, existing_map, attachments, seen_hashes)
     if checked:
         return f'<div><en-todo checked="true"/>{text}</div>'
     return f"<div><en-todo/>{text}</div>"
@@ -379,9 +389,9 @@ def _parse_table(
 _BLOCK_PARSERS: list[_BlockParser] = [
     _parse_code_block,
     _parse_table,
-    _single(_parse_heading),
+    _single_inline(_parse_heading),
     _single(_parse_hr),
-    _single(_parse_checkbox),
+    _single_inline(_parse_checkbox),
     _parse_ul,
     _parse_ol,
 ]

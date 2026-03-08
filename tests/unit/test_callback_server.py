@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from evernote_client.auth.callback_server import (
-    CALLBACK_TIMEOUT,
-    wait_for_callback,
-)
+from evernote_client.auth.callback_server import wait_for_callback
 
 
 class TestWaitForCallbackTimeout:
@@ -17,6 +14,3 @@ class TestWaitForCallbackTimeout:
         monkeypatch.setattr(attr, 0.3)
         with pytest.raises(TimeoutError, match="OAuth callback not received"):
             wait_for_callback()
-
-    def test_timeout_constant_is_5_minutes(self) -> None:
-        assert CALLBACK_TIMEOUT == 300

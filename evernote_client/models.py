@@ -41,7 +41,8 @@ class NoteMetadata(BaseModel):
     @classmethod
     def from_thrift(cls, note: Note | ThriftNoteMetadata) -> NoteMetadata:
         """Convert a Thrift Note object to NoteMetadata."""
-        assert note.guid is not None, "Note returned without GUID"
+        if note.guid is None:
+            raise ValueError("Note returned without GUID")
         tag_names: list[str] = []
         if isinstance(note, Note) and note.tagNames:
             tag_names = [n for n in note.tagNames if n]

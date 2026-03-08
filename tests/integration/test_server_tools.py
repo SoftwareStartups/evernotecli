@@ -16,7 +16,6 @@ from evernote_client.models import (
     SearchResult,
     TagInfo,
 )
-
 from tests.conftest import make_note, make_notebook, make_search_result, make_tag
 
 # ── Auth / get_client ────────────────────────────────────────────────────
@@ -48,12 +47,12 @@ class TestGetClient:
             assert first is second
             cls.assert_called_once()
 
-    def test_oauth_error_raises_value_error(self) -> None:
+    def test_oauth_error_propagates(self) -> None:
         from unittest.mock import patch
 
         with (
             patch.object(service, "get_token", side_effect=OAuthError("bad token")),
-            pytest.raises(ValueError, match="authentication failed"),
+            pytest.raises(OAuthError, match="bad token"),
         ):
             service.get_client()
 

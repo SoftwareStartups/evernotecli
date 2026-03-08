@@ -17,8 +17,10 @@ class OperationQueue:
             str(path), auto_commit=True
         )
 
+    MAX_RETRIES = 5
+
     def put(self, operation: str, **params: Any) -> None:
-        self._q.put({"operation": operation, "params": params})
+        self._q.put({"operation": operation, "params": params, "retries": 0})
 
     def process_all(self, dispatcher: dict[str, Callable[..., Any]]) -> list[Any]:
         """Process all queued operations.
@@ -40,11 +42,22 @@ class OperationQueue:
                 results.append(fn(**item["params"]))
                 self._q.task_done()
             except Exception:
-                logger.exception(
-                    "Queued operation %r failed — will re-enqueue", operation
-                )
+                retries = item.get("retries", 0) + 1
+                if retries >= self.MAX_RETRIES:
+                    logger.error(
+                        "Queued operation %r failed %d times — dropping",
+                        operation,
+                        retries,
+                    )
+                else:
+                    logger.exception(
+                        "Queued operation %r failed — will re-enqueue (attempt %d/%d)",
+                        operation,
+                        retries,
+                        self.MAX_RETRIES,
+                    )
+                    failed.append({**item, "retries": retries})
                 self._q.task_done()
-                failed.append(item)
         for item in failed:
             self._q.put(item)
         return results

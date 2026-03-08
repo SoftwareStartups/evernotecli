@@ -11,7 +11,6 @@ from evernote_client.client.thrift import (
     TBinaryProtocolHotfix,
     get_token_shard,
 )
-
 from tests.conftest import make_note, make_tag
 
 
@@ -163,7 +162,10 @@ class TestResolveTagGuids:
 class TestTagNote:
     def test_merges_guids(self) -> None:
         client, mock_store = _make_client()
-        tags = [make_tag(name="existing", guid="tag-1"), make_tag(name="newtag", guid="tag-2")]
+        tags = [
+            make_tag(name="existing", guid="tag-1"),
+            make_tag(name="newtag", guid="tag-2"),
+        ]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["existing"]
         note = make_note()
@@ -194,25 +196,14 @@ class TestTagNote:
         assert mock_store.listTags.call_count == 1
         assert result.tagGuids == ["tag-1"]
 
-    def test_listTags_called_once(self) -> None:
-        """listTags should be called exactly once even with existing + new tags."""
-        client, mock_store = _make_client()
-        tags = [make_tag(name="old", guid="tag-1"), make_tag(name="new", guid="tag-2")]
-        mock_store.listTags.return_value = tags
-        mock_store.getNoteTagNames.return_value = ["old"]
-        mock_store.getNote.return_value = make_note()
-        mock_store.updateNote.return_value = make_note()
-
-        with _patch_store(client, mock_store):
-            client.tag_note("note-1", ["new"])
-
-        mock_store.listTags.assert_called_once()
-
 
 class TestUntagNote:
     def test_removes_guids(self) -> None:
         client, mock_store = _make_client()
-        tags = [make_tag(name="keep", guid="tag-1"), make_tag(name="remove", guid="tag-2")]
+        tags = [
+            make_tag(name="keep", guid="tag-1"),
+            make_tag(name="remove", guid="tag-2"),
+        ]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["keep", "remove"]
         note = make_note()
@@ -229,7 +220,10 @@ class TestUntagNote:
     def test_listTags_called_once(self) -> None:
         """listTags should be called exactly once in untag_note."""
         client, mock_store = _make_client()
-        tags = [make_tag(name="keep", guid="tag-1"), make_tag(name="remove", guid="tag-2")]
+        tags = [
+            make_tag(name="keep", guid="tag-1"),
+            make_tag(name="remove", guid="tag-2"),
+        ]
         mock_store.listTags.return_value = tags
         mock_store.getNoteTagNames.return_value = ["keep", "remove"]
         mock_store.getNote.return_value = make_note()

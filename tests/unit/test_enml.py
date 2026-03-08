@@ -328,6 +328,26 @@ class TestMarkdownToEnml:
         finally:
             Path(tmp_path).unlink(missing_ok=True)
 
+    def test_heading_with_image_resource(self) -> None:
+        """Image ref inside a heading should produce <en-media>."""
+        hash_hex = "c" * 32
+        resources = [
+            ResourceInfo(hash_hex=hash_hex, mime_type="image/png", filename="logo.png")
+        ]
+        md = f"# Title ![logo](evernote-resource:{hash_hex})"
+        result = markdown_to_enml(md, existing_resources=resources)
+        assert f'<en-media type="image/png" hash="{hash_hex}"/>' in result.enml
+
+    def test_checkbox_with_image_resource(self) -> None:
+        """Image ref inside a checkbox item should produce <en-media>."""
+        hash_hex = "d" * 32
+        resources = [
+            ResourceInfo(hash_hex=hash_hex, mime_type="image/png", filename="img.png")
+        ]
+        md = f"- [x] Done ![img](evernote-resource:{hash_hex})"
+        result = markdown_to_enml(md, existing_resources=resources)
+        assert f'<en-media type="image/png" hash="{hash_hex}"/>' in result.enml
+
 
 class TestRoundTrip:
     def test_code_block_round_trip(self) -> None:
