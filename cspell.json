@@ -1,0 +1,20 @@
+{
+  "version": "0.2",
+  "words": [
+    "classmethod",
+    "conftest",
+    "encl",
+    "edam",
+    "enml",
+    "evernote",
+    "getattr",
+    "hotfixes",
+    "notestore",
+    "pytest",
+    "pydantic",
+    "pyright",
+    "ragevernote",
+    "thrift",
+    "userstore"
+  ]
+}
