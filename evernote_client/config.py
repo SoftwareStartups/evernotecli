@@ -8,6 +8,14 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
+def _data_dir() -> Path:
+    """Default data directory, resilient to missing home."""
+    try:
+        return Path.home() / ".evernote-client"
+    except (RuntimeError, KeyError):
+        return Path("/tmp/evernote-client")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="EVERNOTE_",
@@ -18,8 +26,8 @@ class Settings(BaseSettings):
     consumer_key: SecretStr = SecretStr("")
     consumer_secret: SecretStr = SecretStr("")
     token: SecretStr = SecretStr("")
-    token_path: Path = Path.home() / ".evernote-client" / "token.json"
-    queue_path: Path = Path.home() / ".evernote-client" / "queue"
+    token_path: Path = _data_dir() / "token.json"
+    queue_path: Path = _data_dir() / "queue"
 
 
 settings = Settings()

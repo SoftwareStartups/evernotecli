@@ -1,5 +1,6 @@
 """Persistent write-operation queue backed by SQLite."""
 
+import contextlib
 import logging
 from collections.abc import Callable
 from pathlib import Path
@@ -12,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 class OperationQueue:
     def __init__(self, path: Path) -> None:
-        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        path.mkdir(parents=True, exist_ok=True)
+        with contextlib.suppress(OSError):
+            path.chmod(0o700)
         self._q: persistqueue.SQLiteQueue = persistqueue.SQLiteQueue(
             str(path), auto_commit=True
         )
