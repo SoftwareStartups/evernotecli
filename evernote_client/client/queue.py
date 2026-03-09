@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class OperationQueue:
     def __init__(self, path: Path) -> None:
-        path.mkdir(parents=True, exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
         self._q: persistqueue.SQLiteQueue = persistqueue.SQLiteQueue(
             str(path), auto_commit=True
         )
@@ -50,11 +50,16 @@ class OperationQueue:
                         retries,
                     )
                 else:
-                    logger.exception(
+                    logger.warning(
                         "Queued operation %r failed — will re-enqueue (attempt %d/%d)",
                         operation,
                         retries,
                         self.MAX_RETRIES,
+                    )
+                    logger.debug(
+                        "Queued operation %r failure details",
+                        operation,
+                        exc_info=True,
                     )
                     failed.append({**item, "retries": retries})
                 self._q.task_done()

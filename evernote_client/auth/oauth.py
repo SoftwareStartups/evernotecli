@@ -57,8 +57,8 @@ def _run_oauth_flow(consumer_key: str, consumer_secret: str) -> str:
 def get_token(settings: Settings) -> str:
     """Get Evernote auth token: env var -> cached file -> OAuth flow."""
     # 1. Direct token from env
-    if settings.token:
-        return settings.token
+    if settings.token.get_secret_value():
+        return settings.token.get_secret_value()
 
     # 2. Cached token file
     cached = load_cached_token(settings)
@@ -66,7 +66,9 @@ def get_token(settings: Settings) -> str:
         return cached
 
     # 3. Run OAuth flow
-    if not settings.consumer_key or not settings.consumer_secret:
+    key = settings.consumer_key.get_secret_value()
+    secret = settings.consumer_secret.get_secret_value()
+    if not key or not secret:
         msg = (
             "No EVERNOTE_TOKEN set and no OAuth credentials configured. "
             "Set EVERNOTE_TOKEN or both "
@@ -74,6 +76,6 @@ def get_token(settings: Settings) -> str:
         )
         raise OAuthError(msg)
 
-    token = _run_oauth_flow(settings.consumer_key, settings.consumer_secret)
+    token = _run_oauth_flow(key, secret)
     save_token(settings, token)
     return token

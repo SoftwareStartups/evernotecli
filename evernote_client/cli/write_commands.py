@@ -126,8 +126,8 @@ def login() -> None:
     # Clear any cached token so get_token is forced to run OAuth
     if settings.token_path.exists():
         settings.token_path.unlink()
-    token = get_token(settings)
-    click.echo(f"Authenticated (token: {token[:8]}...)")
+    get_token(settings)
+    click.echo("Authenticated successfully.")
 
 
 @click.command()

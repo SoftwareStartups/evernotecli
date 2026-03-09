@@ -17,7 +17,7 @@ from evernote_client.config import settings
 @pytest.fixture(scope="session")
 def evernote_token() -> str:
     """Return a valid token or skip the session if none is configured."""
-    token = settings.token or load_cached_token(settings) or ""
+    token = settings.token.get_secret_value() or load_cached_token(settings) or ""
     if not token:
         pytest.skip("No Evernote token — run 'encl login' or set EVERNOTE_TOKEN")
     return token

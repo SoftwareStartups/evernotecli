@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
@@ -14,9 +15,9 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    consumer_key: str = ""
-    consumer_secret: str = ""
-    token: str = ""
+    consumer_key: SecretStr = SecretStr("")
+    consumer_secret: SecretStr = SecretStr("")
+    token: SecretStr = SecretStr("")
     token_path: Path = Path.home() / ".evernote-client" / "token.json"
     queue_path: Path = Path.home() / ".evernote-client" / "queue"
 
