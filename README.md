@@ -49,7 +49,28 @@ Notes tagged `private` are protected at the service layer:
 uv run encl serve
 ```
 
-Configure your MCP client (e.g. Claude Desktop) to run `uv run encl serve` as the server command.
+#### Installing in Claude Code
+
+Since this is a private repo (not a published MCP package), add it directly by path after cloning:
+
+```bash
+claude mcp add evernote -- uv --directory /path/to/evernote-client run encl serve
+```
+
+Or add it manually to `.claude/mcp.json` (project-level) or `~/.claude/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "evernote": {
+      "command": "uv",
+      "args": ["--directory", "/path/to/evernote-client", "run", "encl", "serve"]
+    }
+  }
+}
+```
+
+Replace `/path/to/evernote-client` with the absolute path to your clone. Make sure `EVERNOTE_TOKEN` is set in your environment or in a `.env` file in the project root before starting.
 
 ### Development
 
