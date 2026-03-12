@@ -1,0 +1,57 @@
+version: "3"
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmd: uv sync
+
+  lint:
+    desc: Lint with ruff
+    cmd: uv run ruff check .
+
+  format:
+    desc: Format with ruff
+    cmd: uv run ruff format .
+
+  typecheck:
+    desc: Type-check with pyright
+    cmd: uv run pyright
+
+  check:
+    desc: Run lint and typecheck in parallel
+    deps: [lint, typecheck]
+
+  test:
+    desc: Run unit and integration tests
+    cmd: uv run pytest tests/unit tests/integration
+
+  test:unit:
+    desc: Run unit tests only
+    cmd: uv run pytest tests/unit
+
+  test:integration:
+    desc: Run integration tests only
+    cmd: uv run pytest tests/integration
+
+  test:e2e:
+    desc: Run e2e tests (requires EVERNOTE_TOKEN)
+    cmd: uv run pytest tests/e2e -m e2e
+
+  serve:
+    desc: Start MCP server
+    cmd: uv run encl serve
+
+  thrift:
+    desc: Regenerate Thrift clients
+    cmds:
+      - rm -rf evernote_client/edam
+      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/NoteStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/UserStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Types.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Errors.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Limits.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
+      - rm -f evernote_client/edam/notestore/NoteStore-remote evernote_client/edam/userstore/UserStore-remote __init__.py
+
+  clean:
+    desc: Remove build artifacts
+    cmd: rm -rf .venv .mypy_cache .ruff_cache .pytest_cache .coverage dist build *.egg-info

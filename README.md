@@ -75,13 +75,13 @@ Replace `/path/to/evernote-client` with the absolute path to your clone. Make su
 ### Development
 
 ```bash
-make check                   # lint
-make format                  # format
-make test                    # unit + integration tests (no token needed)
-make test-unit               # unit tests only
-make test-integration        # integration tests only
-make test-e2e                # e2e tests (requires EVERNOTE_TOKEN)
-make thrift                  # regenerate Thrift clients (requires brew install thrift)
+task check                   # lint + typecheck
+task format                  # format
+task test                    # unit + integration tests (no token needed)
+task test:unit               # unit tests only
+task test:integration        # integration tests only
+task test:e2e                # e2e tests (requires EVERNOTE_TOKEN)
+task thrift                  # regenerate Thrift clients (requires brew install thrift)
 ```
 
 For architecture and design details, see `CLAUDE.md`.

@@ -20,6 +20,9 @@ dependencies = [
 encl = "evernote_client.cli:main"
 
 [dependency-groups]
+build = [
+    "pyinstaller>=6.0",
+]
 dev = [
     "pre-commit>=4.5.1",
     "pyright>=1.1.408",

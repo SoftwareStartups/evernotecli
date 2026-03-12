@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15
+            platform: macos-arm64
+          - runner: ubuntu-24.04-arm
+            platform: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: astral-sh/setup-uv@v7.4.0
+      - run: uv sync --group build
+      - name: Build binary
+        run: |
+          uv run pyinstaller --onefile \
+            --name encl-${{ matrix.platform }} \
+            --collect-all evernote_client.edam \
+            --hidden-import requests_oauthlib \
+            --hidden-import persistqueue \
+            --hidden-import tenacity \
+            --hidden-import thrift.transport.THttpClient \
+            --hidden-import thrift.protocol.TBinaryProtocol \
+            evernote_client/__main__.py
+      - uses: actions/upload-artifact@v7.0.0
+        with:
+          name: encl-${{ matrix.platform }}
+          path: dist/encl-${{ matrix.platform }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7.0.0
+      - uses: softprops/action-gh-release@v2.2.1
+        with:
+          files: "**/*"

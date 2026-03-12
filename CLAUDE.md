@@ -11,16 +11,16 @@ uv sync                              # Install dependencies
 uv run ruff check .                  # Lint
 uv run ruff format .                 # Format
 uv run pyright                       # Type check
-make test                            # Run unit + integration tests (no token needed)
-make test-unit                       # Unit tests only
-make test-integration                # Integration tests only
-make test-e2e                        # E2E tests (requires EVERNOTE_TOKEN)
+task test                            # Run unit + integration tests (no token needed)
+task test:unit                       # Unit tests only
+task test:integration                # Integration tests only
+task test:e2e                        # E2E tests (requires EVERNOTE_TOKEN)
 uv run encl --help                   # Show CLI help
 uv run encl serve                    # Start MCP server
 uv run encl notebooks                # List notebooks
 uv run encl search "query"           # Search notes
 uv run encl drain                    # Process queued write operations
-make thrift                          # Regenerate Thrift clients (requires thrift compiler)
+task thrift                          # Regenerate Thrift clients (requires thrift compiler)
 ```
 
 ## Architecture
@@ -35,7 +35,7 @@ evernote_client/
 │   ├── evernote_client.py  # High-level API client
 │   ├── queue.py            # Persistent write queue (OperationQueue)
 │   └── thrift.py           # Store proxy, retry, TBinaryProtocol/THttpClient fixes
-├── edam/              # Generated Thrift clients — do not edit (run `make thrift`)
+├── edam/              # Generated Thrift clients — do not edit (run `task thrift`)
 ├── enml/              # ENML ↔ Markdown conversion (to_markdown.py, to_enml.py)
 ├── mcp/               # MCP server: app.py, read_tools.py, write_tools.py
 └── cli/               # Click CLI: read_commands.py, write_commands.py
@@ -55,7 +55,7 @@ tests/
 
 ## Key Design Decisions
 
-- Generated Thrift clients from local IDL files via `make thrift`; no evernote3 SDK dependency
+- Generated Thrift clients from local IDL files via `task thrift`; no evernote3 SDK dependency
 - Uses ragevernote's `Store` proxy pattern with `__getattr__` auto-token-injection
 - Token contains shard ID — note store URL constructed from it
 - Required Thrift headers: `x-feature-version: 3`, `accept: application/x-thrift`
@@ -68,3 +68,12 @@ tests/
 - Python 3.12+, managed with uv
 - Ruff for linting/formatting (line length 88, double quotes)
 - Pyright in standard mode
+
+## Dependency Version Pins
+
+Always use fully qualified versions — never floating major/minor tags:
+
+- **Python packages** (`pyproject.toml`): use `>=X.Y.Z` lower bounds (uv resolves exact versions into `uv.lock`)
+- **GitHub Actions**: always pin to exact `vX.Y.Z` tags, never `@v3` or `@main`
+  - Current pins: `actions/checkout@v6.0.2`, `astral-sh/setup-uv@v7.4.0`, `actions/upload-artifact@v7.0.0`, `actions/download-artifact@v7.0.0`, `softprops/action-gh-release@v2.2.1`
+  - When adding a new action or upgrading, web-search the latest release tag before pinning
