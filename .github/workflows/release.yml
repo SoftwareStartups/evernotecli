@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   build:
@@ -32,13 +33,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          commit_sha="${{ github.sha }}"
-          echo "Checking CI status for $commit_sha"
-          gh api "repos/${{ github.repository }}/commits/$commit_sha/check-runs" \
-            --jq '.check_runs[] | select(.name == "Build") | .conclusion' | grep -q "^success$" || \
-          gh api "repos/${{ github.repository }}/commits/$commit_sha/statuses" \
-            --jq '.[0].state' | grep -q "^success$" || \
-          echo "CI check verification skipped (tag push may not have prior CI run)"
+          echo "Waiting for CI to complete for commit ${{ github.sha }}..."
+          for i in $(seq 1 20); do
+            RUN_ID=$(gh run list \
+              --repo "${{ github.repository }}" \
+              --commit "${{ github.sha }}" \
+              --workflow "CI" \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId // empty')
+            if [ -n "$RUN_ID" ]; then
+              break
+            fi
+            echo "CI run not found yet (attempt $i/20). Waiting 15s..."
+            sleep 15
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "No CI run found for commit ${{ github.sha }}. Aborting release."
+            exit 1
+          fi
+          gh run watch "$RUN_ID" --repo "${{ github.repository }}" --exit-status
 
       - name: Checkout
         uses: actions/checkout@v6.0.2
