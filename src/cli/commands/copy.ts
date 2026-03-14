@@ -18,7 +18,7 @@ export const copyCommand = defineCommand(
   },
   async (ctx) => {
     const result = await service.copyNote(
-      ctx.parameters['source-guid'],
+      ctx.parameters.sourceGuid,
       ctx.parameters.title,
       ctx.flags.notebook
     );

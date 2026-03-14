@@ -13,11 +13,19 @@ function makeClient(nsOverrides: Record<string, ReturnType<typeof mock>>) {
 describe('EvernoteClient.copyNote', () => {
   test('calls Thrift copyNote and returns result with updated title', async () => {
     const updateNote = mock(() =>
-      Promise.resolve({ guid: 'new-guid', title: 'My Copy', notebookGuid: 'nb-1' })
+      Promise.resolve({
+        guid: 'new-guid',
+        title: 'My Copy',
+        notebookGuid: 'nb-1',
+      })
     );
     const ns = {
       copyNote: mock(() =>
-        Promise.resolve({ guid: 'new-guid', title: 'Original', notebookGuid: 'nb-1' })
+        Promise.resolve({
+          guid: 'new-guid',
+          title: 'Original',
+          notebookGuid: 'nb-1',
+        })
       ),
       updateNote,
     };
@@ -38,7 +46,11 @@ describe('EvernoteClient.copyNote', () => {
     const updateNote = mock(() => Promise.resolve({}));
     const ns = {
       copyNote: mock(() =>
-        Promise.resolve({ guid: 'new-guid', title: 'Same Title', notebookGuid: 'nb-1' })
+        Promise.resolve({
+          guid: 'new-guid',
+          title: 'Same Title',
+          notebookGuid: 'nb-1',
+        })
       ),
       updateNote,
     };
