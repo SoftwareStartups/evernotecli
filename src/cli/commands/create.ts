@@ -24,6 +24,11 @@ export const createCommand = defineCommand(
         alias: 't',
         description: 'Tag names to apply',
       },
+      'source-note': {
+        type: String,
+        description:
+          'GUID of source note to copy resources from (for re-creating edited notes)',
+      },
     },
   },
   async (ctx) => {
@@ -32,7 +37,8 @@ export const createCommand = defineCommand(
         ctx.parameters.title,
         ctx.flags.content ?? '',
         ctx.flags.notebook ?? '',
-        ctx.flags.tag?.length ? ctx.flags.tag : null
+        ctx.flags.tag?.length ? ctx.flags.tag : null,
+        ctx.flags['source-note']
       );
       jsonOutput(result);
     } catch (err) {
@@ -42,6 +48,7 @@ export const createCommand = defineCommand(
           content: ctx.flags.content ?? '',
           notebook_name: ctx.flags.notebook ?? '',
           tags: ctx.flags.tag?.length ? ctx.flags.tag : null,
+          source_note_guid: ctx.flags['source-note'],
         });
         console.error(
           `Rate limited (retry after ${err.retryAfter}s) — queued. Run 'evercli drain' to process.`

@@ -1,9 +1,12 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { z } from 'zod';
 import { getToken } from './auth/oauth.js';
 import { EvernoteClient } from './client/evernote-client.js';
 import { OperationQueue } from './client/queue.js';
 import { settings } from './config.js';
 import { PrivateNoteError } from './errors.js';
+import { logger } from './logger.js';
 import {
   noteMetadataFromThrift,
   type CreatedNote,
@@ -13,6 +16,7 @@ import {
   type SearchResult,
   type TagInfo,
 } from './models.js';
+import type { ResourceInfo } from './enml/types.js';
 
 let _client: EvernoteClient | null = null;
 
@@ -103,14 +107,30 @@ export async function getNote(guid: string): Promise<NoteMetadata> {
   return noteMetadataFromThrift(note);
 }
 
-export async function getNoteContent(guid: string): Promise<NoteContent> {
+export async function getNoteContent(
+  guid: string,
+  options: { resourceDir?: string } = {}
+): Promise<NoteContent> {
   const client = await getClient();
   const note = await client.getNote(guid);
   if (await isPrivate(note.tagGuids ?? [])) {
     throw new PrivateNoteError(guid);
   }
-  const content = await client.getNoteContent(guid);
   if (!note.guid) throw new Error('Note returned without GUID');
+
+  let content = await client.getNoteContent(guid);
+
+  if (options.resourceDir) {
+    const resources = await client.getNoteResources(guid);
+    await mkdir(options.resourceDir, { recursive: true });
+    for (const r of resources) {
+      if (!r.data || !r.filename) continue;
+      const filePath = join(options.resourceDir, r.filename);
+      await writeFile(filePath, r.data);
+      content = content.replaceAll(`evernote-resource:${r.hashHex}`, filePath);
+    }
+  }
+
   return {
     guid: note.guid,
     title: note.title ?? 'Untitled',
@@ -146,7 +166,8 @@ export async function createNote(
   title: string,
   content: string,
   notebookName = '',
-  tags?: string[] | null
+  tags?: string[] | null,
+  sourceNoteGuid?: string
 ): Promise<CreatedNote> {
   const client = await getClient();
 
@@ -155,11 +176,24 @@ export async function createNote(
     notebookGuid = await resolveNotebookGuid(client, notebookName);
   }
 
+  let existingResources: ResourceInfo[] | undefined;
+  if (sourceNoteGuid) {
+    try {
+      existingResources = await client.getNoteResources(sourceNoteGuid);
+    } catch (err) {
+      logger.warn(
+        { err, sourceNoteGuid },
+        'Could not fetch source note resources — images will be skipped'
+      );
+    }
+  }
+
   const note = await client.createNote(
     title,
     content,
     notebookGuid,
-    tags && tags.length > 0 ? tags : null
+    tags && tags.length > 0 ? tags : null,
+    existingResources
   );
 
   if (!note.guid || !note.title) {
@@ -190,8 +224,13 @@ export async function copyNote(
   }
 
   const note = await client.copyNote(sourceGuid, newTitle, toNotebookGuid);
-  if (!note.guid || !note.title) throw new Error('Copied note missing GUID or title');
-  return { guid: note.guid, title: note.title, notebookGuid: note.notebookGuid ?? null };
+  if (!note.guid || !note.title)
+    throw new Error('Copied note missing GUID or title');
+  return {
+    guid: note.guid,
+    title: note.title,
+    notebookGuid: note.notebookGuid ?? null,
+  };
 }
 
 export async function tagNote(
@@ -252,6 +291,7 @@ const CreateNoteParams = z.object({
   content: z.string(),
   notebook_name: z.string().optional().default(''),
   tags: z.array(z.string()).nullable().optional().default(null),
+  source_note_guid: z.string().optional(),
 });
 
 const GuidTagsParams = z.object({
@@ -267,7 +307,13 @@ const MoveNoteParams = z.object({
 const WRITE_DISPATCHER: WriteDispatcher = {
   create_note: (p) => {
     const v = CreateNoteParams.parse(p);
-    return createNote(v.title, v.content, v.notebook_name, v.tags);
+    return createNote(
+      v.title,
+      v.content,
+      v.notebook_name,
+      v.tags,
+      v.source_note_guid
+    );
   },
   tag_note: (p) => {
     const v = GuidTagsParams.parse(p);

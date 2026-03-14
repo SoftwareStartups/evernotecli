@@ -202,12 +202,13 @@ export class EvernoteClient {
     title: string,
     markdown: string,
     notebookGuid?: string | null,
-    tagNames?: string[] | null
+    tagNames?: string[] | null,
+    existingResources?: ResourceInfo[]
   ): Promise<ThriftNote> {
     const note = new TypesTypes.Note();
     note.title = title;
 
-    const result = markdownToEnml(markdown);
+    const result = markdownToEnml(markdown, existingResources);
     note.content = result.enml;
 
     if (result.attachments.length > 0) {
@@ -375,7 +376,11 @@ export interface ThriftNote {
 }
 
 interface ThriftResource {
-  data?: { bodyHash?: Buffer | string | null; body?: Buffer | Uint8Array | null; size?: number | null } | null;
+  data?: {
+    bodyHash?: Buffer | string | null;
+    body?: Buffer | Uint8Array | null;
+    size?: number | null;
+  } | null;
   mime?: string | null;
   attributes?: { fileName?: string | null } | null;
 }
