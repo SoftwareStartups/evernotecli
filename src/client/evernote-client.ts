@@ -235,6 +235,21 @@ export class EvernoteClient {
     return this.ns.createNote(note);
   }
 
+  async copyNote(
+    sourceGuid: string,
+    newTitle: string,
+    toNotebookGuid: string
+  ): Promise<ThriftNote> {
+    const copied = await this.ns.copyNote(sourceGuid, toNotebookGuid);
+    if (copied.title !== newTitle) {
+      const update = new TypesTypes.Note();
+      update.guid = copied.guid;
+      update.title = newTitle;
+      return this.ns.updateNote(update);
+    }
+    return copied;
+  }
+
   async tagNote(guid: string, tagNames: string[]): Promise<ThriftNote> {
     const allTags = await this.buildTagMap();
     const existingGuids = await this.getNoteTagGuids(guid, allTags);

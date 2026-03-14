@@ -173,6 +173,27 @@ export async function createNote(
   };
 }
 
+export async function copyNote(
+  sourceGuid: string,
+  newTitle: string,
+  notebookName = ''
+): Promise<CreatedNote> {
+  const client = await getClient();
+
+  let toNotebookGuid: string;
+  if (notebookName) {
+    toNotebookGuid = await resolveNotebookGuid(client, notebookName);
+  } else {
+    const src = await client.getNote(sourceGuid);
+    if (!src.notebookGuid) throw new Error('Source note has no notebook GUID');
+    toNotebookGuid = src.notebookGuid;
+  }
+
+  const note = await client.copyNote(sourceGuid, newTitle, toNotebookGuid);
+  if (!note.guid || !note.title) throw new Error('Copied note missing GUID or title');
+  return { guid: note.guid, title: note.title, notebookGuid: note.notebookGuid ?? null };
+}
+
 export async function tagNote(
   guid: string,
   tags: string[]

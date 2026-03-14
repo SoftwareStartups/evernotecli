@@ -12,6 +12,7 @@ import { moveCommand } from './commands/move.js';
 import { loginCommand } from './commands/login.js';
 import { serveCommand } from './commands/serve.js';
 import { drainCommand } from './commands/drain.js';
+import { copyCommand } from './commands/copy.js';
 
 export async function run(argv: string[]): Promise<void> {
   const cli = Cli({
@@ -32,6 +33,7 @@ export async function run(argv: string[]): Promise<void> {
     .command(loginCommand)
     .command(serveCommand)
     .command(drainCommand)
+    .command(copyCommand)
     .errorHandler((err) => {
       if (err instanceof EvernoteError) {
         console.error(`Error: ${err.message}`);
