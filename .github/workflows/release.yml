@@ -21,7 +21,7 @@ jobs:
           - runner: ubuntu-24.04-arm
             target: bun-linux-arm64
             platform: linux-arm64
-          - runner: macos-13
+          - runner: ubuntu-latest
             target: bun-darwin-x64
             platform: darwin-x64
           - runner: macos-15
