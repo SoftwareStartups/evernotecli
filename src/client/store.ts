@@ -43,7 +43,7 @@ function isEDAMUserException(
     err !== null &&
     typeof err === 'object' &&
     'errorCode' in err &&
-    err.constructor?.name === 'EDAMUserException'
+    (err as { name?: string }).name === 'EDAMUserException'
   );
 }
 
@@ -54,7 +54,7 @@ function isEDAMSystemException(
     err !== null &&
     typeof err === 'object' &&
     'errorCode' in err &&
-    err.constructor?.name === 'EDAMSystemException'
+    (err as { name?: string }).name === 'EDAMSystemException'
   );
 }
 
@@ -64,7 +64,7 @@ function isEDAMNotFoundException(
   return (
     err !== null &&
     typeof err === 'object' &&
-    err.constructor?.name === 'EDAMNotFoundException'
+    (err as { name?: string }).name === 'EDAMNotFoundException'
   );
 }
 
