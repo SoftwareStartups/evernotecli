@@ -1,5 +1,8 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { EvernoteClient, type NoteStoreProxy } from '../../src/client/evernote-client.js';
+import {
+  EvernoteClient,
+  type NoteStoreProxy,
+} from '../../src/client/evernote-client.js';
 
 const FAKE_TOKEN = 'S=s1:U=1:E=1:C=1:A=en_oauth:V=2:H=abc';
 
