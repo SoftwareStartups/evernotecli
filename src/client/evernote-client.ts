@@ -38,6 +38,7 @@ interface NoteStoreProxy {
   createNote(note: unknown): Promise<ThriftNote>;
   createTag(tag: unknown): Promise<ThriftTag>;
   updateNote(note: unknown): Promise<ThriftNote>;
+  copyNote(noteGuid: string, toNotebookGuid: string): Promise<ThriftNote>;
 }
 
 function s(value: string | Buffer | null | undefined): string {
@@ -148,6 +149,27 @@ export class EvernoteClient {
       .filter((g): g is string => g !== undefined);
 
     return note;
+  }
+
+  async getNoteResources(guid: string): Promise<ResourceInfo[]> {
+    const note = await this.ns.getNote(guid, false, true, false, false);
+    const resources: ResourceInfo[] = [];
+    for (const r of note.resources ?? []) {
+      if (!r.data?.bodyHash) continue;
+      const hashHex = Buffer.isBuffer(r.data.bodyHash)
+        ? r.data.bodyHash.toString('hex')
+        : String(r.data.bodyHash);
+      const body = r.data.body;
+      resources.push({
+        hashHex,
+        mimeType: s(r.mime),
+        filename: r.attributes?.fileName ? s(r.attributes.fileName) : '',
+        data: body
+          ? new Uint8Array(Buffer.isBuffer(body) ? body : Buffer.from(body))
+          : undefined,
+      });
+    }
+    return resources;
   }
 
   async getNoteContent(guid: string): Promise<string> {
@@ -338,7 +360,7 @@ export interface ThriftNote {
 }
 
 interface ThriftResource {
-  data?: { bodyHash?: Buffer | string | null } | null;
+  data?: { bodyHash?: Buffer | string | null; body?: Buffer | Uint8Array | null; size?: number | null } | null;
   mime?: string | null;
   attributes?: { fileName?: string | null } | null;
 }
