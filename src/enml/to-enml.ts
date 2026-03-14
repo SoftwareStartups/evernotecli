@@ -176,10 +176,22 @@ function renderImage(
     const hashHex = m[1];
     const info = existingMap.get(hashHex);
     if (info) {
+      if (info.data && !seenHashes.has(hashHex)) {
+        seenHashes.add(hashHex);
+        attachments.push({
+          hashHex,
+          hashBytes: new Uint8Array(Buffer.from(hashHex, 'hex')),
+          mimeType: info.mimeType,
+          data: info.data,
+          filename: info.filename,
+          sourcePath: '',
+        });
+      }
       return `<en-media type="${info.mimeType}" hash="${hashHex}"/>`;
     }
+    // Resource not available — text placeholder
     const display = alt || hashHex;
-    return `<a href="evernote-resource:${hashHex}">${escapeXml(display)}</a>`;
+    return `[image: ${escapeXml(display)}]`;
   }
 
   // HTTP/HTTPS — render as link
@@ -255,7 +267,14 @@ function parseImageLine(
 ): string | null {
   const m = RE_IMAGE_FULL.exec(line.trim());
   if (!m) return null;
-  return renderImage(m[1], m[2], existingMap, attachments, seenHashes);
+  const rendered = renderImage(
+    m[1],
+    m[2],
+    existingMap,
+    attachments,
+    seenHashes
+  );
+  return `<div>${rendered}</div>`;
 }
 
 // --- Block parsers ---

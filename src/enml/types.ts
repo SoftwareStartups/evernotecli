@@ -2,6 +2,7 @@ export interface ResourceInfo {
   hashHex: string;
   mimeType: string;
   filename: string;
+  data?: Uint8Array; // binary body; present when fetched with withResourcesData=true
 }
 
 export interface Attachment {

@@ -224,4 +224,38 @@ describe('markdownToEnml', () => {
     expect(result.enml).toContain('<a href=');
     expect(result.enml).toContain('example.com');
   });
+
+  test('wraps standalone image in div', () => {
+    const md = '![alt](evernote-resource:abcd1234abcd1234abcd1234abcd1234)';
+    const result = markdownToEnml(md, [
+      {
+        hashHex: 'abcd1234abcd1234abcd1234abcd1234',
+        mimeType: 'image/png',
+        filename: 'test.png',
+      },
+    ]);
+    expect(result.enml).toContain('<div><en-media');
+  });
+
+  test('creates attachment from evernote-resource when ResourceInfo has data', () => {
+    const hash = 'abcd1234abcd1234abcd1234abcd1234';
+    const data = new Uint8Array([1, 2, 3, 4]);
+    const md = `![img.png](evernote-resource:${hash})`;
+    const result = markdownToEnml(md, [
+      { hashHex: hash, mimeType: 'image/png', filename: 'img.png', data },
+    ]);
+    expect(result.enml).toContain('<en-media');
+    expect(result.attachments).toHaveLength(1);
+    expect(result.attachments[0].data).toEqual(data);
+  });
+
+  test('separates consecutive unresolved evernote-resource images into divs', () => {
+    const hash1 = 'aaaa1111aaaa1111aaaa1111aaaa1111';
+    const hash2 = 'bbbb2222bbbb2222bbbb2222bbbb2222';
+    const md = `![img1.png](evernote-resource:${hash1})\n![img2.png](evernote-resource:${hash2})`;
+    const result = markdownToEnml(md);
+    expect(result.enml).toContain('</div><div>');
+    expect(result.enml).toContain('img1.png');
+    expect(result.enml).toContain('img2.png');
+  });
 });
