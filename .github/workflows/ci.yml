@@ -7,42 +7,42 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  lint-and-typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
-        with:
-          enable-cache: true
-      - run: uv sync
-      - run: uv run ruff check .
+      - uses: ./.github/actions/setup-bun-env
+      - run: bunx biome format .
+      - run: bunx biome lint .
+      - run: bunx tsc --noEmit -p tsconfig.check.json
 
-  format:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
-        with:
-          enable-cache: true
-      - run: uv sync
-      - run: uv run ruff format --check .
+      - uses: ./.github/actions/setup-bun-env
+      - run: bun test tests/unit
 
-  typecheck:
+  build:
+    needs: [lint-and-typecheck, unit-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: ./.github/actions/setup-bun-env
+      - run: tsc
+      - uses: actions/upload-artifact@v7.0.0
         with:
-          enable-cache: true
-      - run: uv sync
-      - run: uv run pyright
+          name: build
+          path: build/
 
-  test:
+  integration-tests:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
-      - uses: astral-sh/setup-uv@v7.4.0
+      - uses: ./.github/actions/setup-bun-env
+      - uses: actions/download-artifact@v7.0.0
         with:
-          enable-cache: true
-      - run: uv sync
-      - run: uv run pytest tests/unit tests/integration
+          name: build
+          path: build/
+      - run: bun test tests/integration

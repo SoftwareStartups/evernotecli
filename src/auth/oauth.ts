@@ -1,0 +1,103 @@
+import { OAuth } from 'oauth';
+import { OAuthError } from '../errors.js';
+import { type Config } from '../config.js';
+import { loadToken, saveToken } from './token-store.js';
+import {
+  CALLBACK_HOST,
+  OAUTH_PORT,
+  SERVICE_HOST,
+  waitForCallback,
+} from './callback-server.js';
+
+const CALLBACK_URL = `http://${CALLBACK_HOST}:${OAUTH_PORT}/oauth_callback`;
+
+function createOAuthClient(
+  consumerKey: string,
+  consumerSecret: string
+): OAuth {
+  return new OAuth(
+    `https://${SERVICE_HOST}/oauth`,
+    `https://${SERVICE_HOST}/oauth`,
+    consumerKey,
+    consumerSecret,
+    '1.0',
+    CALLBACK_URL,
+    'HMAC-SHA256'
+  );
+}
+
+async function runOAuthFlow(
+  consumerKey: string,
+  consumerSecret: string
+): Promise<string> {
+  const client = createOAuthClient(consumerKey, consumerSecret);
+
+  // Step 1: Get request token
+  const { requestToken, requestTokenSecret } = await new Promise<{
+    requestToken: string;
+    requestTokenSecret: string;
+  }>((resolve, reject) => {
+    client.getOAuthRequestToken(
+      (err: unknown, token: string, tokenSecret: string) => {
+        if (err) reject(new OAuthError(`Failed to get request token: ${err}`));
+        else resolve({ requestToken: token, requestTokenSecret: tokenSecret });
+      }
+    );
+  });
+
+  // Step 2: Open browser for authorization
+  const authUrl = `https://${SERVICE_HOST}/OAuth.action?oauth_token=${requestToken}`;
+  console.log(`Opening browser for Evernote authorization:\n${authUrl}`);
+
+  // Open browser (macOS)
+  Bun.spawn(['open', authUrl]);
+
+  // Step 3: Wait for callback
+  const callbackResult = await waitForCallback();
+  const callbackUrl = new URL(callbackResult.fullUrl);
+  const oauthVerifier = callbackUrl.searchParams.get('oauth_verifier');
+
+  if (!oauthVerifier) {
+    throw new OAuthError('OAuth declined by user');
+  }
+
+  // Step 4: Exchange for access token
+  const accessToken = await new Promise<string>((resolve, reject) => {
+    client.getOAuthAccessToken(
+      requestToken,
+      requestTokenSecret,
+      oauthVerifier,
+      (err: unknown, token: string) => {
+        if (err) reject(new OAuthError(`OAuth token request denied: ${err}`));
+        else resolve(token);
+      }
+    );
+  });
+
+  return accessToken;
+}
+
+export async function getToken(config: Config): Promise<string> {
+  // 1. Direct token from env
+  if (config.token) {
+    return config.token;
+  }
+
+  // 2. Cached token file
+  const cached = loadToken(config.tokenPath);
+  if (cached) {
+    return cached;
+  }
+
+  // 3. Run OAuth flow
+  if (!config.consumerKey || !config.consumerSecret) {
+    throw new OAuthError(
+      'No EVERNOTE_TOKEN set and no OAuth credentials configured. ' +
+        'Set EVERNOTE_TOKEN or both EVERNOTE_CONSUMER_KEY and EVERNOTE_CONSUMER_SECRET.'
+    );
+  }
+
+  const token = await runOAuthFlow(config.consumerKey, config.consumerSecret);
+  await saveToken(config.tokenPath, token);
+  return token;
+}

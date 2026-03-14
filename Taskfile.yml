@@ -3,55 +3,78 @@ version: "3"
 tasks:
   install:
     desc: Install dependencies
-    cmd: uv sync
+    cmd: bun install
 
-  lint:
-    desc: Lint with ruff
-    cmd: uv run ruff check .
+  build:
+    desc: Build TypeScript
+    cmd: tsc
+
+  clean:
+    desc: Remove build artifacts
+    cmd: rm -rf build/ dist/
 
   format:
-    desc: Format with ruff
-    cmd: uv run ruff format .
+    desc: Format with Biome
+    cmd: bunx biome format --write .
+
+  format:check:
+    desc: Check formatting
+    cmd: bunx biome format .
+
+  lint:
+    desc: Lint with Biome
+    cmd: bunx biome lint .
 
   typecheck:
-    desc: Type-check with pyright
-    cmd: uv run pyright
+    desc: Type-check with TypeScript
+    cmd: bunx tsc --noEmit -p tsconfig.check.json
 
   check:
-    desc: Run lint and typecheck in parallel
+    desc: Run lint and typecheck
     deps: [lint, typecheck]
 
   test:
     desc: Run unit and integration tests
-    cmd: uv run pytest tests/unit tests/integration
+    deps: [test:unit, test:integration]
 
   test:unit:
     desc: Run unit tests only
-    cmd: uv run pytest tests/unit
+    cmd: bun test tests/unit
 
   test:integration:
     desc: Run integration tests only
-    cmd: uv run pytest tests/integration
+    cmd: bun test tests/integration
 
   test:e2e:
     desc: Run e2e tests (requires EVERNOTE_TOKEN)
-    cmd: uv run pytest tests/e2e -m e2e
+    cmd: bun test tests/e2e
+
+  test:all:
+    desc: Run all tests
+    deps: [test, test:e2e]
+
+  thrift:
+    desc: Regenerate Thrift clients (requires Apache thrift compiler)
+    cmds:
+      - rm -rf src/edam && mkdir -p src/edam
+      - thrift --gen js:node,ts -out src/edam thrift/Types.thrift 2>&1 | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen js:node,ts -out src/edam thrift/Errors.thrift 2>&1 | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen js:node,ts -out src/edam thrift/Limits.thrift 2>&1 | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen js:node,ts -out src/edam thrift/NoteStore.thrift 2>&1 | grep -vE "64-bit constant|No generator named|^$$" || true
+      - thrift --gen js:node,ts -out src/edam thrift/UserStore.thrift 2>&1 | grep -vE "64-bit constant|No generator named|^$$" || true
+
+  compile:
+    desc: Compile to standalone binary
+    cmd: bun build src/index.ts --compile --outfile dist/evercli
+
+  compile:all:
+    desc: Compile for all platforms
+    cmds:
+      - bun build src/index.ts --compile --target=bun-linux-x64 --outfile dist/evercli-linux-x64
+      - bun build src/index.ts --compile --target=bun-linux-arm64 --outfile dist/evercli-linux-arm64
+      - bun build src/index.ts --compile --target=bun-darwin-x64 --outfile dist/evercli-darwin-x64
+      - bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/evercli-darwin-arm64
 
   serve:
     desc: Start MCP server
-    cmd: uv run encl serve
-
-  thrift:
-    desc: Regenerate Thrift clients
-    cmds:
-      - rm -rf evernote_client/edam
-      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/NoteStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
-      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/UserStore.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
-      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Types.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
-      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Errors.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
-      - thrift --gen py:enum,type_hints -out . evernote_client/thrift/Limits.thrift | grep -vE "64-bit constant|No generator named|^$$" || true
-      - rm -f evernote_client/edam/notestore/NoteStore-remote evernote_client/edam/userstore/UserStore-remote __init__.py
-
-  clean:
-    desc: Remove build artifacts
-    cmd: rm -rf .venv .mypy_cache .ruff_cache .pytest_cache .coverage dist build *.egg-info
+    cmd: bun run build/index.js serve

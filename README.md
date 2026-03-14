@@ -1,37 +1,36 @@
-## Evernote Client
+## evercli
 
-A Python-based Evernote client exposing both a CLI (`encl`) and a Model Context Protocol (MCP) server. Provides full read access and limited write access (create notes, tag notes, move notes). Does not edit or delete existing note content.
+A Bun-native TypeScript Evernote client exposing both a CLI (`evercli`) and a Model Context Protocol (MCP) server. Provides full read access and limited write access (create notes, tag notes, move notes). Does not edit or delete existing note content.
 
 ### Prerequisites
 
-- **Python**: 3.12+
-- **uv**: `pip install uv`
-- An **Evernote API token** (OAuth flow via `encl login`)
+- **Bun**: 1.3+
+- An **Evernote API token** (OAuth flow via `evercli login`)
 
 ### Setup
 
 ```bash
-uv sync
-uv run encl login      # authenticate via OAuth
+bun install
+bun run src/index.ts login      # authenticate via OAuth
 ```
 
 ### CLI usage
 
 ```bash
-uv run encl --help
-uv run encl search "query"               # search notes
-uv run encl notebooks                    # list notebooks
-uv run encl tags                         # list tags
-uv run encl note <guid>                  # note metadata
-uv run encl content <guid>               # note content (Markdown)
-uv run encl create "Title" -c "body"     # create a note
-uv run encl tag <guid> tag1 tag2         # add tags
-uv run encl untag <guid> tag1            # remove tags
-uv run encl move <guid> "Notebook"       # move to notebook
-uv run encl drain                        # process queued writes
+bun run src/index.ts --help
+bun run src/index.ts search "query"               # search notes
+bun run src/index.ts notebooks                    # list notebooks
+bun run src/index.ts tags                         # list tags
+bun run src/index.ts note <guid>                  # note metadata
+bun run src/index.ts content <guid>               # note content (Markdown)
+bun run src/index.ts create "Title" -c "body"     # create a note
+bun run src/index.ts tag <guid> tag1 tag2         # add tags
+bun run src/index.ts untag <guid> tag1            # remove tags
+bun run src/index.ts move <guid> "Notebook"       # move to notebook
+bun run src/index.ts drain                        # process queued writes
 ```
 
-Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `encl drain` later to replay them.
+Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `evercli drain` later to replay them.
 
 ### Private notes
 
@@ -46,7 +45,7 @@ Notes tagged `private` are protected at the service layer:
 ### MCP server
 
 ```bash
-uv run encl serve
+bun run src/index.ts serve
 ```
 
 #### Installing in Claude Code
@@ -54,7 +53,7 @@ uv run encl serve
 Since this is a private repo (not a published MCP package), add it directly by path after cloning:
 
 ```bash
-claude mcp add evernote -- uv --directory /path/to/evernote-client run encl serve
+claude mcp add evernote -- bun run /path/to/evernote-client/src/index.ts serve
 ```
 
 Or add it manually to `.claude/mcp.json` (project-level) or `~/.claude/mcp.json` (global):
@@ -63,8 +62,8 @@ Or add it manually to `.claude/mcp.json` (project-level) or `~/.claude/mcp.json`
 {
   "mcpServers": {
     "evernote": {
-      "command": "uv",
-      "args": ["--directory", "/path/to/evernote-client", "run", "encl", "serve"]
+      "command": "bun",
+      "args": ["run", "/path/to/evernote-client/src/index.ts", "serve"]
     }
   }
 }
@@ -82,6 +81,7 @@ task test:unit               # unit tests only
 task test:integration        # integration tests only
 task test:e2e                # e2e tests (requires EVERNOTE_TOKEN)
 task thrift                  # regenerate Thrift clients (requires brew install thrift)
+task compile                 # build standalone binary
 ```
 
 For architecture and design details, see `CLAUDE.md`.

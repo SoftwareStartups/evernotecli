@@ -1,16 +1,8 @@
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
+node_modules/
 build/
-.venv/
+dist/
+*.tsbuildinfo
 .env
-*.egg
-.ruff_cache/
-.pyright/
-.pytest_cache/
-.mypy_cache/
 
 # Claude
 /.claude/settings.local.json
