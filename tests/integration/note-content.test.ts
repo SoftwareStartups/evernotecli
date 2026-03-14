@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { NoteStoreProxy } from '../../src/client/evernote-client.js';
 
 // Fake token with valid shard so EvernoteClient constructor succeeds
 const FAKE_TOKEN = 'S=s1:U=1:E=1:C=1:A=en_oauth:V=2:H=abc';
@@ -88,10 +89,8 @@ const mockNs = {
 async function setupClient() {
   serviceModule.resetClient();
   const client = await serviceModule.getClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (client as any)._noteStore = mockNs;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (client as any)._privateTagGuid = null; // bypass private tag lookup
+  client._injectNoteStore(mockNs as unknown as NoteStoreProxy);
+  client._injectPrivateTagGuid(null); // bypass private tag lookup
   return client;
 }
 

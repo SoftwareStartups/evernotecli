@@ -1,12 +1,11 @@
 import { describe, expect, mock, test } from 'bun:test';
-import { EvernoteClient } from '../../src/client/evernote-client.js';
+import { EvernoteClient, type NoteStoreProxy } from '../../src/client/evernote-client.js';
 
 const FAKE_TOKEN = 'S=s1:U=1:E=1:C=1:A=en_oauth:V=2:H=abc';
 
 function makeClient(nsOverrides: Record<string, ReturnType<typeof mock>>) {
   const client = new EvernoteClient(FAKE_TOKEN);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (client as any)._noteStore = nsOverrides;
+  client._injectNoteStore(nsOverrides as unknown as NoteStoreProxy);
   return client;
 }
 

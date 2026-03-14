@@ -17,7 +17,7 @@ import TypesTypes from '../edam/Types_types.js';
 const PRIVATE_TAG_NAME = 'private';
 
 /** Typed façade for the Thrift NoteStore proxy methods we use. */
-interface NoteStoreProxy {
+export interface NoteStoreProxy {
   listNotebooks(): Promise<ThriftNotebook[]>;
   listTags(): Promise<ThriftTag[]>;
   findNotesMetadata(
@@ -96,6 +96,16 @@ export class EvernoteClient {
     }
     this._privateTagGuid = null;
     return null;
+  }
+
+  // --- Test injection helpers (not for production use) ---
+
+  _injectNoteStore(ns: NoteStoreProxy): void {
+    this._noteStore = ns as unknown as Store;
+  }
+
+  _injectPrivateTagGuid(guid: string | null): void {
+    this._privateTagGuid = guid;
   }
 
   // --- Read operations ---
