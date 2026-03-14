@@ -42,14 +42,37 @@ evercli notebooks                    # list notebooks
 evercli tags                         # list tags
 evercli note <guid>                  # note metadata
 evercli content <guid>               # note content (Markdown)
+evercli content <guid> --save-resources ./res/  # save images locally, rewrite refs
 evercli create "Title" -c "body"     # create a note
+evercli create "Title" -c "$(cat note.md)" --source-note <guid>  # re-attach images from original
+evercli copy <guid> "New Title"      # copy note including all attachments
+evercli copy <guid> "New Title" -n "Notebook"  # copy to a specific notebook
 evercli tag <guid> tag1 tag2         # add tags
 evercli untag <guid> tag1            # remove tags
 evercli move <guid> "Notebook"       # move to notebook
 evercli drain                        # process queued writes
 ```
 
-Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `evercli drain` later to replay them.
+Write commands (`create`, `tag`, `untag`, `move`, `copy`) automatically enqueue when rate-limited and exit 0. Run `evercli drain` later to replay them.
+
+### Image round-trip
+
+Evernote notes can contain embedded images. The CLI supports a lossless round-trip workflow for editing notes that contain images:
+
+```bash
+# Option A — copy the note server-side (zero data loss, fastest)
+evercli copy <source-guid> "Edited Copy"
+
+# Option B — export to local files, edit, re-create
+evercli content <guid> --save-resources ./res/ > note.md
+# edit note.md — images are now local paths like ./res/photo.png
+evercli create "Edited Title" -c "$(cat note.md)"
+
+# Option C — keep evernote-resource: refs, re-attach on create
+evercli content <guid> > note.md
+# edit note.md — images stay as evernote-resource:<hash> refs
+evercli create "Edited Title" -c "$(cat note.md)" --source-note <guid>
+```
 
 ## Private Notes
 
