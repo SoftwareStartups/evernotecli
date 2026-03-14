@@ -1,8 +1,8 @@
-## evercli
+# Evernote MCP Server & CLI (`evercli`)
 
 A Bun-native TypeScript Evernote client exposing both a CLI (`evercli`) and a Model Context Protocol (MCP) server. Provides full read access and limited write access (create notes, tag notes, move notes). Does not edit or delete existing note content.
 
-### Quick start
+## Quick Start
 
 Download the latest binary for your platform from [GitHub Releases](https://github.com/SoftwareStartups/evernote-client/releases/latest):
 
@@ -23,7 +23,7 @@ chmod +x evercli
 ./evercli login
 ```
 
-### Authentication
+## Authentication
 
 Run `evercli login` to authenticate. If no OAuth consumer credentials are configured, you'll be prompted to paste a developer token — get one at [dev.evernote.com/get-token](https://dev.evernote.com/get-token/).
 
@@ -33,7 +33,7 @@ Alternatively, set the `EVERNOTE_TOKEN` environment variable directly:
 export EVERNOTE_TOKEN="your-developer-token"
 ```
 
-### CLI usage
+## CLI Usage
 
 ```bash
 evercli --help
@@ -51,7 +51,7 @@ evercli drain                        # process queued writes
 
 Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `evercli drain` later to replay them.
 
-### Private notes
+## Private Notes
 
 Notes tagged `private` are protected at the service layer:
 
@@ -61,9 +61,9 @@ Notes tagged `private` are protected at the service layer:
 - **Tag protected** — the `private` tag cannot be removed via `untag`; it is also hidden from `tags` listing
 - **Creating private notes is allowed** — `create -t private` works as expected
 
-### MCP server
+## MCP Server
 
-#### Using the binary
+### Using the binary
 
 ```bash
 evercli serve
@@ -76,13 +76,16 @@ Add to Claude Code (`~/.claude/mcp.json`):
   "mcpServers": {
     "evernote": {
       "command": "/path/to/evercli",
-      "args": ["serve"]
+      "args": ["serve"],
+      "env": {
+        "EVERNOTE_TOKEN": "your-developer-token"
+      }
     }
   }
 }
 ```
 
-#### From source
+### From source
 
 ```bash
 claude mcp add evernote -- bun run /path/to/evernote-client/src/index.ts serve
@@ -95,33 +98,169 @@ Or add manually to `.claude/mcp.json`:
   "mcpServers": {
     "evernote": {
       "command": "bun",
-      "args": ["run", "/path/to/evernote-client/src/index.ts", "serve"]
+      "args": ["run", "/path/to/evernote-client/src/index.ts", "serve"],
+      "env": {
+        "EVERNOTE_TOKEN": "your-developer-token"
+      }
     }
   }
 }
 ```
 
-Make sure `EVERNOTE_TOKEN` is set in your environment or in a `.env` file in the project root before starting.
+## MCP Tools
 
-### Development
+### Read Tools
+
+#### `search_notes`
+
+Search notes using Evernote search grammar.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | No | Search query (Evernote search grammar) |
+| `notebook_name` | string | No | Filter by notebook name |
+| `tags` | string[] | No | Filter by tag names |
+| `max_results` | integer | No | Maximum results (default: 20, max: 100) |
+| `offset` | integer | No | Offset for pagination |
+
+#### `get_note`
+
+Get note metadata (title, tags, notebook, dates).
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `guid` | string | Yes | Note GUID |
+
+#### `get_note_content`
+
+Get full note content as Markdown.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `guid` | string | Yes | Note GUID |
+
+#### `list_notebooks`
+
+List all notebooks with guid, name, and stack. No parameters.
+
+#### `list_tags`
+
+List all tags with guid and name. No parameters.
+
+### Write Tools
+
+Write operations enqueue automatically on rate limit. Run `evercli drain` to replay queued operations.
+
+#### `create_note`
+
+Create a new note with Markdown content.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `title` | string | Yes | Note title |
+| `content` | string | No | Note content in Markdown format |
+| `notebook_name` | string | No | Target notebook name (uses default if empty) |
+| `tags` | string[] | No | List of tag names to apply |
+
+#### `tag_note`
+
+Add tags to an existing note.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `guid` | string | Yes | Note GUID |
+| `tags` | string[] | Yes | Tag names to add |
+
+#### `untag_note`
+
+Remove tags from an existing note.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `guid` | string | Yes | Note GUID |
+| `tags` | string[] | Yes | Tag names to remove |
+
+#### `move_note`
+
+Move a note to a different notebook.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `guid` | string | Yes | Note GUID |
+| `notebook_name` | string | Yes | Target notebook name |
+
+## Binary Releases
+
+Pre-built binaries for all supported platforms are available on the [GitHub Releases](https://github.com/SoftwareStartups/evernote-client/releases) page. No Bun or Node.js installation required.
+
+| Platform | Architecture | Binary |
+|----------|-------------|--------|
+| Linux    | x64         | `evercli-linux-x64` |
+| Linux    | arm64       | `evercli-linux-arm64` |
+| macOS    | x64         | `evercli-darwin-x64` |
+| macOS    | arm64       | `evercli-darwin-arm64` |
+
+### Releasing
+
+Push a semver tag to trigger the release workflow. CI must pass before tagging:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The release workflow compiles all four platform binaries and publishes them to GitHub Releases automatically.
+
+## Development
+
+### Setup
 
 ```bash
 git clone https://github.com/SoftwareStartups/evernote-client.git
 cd evernote-client
 bun install
-bun run src/index.ts login           # authenticate
-bun run src/index.ts --help          # show CLI help
 ```
+
+Create a `.env` file in the project root:
+
+```dotenv
+EVERNOTE_TOKEN=your-developer-token
+# LOG_LEVEL=info
+```
+
+### Development Workflow
 
 ```bash
-task check                   # lint + typecheck
-task format                  # format
-task test                    # unit + integration tests (no token needed)
-task test:unit               # unit tests only
-task test:integration        # integration tests only
-task test:e2e                # e2e tests (requires EVERNOTE_TOKEN)
-task thrift                  # regenerate Thrift clients (requires brew install thrift)
-task compile                 # build standalone binary
+task build          # compile TypeScript
+task format         # format code
+task check          # lint + typecheck
+task test           # unit + integration tests (no token needed)
+task clean          # remove build artifacts
+task all            # clean → install → build → check → test
 ```
 
-For architecture and design details, see `CLAUDE.md`.
+### Run Locally
+
+```bash
+bun run src/index.ts --help          # show CLI help
+bun run src/index.ts login           # authenticate
+bun run src/index.ts serve           # start MCP server
+```
+
+## Testing
+
+```bash
+task test               # unit + integration tests (no token needed)
+task test:unit          # unit tests only
+task test:integration   # integration tests only
+task test:e2e           # e2e tests (requires EVERNOTE_TOKEN)
+task test:all           # all tests including e2e
+```
+
+- **Unit tests**: Pure logic, no service layer
+- **Integration tests**: Service layer with mocked Evernote client
+- **End-to-end tests**: Live API calls — requires `EVERNOTE_TOKEN`
+
+## Logging
+
+Logs are written to standard error. Control verbosity with the `LOG_LEVEL` environment variable (`error`, `warn`, `info`, `debug`, `trace`). Defaults to `info`.

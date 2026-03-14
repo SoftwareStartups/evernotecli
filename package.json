@@ -7,7 +7,16 @@
   },
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/edam build/edam",
+    "start": "bun run build/index.js",
+    "test": "bun run test:unit && bun run test:integration",
+    "test:unit": "bun test tests/unit/",
+    "test:integration": "bun test tests/integration/",
+    "test:e2e": "bun test tests/e2e/",
+    "test:all": "bun run test:unit && bun run test:integration && bun run test:e2e",
+    "format": "bunx biome format --write .",
+    "format:check": "bunx biome format .",
+    "lint": "bunx biome lint .",
     "typecheck": "tsc --noEmit -p tsconfig.check.json"
   },
   "dependencies": {

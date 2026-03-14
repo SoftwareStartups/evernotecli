@@ -7,7 +7,8 @@ tasks:
 
   build:
     desc: Build TypeScript
-    cmd: bunx tsc
+    cmds:
+      - bun run build
 
   clean:
     desc: Remove build artifacts
@@ -15,19 +16,23 @@ tasks:
 
   format:
     desc: Format with Biome
-    cmd: bunx biome format --write .
+    cmds:
+      - bun run format
 
   format:check:
     desc: Check formatting
-    cmd: bunx biome format .
+    cmds:
+      - bun run format:check
 
   lint:
     desc: Lint with Biome
-    cmd: bunx biome lint .
+    cmds:
+      - bun run lint
 
   typecheck:
     desc: Type-check with TypeScript
-    cmd: bunx tsc --noEmit -p tsconfig.check.json
+    cmds:
+      - bun run typecheck
 
   check:
     desc: Run lint and typecheck
@@ -35,23 +40,28 @@ tasks:
 
   test:
     desc: Run unit and integration tests
-    deps: [test:unit, test:integration]
+    cmds:
+      - bun run test
 
   test:unit:
     desc: Run unit tests only
-    cmd: bun test tests/unit/
+    cmds:
+      - bun run test:unit
 
   test:integration:
     desc: Run integration tests only
-    cmd: bun test tests/integration/
+    cmds:
+      - bun run test:integration
 
   test:e2e:
     desc: Run e2e tests (requires EVERNOTE_TOKEN)
-    cmd: bun test tests/e2e/
+    cmds:
+      - bun run test:e2e
 
   test:all:
     desc: Run all tests
-    deps: [test, test:e2e]
+    cmds:
+      - bun run test:all
 
   thrift:
     desc: Regenerate Thrift clients (requires Apache thrift compiler)
@@ -65,11 +75,14 @@ tasks:
 
   compile:
     desc: Compile to standalone binary
-    cmd: bun build src/index.ts --compile --outfile dist/evercli
+    cmds:
+      - mkdir -p dist
+      - bun build src/index.ts --compile --outfile dist/evercli
 
   compile:all:
     desc: Compile for all platforms
     cmds:
+      - mkdir -p dist
       - bun build src/index.ts --compile --target=bun-linux-x64 --outfile dist/evercli-linux-x64
       - bun build src/index.ts --compile --target=bun-linux-arm64 --outfile dist/evercli-linux-arm64
       - bun build src/index.ts --compile --target=bun-darwin-x64 --outfile dist/evercli-darwin-x64
