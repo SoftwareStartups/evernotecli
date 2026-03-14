@@ -2,32 +2,51 @@
 
 A Bun-native TypeScript Evernote client exposing both a CLI (`evercli`) and a Model Context Protocol (MCP) server. Provides full read access and limited write access (create notes, tag notes, move notes). Does not edit or delete existing note content.
 
-### Prerequisites
+### Quick start
 
-- **Bun**: 1.3+
-- An **Evernote API token** (OAuth flow via `evercli login`)
-
-### Setup
+Download the latest binary for your platform from [GitHub Releases](https://github.com/SoftwareStartups/evernote-client/releases/latest):
 
 ```bash
-bun install
-bun run src/index.ts login      # authenticate via OAuth
+# macOS (Apple Silicon)
+curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-darwin-arm64
+
+# macOS (Intel)
+curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-darwin-x64
+
+# Linux (arm64)
+curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-linux-arm64
+
+# Linux (x64)
+curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-linux-x64
+
+chmod +x evercli
+./evercli login
+```
+
+### Authentication
+
+Run `evercli login` to authenticate. If no OAuth consumer credentials are configured, you'll be prompted to paste a developer token — get one at [dev.evernote.com/get-token](https://dev.evernote.com/get-token/).
+
+Alternatively, set the `EVERNOTE_TOKEN` environment variable directly:
+
+```bash
+export EVERNOTE_TOKEN="your-developer-token"
 ```
 
 ### CLI usage
 
 ```bash
-bun run src/index.ts --help
-bun run src/index.ts search "query"               # search notes
-bun run src/index.ts notebooks                    # list notebooks
-bun run src/index.ts tags                         # list tags
-bun run src/index.ts note <guid>                  # note metadata
-bun run src/index.ts content <guid>               # note content (Markdown)
-bun run src/index.ts create "Title" -c "body"     # create a note
-bun run src/index.ts tag <guid> tag1 tag2         # add tags
-bun run src/index.ts untag <guid> tag1            # remove tags
-bun run src/index.ts move <guid> "Notebook"       # move to notebook
-bun run src/index.ts drain                        # process queued writes
+evercli --help
+evercli search "query"               # search notes
+evercli notebooks                    # list notebooks
+evercli tags                         # list tags
+evercli note <guid>                  # note metadata
+evercli content <guid>               # note content (Markdown)
+evercli create "Title" -c "body"     # create a note
+evercli tag <guid> tag1 tag2         # add tags
+evercli untag <guid> tag1            # remove tags
+evercli move <guid> "Notebook"       # move to notebook
+evercli drain                        # process queued writes
 ```
 
 Write commands (`create`, `tag`, `untag`, `move`) automatically enqueue when rate-limited and exit 0. Run `evercli drain` later to replay them.
@@ -44,19 +63,32 @@ Notes tagged `private` are protected at the service layer:
 
 ### MCP server
 
+#### Using the binary
+
 ```bash
-bun run src/index.ts serve
+evercli serve
 ```
 
-#### Installing in Claude Code
+Add to Claude Code (`~/.claude/mcp.json`):
 
-Since this is a private repo (not a published MCP package), add it directly by path after cloning:
+```json
+{
+  "mcpServers": {
+    "evernote": {
+      "command": "/path/to/evercli",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+#### From source
 
 ```bash
 claude mcp add evernote -- bun run /path/to/evernote-client/src/index.ts serve
 ```
 
-Or add it manually to `.claude/mcp.json` (project-level) or `~/.claude/mcp.json` (global):
+Or add manually to `.claude/mcp.json`:
 
 ```json
 {
@@ -69,9 +101,17 @@ Or add it manually to `.claude/mcp.json` (project-level) or `~/.claude/mcp.json`
 }
 ```
 
-Replace `/path/to/evernote-client` with the absolute path to your clone. Make sure `EVERNOTE_TOKEN` is set in your environment or in a `.env` file in the project root before starting.
+Make sure `EVERNOTE_TOKEN` is set in your environment or in a `.env` file in the project root before starting.
 
 ### Development
+
+```bash
+git clone https://github.com/SoftwareStartups/evernote-client.git
+cd evernote-client
+bun install
+bun run src/index.ts login           # authenticate
+bun run src/index.ts --help          # show CLI help
+```
 
 ```bash
 task check                   # lint + typecheck

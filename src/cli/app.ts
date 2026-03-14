@@ -16,6 +16,7 @@ import { drainCommand } from './commands/drain.js';
 export async function run(argv: string[]): Promise<void> {
   const cli = Cli({
     name: 'evercli',
+    scriptName: 'evercli',
     description: 'Evernote CLI client',
     version: '0.1.0',
   })
@@ -39,5 +40,5 @@ export async function run(argv: string[]): Promise<void> {
       throw err;
     });
 
-  await cli.parse(argv);
+  await cli.parse({ argv: argv.slice(2) });
 }

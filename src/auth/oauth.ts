@@ -85,6 +85,18 @@ async function runOAuthFlow(
   return accessToken;
 }
 
+async function promptForDeveloperToken(): Promise<string> {
+  console.log(
+    'No OAuth credentials configured.\n' +
+      'You can get a developer token at: https://dev.evernote.com/get-token/\n'
+  );
+  const token = prompt('Paste your developer token:');
+  if (!token?.trim()) {
+    throw new OAuthError('No token provided.');
+  }
+  return token.trim();
+}
+
 export async function getToken(config: Config): Promise<string> {
   // 1. Direct token from env
   if (config.token) {
@@ -97,15 +109,23 @@ export async function getToken(config: Config): Promise<string> {
     return cached;
   }
 
-  // 3. Run OAuth flow
-  if (!config.consumerKey || !config.consumerSecret) {
-    throw new OAuthError(
-      'No EVERNOTE_TOKEN set and no OAuth credentials configured. ' +
-        'Set EVERNOTE_TOKEN or both EVERNOTE_CONSUMER_KEY and EVERNOTE_CONSUMER_SECRET.'
-    );
+  // 3a. Run OAuth flow if credentials are configured
+  if (config.consumerKey && config.consumerSecret) {
+    const token = await runOAuthFlow(config.consumerKey, config.consumerSecret);
+    await saveToken(config.tokenPath, token);
+    return token;
   }
 
-  const token = await runOAuthFlow(config.consumerKey, config.consumerSecret);
-  await saveToken(config.tokenPath, token);
-  return token;
+  // 3b. Prompt for developer token if running interactively
+  if (process.stdin.isTTY) {
+    const token = await promptForDeveloperToken();
+    await saveToken(config.tokenPath, token);
+    return token;
+  }
+
+  // 3c. Non-interactive context (e.g. MCP server) — no way to authenticate
+  throw new OAuthError(
+    'No EVERNOTE_TOKEN set and no OAuth credentials configured. ' +
+      'Set EVERNOTE_TOKEN or both EVERNOTE_CONSUMER_KEY and EVERNOTE_CONSUMER_SECRET.'
+  );
 }

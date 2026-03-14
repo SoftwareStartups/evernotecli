@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-config();
+config({ quiet: true });
 
 function dataDir(): string {
   try {
