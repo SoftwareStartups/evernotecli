@@ -7,7 +7,8 @@ import { join } from 'node:path';
 function resolveToken(): string {
   if (process.env.EVERNOTE_TOKEN) return process.env.EVERNOTE_TOKEN;
   const tokenPath =
-    process.env.EVERNOTE_TOKEN_PATH ?? join(homedir(), '.evercli', 'token.json');
+    process.env.EVERNOTE_TOKEN_PATH ??
+    join(homedir(), '.evercli', 'token.json');
   if (!existsSync(tokenPath)) return '';
   try {
     return JSON.parse(readFileSync(tokenPath, 'utf-8')).token ?? '';
