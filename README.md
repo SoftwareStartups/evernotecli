@@ -189,28 +189,6 @@ Move a note to a different notebook.
 | `guid` | string | Yes | Note GUID |
 | `notebook_name` | string | Yes | Target notebook name |
 
-## Binary Releases
-
-Pre-built binaries for all supported platforms are available on the [GitHub Releases](https://github.com/SoftwareStartups/evernote-client/releases) page. No Bun or Node.js installation required.
-
-| Platform | Architecture | Binary |
-|----------|-------------|--------|
-| Linux    | x64         | `evercli-linux-x64` |
-| Linux    | arm64       | `evercli-linux-arm64` |
-| macOS    | x64         | `evercli-darwin-x64` |
-| macOS    | arm64       | `evercli-darwin-arm64` |
-
-### Releasing
-
-Push a semver tag to trigger the release workflow. CI must pass before tagging:
-
-```bash
-git tag v1.2.3
-git push origin v1.2.3
-```
-
-The release workflow compiles all four platform binaries and publishes them to GitHub Releases automatically.
-
 ## Development
 
 ### Setup
@@ -261,6 +239,13 @@ task test:all           # all tests including e2e
 - **Integration tests**: Service layer with mocked Evernote client
 - **End-to-end tests**: Live API calls — requires `EVERNOTE_TOKEN`
 
-## Logging
+### Releasing
 
-Logs are written to standard error. Control verbosity with the `LOG_LEVEL` environment variable (`error`, `warn`, `info`, `debug`, `trace`). Defaults to `info`.
+Push a semver tag to trigger the release workflow. CI must pass before tagging:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The release workflow compiles all four platform binaries and publishes them to GitHub Releases automatically.
