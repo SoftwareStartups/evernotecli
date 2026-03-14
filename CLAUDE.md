@@ -4,30 +4,55 @@
 
 Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full read access and limited write access (create notes, tag notes, move notes). No edit/delete of existing note content.
 
+## Environment Variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `EVERNOTE_TOKEN` | — | API token; required for all API calls |
+| `EVERNOTE_CONSUMER_KEY` | — | OAuth consumer key (for `evercli login`) |
+| `EVERNOTE_CONSUMER_SECRET` | — | OAuth consumer secret (for `evercli login`) |
+| `EVERNOTE_TOKEN_PATH` | `~/.evercli/token.json` | Where OAuth token is stored |
+| `EVERNOTE_QUEUE_PATH` | `~/.evercli/queue` | Write queue backing store |
+| `LOG_LEVEL` | `info` | Pino log level (output goes to stderr) |
+
+A `.env` file in the project root is loaded automatically via dotenv.
+
 ## Commands
 
 ```bash
+# Setup
 bun install                          # Install dependencies
 task build                           # Compile TypeScript to build/
 task clean                           # Remove build/ and dist/
+
+# Quality
 task lint                            # Lint with Biome
 task format                          # Format with Biome (write)
 task format:check                    # Check formatting (no write)
 task typecheck                       # Type check with TypeScript
 task check                           # Lint + typecheck
-task test                            # Run unit + integration tests (no token needed)
+
+# Tests
+task test                            # Unit + integration tests (no token needed)
 task test:unit                       # Unit tests only
 task test:integration                # Integration tests only
 task test:e2e                        # E2E tests (requires EVERNOTE_TOKEN)
 task test:all                        # All tests including e2e
-task ci                              # Full CI pipeline locally (clean→format:check→check→build→test)
-task thrift                          # Regenerate Thrift clients (requires thrift compiler)
-task compile                         # Build standalone binary (current platform)
-task compile:all                     # Build binaries for all platforms
+
+# Pipelines
+task ci                              # Full CI locally: clean→install→format:check→check→build→test
+task all                             # Full build: clean→install→build→check→test
+
+# Release
+task compile                         # Build standalone binary for current platform
+task compile:all                     # Build binaries for all platforms (linux/darwin × x64/arm64)
+task thrift                          # Regenerate Thrift clients (requires Apache thrift compiler)
+
+# Run (dev, without compiling)
 bun run src/index.ts --help          # Show CLI help
 bun run src/index.ts serve           # Start MCP server
-bun run src/index.ts notebooks       # List notebooks
 bun run src/index.ts search "query"  # Search notes
+bun run src/index.ts notebooks       # List notebooks
 bun run src/index.ts drain           # Process queued write operations
 ```
 
