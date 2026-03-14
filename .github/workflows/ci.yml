@@ -6,39 +6,69 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   lint-and-typecheck:
+    name: Lint and typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: ./.github/actions/setup-bun-env
-      - run: bunx biome format .
-      - run: bunx biome lint .
-      - run: bunx tsc --noEmit -p tsconfig.check.json
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Bun environment
+        uses: ./.github/actions/setup-bun-env
+      - name: Check formatting
+        run: bunx biome format .
+      - name: Lint
+        run: bunx biome lint .
+      - name: Typecheck
+        run: bunx tsc --noEmit -p tsconfig.check.json
 
   unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: ./.github/actions/setup-bun-env
-      - run: bun test tests/unit
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Bun environment
+        uses: ./.github/actions/setup-bun-env
+      - name: Run unit tests
+        run: bun test tests/unit
 
   build:
+    name: Build
     needs: [lint-and-typecheck, unit-tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: ./.github/actions/setup-bun-env
-      - run: bunx tsc
-      - uses: actions/upload-artifact@v7.0.0
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Bun environment
+        uses: ./.github/actions/setup-bun-env
+      - name: Build TypeScript
+        run: bunx tsc
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: build
           path: build/
+          retention-days: 1
+          compression-level: 6
 
   integration-tests:
+    name: Integration tests
     needs: [lint-and-typecheck, unit-tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: ./.github/actions/setup-bun-env
-      - run: bun test tests/integration
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Bun environment
+        uses: ./.github/actions/setup-bun-env
+      - name: Run integration tests
+        run: bun test tests/integration
+        env:
+          LOG_LEVEL: error

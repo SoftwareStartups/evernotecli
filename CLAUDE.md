@@ -82,5 +82,5 @@ Always use fully qualified versions — never floating major/minor tags:
 
 - **npm packages** (`package.json`): use `^X.Y.Z` (bun resolves exact into lockfile)
 - **GitHub Actions**: always pin to exact `vX.Y.Z` tags, never `@v3` or `@main`
-  - Current pins: `actions/checkout@v6.0.2`, `oven-sh/setup-bun@v2.1.3`, `actions/upload-artifact@v7.0.0`, `actions/download-artifact@v7.0.0`, `softprops/action-gh-release@v2.2.1`
+  - Current pins: `actions/checkout@v6.0.2`, `oven-sh/setup-bun@v2.1.3`, `actions/cache@v5.0.3`, `actions/upload-artifact@v7.0.0`, `actions/download-artifact@v8.0.1`, `softprops/action-gh-release@v2.5.0`
   - When adding a new action or upgrading, web-search the latest release tag before pinning

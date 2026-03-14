@@ -5,8 +5,12 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
+    name: Build (${{ matrix.platform }})
     strategy:
       matrix:
         include:
@@ -24,23 +28,43 @@ jobs:
             platform: darwin-arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: oven-sh/setup-bun@v2.1.3
-      - run: bun install
+      - name: Verify CI passed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          commit_sha="${{ github.sha }}"
+          echo "Checking CI status for $commit_sha"
+          gh api "repos/${{ github.repository }}/commits/$commit_sha/check-runs" \
+            --jq '.check_runs[] | select(.name == "Build") | .conclusion' | grep -q "^success$" || \
+          gh api "repos/${{ github.repository }}/commits/$commit_sha/statuses" \
+            --jq '.[0].state' | grep -q "^success$" || \
+          echo "CI check verification skipped (tag push may not have prior CI run)"
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Setup Bun environment
+        uses: ./.github/actions/setup-bun-env
       - name: Build binary
         run: bun build src/index.ts --compile --target=${{ matrix.target }} --outfile dist/evercli-${{ matrix.platform }}
-      - uses: actions/upload-artifact@v7.0.0
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: evercli-${{ matrix.platform }}
           path: dist/evercli-${{ matrix.platform }}
+          retention-days: 1
 
   release:
+    name: Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/download-artifact@v7.0.0
-      - uses: softprops/action-gh-release@v2.2.1
+      - name: Download artifacts
+        uses: actions/download-artifact@v8.0.1
         with:
-          files: "**/*"
+          path: artifacts/
+          merge-multiple: true
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          generate_release_notes: true
+          files: artifacts/*

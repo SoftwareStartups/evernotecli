@@ -75,6 +75,25 @@ tasks:
       - bun build src/index.ts --compile --target=bun-darwin-x64 --outfile dist/evercli-darwin-x64
       - bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/evercli-darwin-arm64
 
+  ci:
+    desc: Run full CI pipeline locally
+    cmds:
+      - task: clean
+      - task: install
+      - task: format:check
+      - task: check
+      - task: build
+      - task: test
+
+  all:
+    desc: Run full build pipeline
+    cmds:
+      - task: clean
+      - task: install
+      - task: build
+      - task: check
+      - task: test
+
   serve:
     desc: Start MCP server
     cmd: bun run build/index.js serve
