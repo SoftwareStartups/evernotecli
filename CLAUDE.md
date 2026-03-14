@@ -8,21 +8,27 @@ Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full 
 
 ```bash
 bun install                          # Install dependencies
+task build                           # Compile TypeScript to build/
+task clean                           # Remove build/ and dist/
 task lint                            # Lint with Biome
-task format                          # Format with Biome
+task format                          # Format with Biome (write)
+task format:check                    # Check formatting (no write)
 task typecheck                       # Type check with TypeScript
 task check                           # Lint + typecheck
 task test                            # Run unit + integration tests (no token needed)
 task test:unit                       # Unit tests only
 task test:integration                # Integration tests only
 task test:e2e                        # E2E tests (requires EVERNOTE_TOKEN)
+task test:all                        # All tests including e2e
+task ci                              # Full CI pipeline locally (clean→format:check→check→build→test)
+task thrift                          # Regenerate Thrift clients (requires thrift compiler)
+task compile                         # Build standalone binary (current platform)
+task compile:all                     # Build binaries for all platforms
 bun run src/index.ts --help          # Show CLI help
 bun run src/index.ts serve           # Start MCP server
 bun run src/index.ts notebooks       # List notebooks
 bun run src/index.ts search "query"  # Search notes
 bun run src/index.ts drain           # Process queued write operations
-task thrift                          # Regenerate Thrift clients (requires thrift compiler)
-task compile                         # Build standalone binary
 ```
 
 ## Architecture
