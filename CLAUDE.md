@@ -7,7 +7,7 @@ Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full 
 ## Environment Variables
 
 | Variable | Default | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `EVERNOTE_TOKEN` | — | API token; required for all API calls |
 | `EVERNOTE_CONSUMER_KEY` | — | OAuth consumer key (for `evercli login`) |
 | `EVERNOTE_CONSUMER_SECRET` | — | OAuth consumer secret (for `evercli login`) |
