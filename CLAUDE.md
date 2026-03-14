@@ -28,8 +28,6 @@ task clean                           # Remove build/ and dist/
 # Quality
 task lint                            # Lint with Biome
 task format                          # Format with Biome (write)
-task format:check                    # Check formatting (no write)
-task typecheck                       # Type check with TypeScript
 task check                           # Lint + typecheck
 
 # Tests
@@ -37,15 +35,12 @@ task test                            # Unit + integration tests (no token needed
 task test:unit                       # Unit tests only
 task test:integration                # Integration tests only
 task test:e2e                        # E2E tests (requires EVERNOTE_TOKEN)
-task test:all                        # All tests including e2e
 
 # Pipelines
 task ci                              # Full CI locally: clean→install→format:check→check→build→test
-task all                             # Full build: clean→install→build→check→test
 
 # Release
 task compile                         # Build standalone binary for current platform
-task compile:all                     # Build binaries for all platforms (linux/darwin × x64/arm64)
 task thrift                          # Regenerate Thrift clients (requires Apache thrift compiler)
 
 # Run (dev, without compiling)
