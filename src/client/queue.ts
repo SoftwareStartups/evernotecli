@@ -25,7 +25,9 @@ export class OperationQueue {
 
   constructor(queuePath: string) {
     mkdirSync(queuePath, { recursive: true });
-    chmod(queuePath, 0o700).catch(() => {});
+    chmod(queuePath, 0o700).catch((err) =>
+      logger.warn(`Could not set queue dir permissions: ${err}`)
+    );
     this.filePath = join(queuePath, 'queue.json');
   }
 
@@ -63,7 +65,8 @@ export class OperationQueue {
       }
       try {
         results.push(await fn(item.params));
-      } catch {
+      } catch (err) {
+        logger.warn({ err }, `Queued operation '${item.operation}' error`);
         const retries = (item.retries ?? 0) + 1;
         if (retries >= MAX_RETRIES) {
           logger.error(

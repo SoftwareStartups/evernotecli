@@ -1,6 +1,6 @@
 import { OAuth } from 'oauth';
 import { OAuthError } from '../errors.js';
-import { type Config } from '../config.js';
+import type { Config } from '../config.js';
 import { loadToken, saveToken } from './token-store.js';
 import {
   CALLBACK_HOST,
@@ -11,10 +11,7 @@ import {
 
 const CALLBACK_URL = `http://${CALLBACK_HOST}:${OAUTH_PORT}/oauth_callback`;
 
-function createOAuthClient(
-  consumerKey: string,
-  consumerSecret: string
-): OAuth {
+function createOAuthClient(consumerKey: string, consumerSecret: string): OAuth {
   return new OAuth(
     `https://${SERVICE_HOST}/oauth`,
     `https://${SERVICE_HOST}/oauth`,
@@ -22,7 +19,7 @@ function createOAuthClient(
     consumerSecret,
     '1.0',
     CALLBACK_URL,
-    'HMAC-SHA256'
+    'HMAC-SHA1'
   );
 }
 
@@ -49,8 +46,19 @@ async function runOAuthFlow(
   const authUrl = `https://${SERVICE_HOST}/OAuth.action?oauth_token=${requestToken}`;
   console.log(`Opening browser for Evernote authorization:\n${authUrl}`);
 
-  // Open browser (macOS)
-  Bun.spawn(['open', authUrl]);
+  const cmd =
+    process.platform === 'darwin'
+      ? 'open'
+      : process.platform === 'win32'
+        ? 'cmd'
+        : 'xdg-open';
+  const args =
+    process.platform === 'win32' ? ['/c', 'start', authUrl] : [authUrl];
+  try {
+    Bun.spawn([cmd, ...args]);
+  } catch {
+    // Browser launch failed — URL is already printed above
+  }
 
   // Step 3: Wait for callback
   const callbackResult = await waitForCallback();

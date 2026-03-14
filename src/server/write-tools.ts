@@ -8,9 +8,18 @@ export function registerWriteTools(server: McpServer): void {
     'Create a new note with Markdown content',
     {
       title: z.string().describe('Note title'),
-      content: z.string().optional().describe('Note content in Markdown format'),
-      notebook_name: z.string().optional().describe('Target notebook name (uses default if empty)'),
-      tags: z.array(z.string()).optional().describe('List of tag names to apply'),
+      content: z
+        .string()
+        .optional()
+        .describe('Note content in Markdown format'),
+      notebook_name: z
+        .string()
+        .optional()
+        .describe('Target notebook name (uses default if empty)'),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe('List of tag names to apply'),
     },
     async (args) => {
       const result = await service.createNote(
@@ -19,7 +28,9 @@ export function registerWriteTools(server: McpServer): void {
         args.notebook_name ?? '',
         args.tags ?? null
       );
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -32,7 +43,9 @@ export function registerWriteTools(server: McpServer): void {
     },
     async (args) => {
       const result = await service.tagNote(args.guid, args.tags);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -45,7 +58,9 @@ export function registerWriteTools(server: McpServer): void {
     },
     async (args) => {
       const result = await service.untagNote(args.guid, args.tags);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -58,7 +73,9 @@ export function registerWriteTools(server: McpServer): void {
     },
     async (args) => {
       const result = await service.moveNote(args.guid, args.notebook_name);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 }

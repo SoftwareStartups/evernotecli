@@ -23,6 +23,9 @@ const RE_CODE_FENCE_OPEN = /^```/;
 const RE_CODE_FENCE_CLOSE = /^```\s*$/;
 const RE_TABLE_ROW = /^\|.+\|/;
 const RE_TABLE_SEPARATOR = /^:?-+:?$/;
+// Bold must be applied before italic so `**bold**` isn't consumed as italic.
+// Limitation: nested patterns like `*italic **bold** more italic*` will
+// produce incorrect nesting — a full markdown parser would be needed to fix.
 const RE_BOLD = /\*\*(.+?)\*\*/g;
 const RE_ITALIC = /\*(.+?)\*/g;
 const RE_LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -236,7 +239,9 @@ function renderImage(
 function resolveLocalPath(url: string): string | null {
   if (url.startsWith('file://')) url = url.substring(7);
   try {
-    return resolve(url.startsWith('~') ? url.replace('~', process.env.HOME ?? '') : url);
+    return resolve(
+      url.startsWith('~') ? url.replace('~', process.env.HOME ?? '') : url
+    );
   } catch {
     return null;
   }
@@ -316,8 +321,7 @@ function parseCodeBlock(
   lines: string[],
   i: number
 ): { result: string | null; consumed: number } {
-  if (!RE_CODE_FENCE_OPEN.test(lines[i]))
-    return { result: null, consumed: 0 };
+  if (!RE_CODE_FENCE_OPEN.test(lines[i])) return { result: null, consumed: 0 };
   const start = i;
   i++;
   const contentLines: string[] = [];

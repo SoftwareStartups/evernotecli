@@ -25,8 +25,7 @@ export const settings: Config = {
   token: process.env.EVERNOTE_TOKEN ?? '',
   consumerKey: process.env.EVERNOTE_CONSUMER_KEY ?? '',
   consumerSecret: process.env.EVERNOTE_CONSUMER_SECRET ?? '',
-  tokenPath:
-    process.env.EVERNOTE_TOKEN_PATH ?? join(dataDir(), 'token.json'),
+  tokenPath: process.env.EVERNOTE_TOKEN_PATH ?? join(dataDir(), 'token.json'),
   queuePath: process.env.EVERNOTE_QUEUE_PATH ?? join(dataDir(), 'queue'),
   logLevel: process.env.LOG_LEVEL ?? 'info',
 };

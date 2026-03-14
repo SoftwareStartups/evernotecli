@@ -40,9 +40,7 @@ export function enmlToMarkdown(
     result = result.replace(/\n{3,}/g, '\n\n');
     return result.trim();
   } catch {
-    logger.warn(
-      'Failed to parse ENML as XML, falling back to tag stripping'
-    );
+    logger.warn('Failed to parse ENML as XML, falling back to tag stripping');
     return stripTags(enml);
   }
 }
@@ -93,7 +91,7 @@ function walkNode(
     case 'h4':
     case 'h5':
     case 'h6': {
-      const level = parseInt(tagName[1]);
+      const level = parseInt(tagName[1], 10);
       const inner = inlineText(children);
       lines.push(`${'#'.repeat(level)} ${inner}`);
       lines.push('');
@@ -188,12 +186,12 @@ function handleTable(children: ParsedNode[], lines: string[]): void {
 
   if (rows.length === 0) return;
 
-  lines.push('| ' + rows[0].join(' | ') + ' |');
-  lines.push('| ' + rows[0].map(() => '---').join(' | ') + ' |');
+  lines.push(`| ${rows[0].join(' | ')} |`);
+  lines.push(`| ${rows[0].map(() => '---').join(' | ')} |`);
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     while (row.length < rows[0].length) row.push('');
-    lines.push('| ' + row.join(' | ') + ' |');
+    lines.push(`| ${row.join(' | ')} |`);
   }
   lines.push('');
 }
@@ -245,7 +243,7 @@ function handlePre(children: ParsedNode[], lines: string[]): void {
   let content = '';
   for (const child of children) {
     if (getTagName(child) === 'code') {
-      content = getAllText(child['code'] ?? []);
+      content = getAllText(child.code ?? []);
       break;
     }
   }
@@ -305,7 +303,7 @@ function inlineText(nodes: ParsedNode[]): string {
 
 // --- Helpers ---
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: fast-xml-parser produces dynamic node shapes
 type ParsedNode = any;
 
 function getTagName(node: ParsedNode): string | null {

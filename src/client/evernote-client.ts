@@ -7,6 +7,7 @@ import {
 import { enmlToMarkdown } from '../enml/to-markdown.js';
 import { markdownToEnml } from '../enml/to-enml.js';
 import type { ResourceInfo } from '../enml/types.js';
+import { logger } from '../logger.js';
 
 // @ts-expect-error — generated CommonJS module
 import NoteStoreTypes from '../edam/NoteStore_types.js';
@@ -14,6 +15,30 @@ import NoteStoreTypes from '../edam/NoteStore_types.js';
 import TypesTypes from '../edam/Types_types.js';
 
 const PRIVATE_TAG_NAME = 'private';
+
+/** Typed façade for the Thrift NoteStore proxy methods we use. */
+interface NoteStoreProxy {
+  listNotebooks(): Promise<ThriftNotebook[]>;
+  listTags(): Promise<ThriftTag[]>;
+  findNotesMetadata(
+    filter: unknown,
+    offset: number,
+    maxResults: number,
+    spec: unknown
+  ): Promise<ThriftNotesMetadataList>;
+  getNote(
+    guid: string,
+    withContent: boolean,
+    withResourcesData: boolean,
+    withResourcesRecognition: boolean,
+    withResourcesAlternateData: boolean
+  ): Promise<ThriftNote>;
+  getNoteContent(guid: string): Promise<string>;
+  getNoteTagNames(guid: string): Promise<string[] | null>;
+  createNote(note: unknown): Promise<ThriftNote>;
+  createTag(tag: unknown): Promise<ThriftTag>;
+  updateNote(note: unknown): Promise<ThriftNote>;
+}
 
 function s(value: string | Buffer | null | undefined): string {
   if (Buffer.isBuffer(value)) {
@@ -35,7 +60,7 @@ export class EvernoteClient {
     this.shard = getTokenShard(token);
   }
 
-  get noteStore(): Store {
+  private get ns(): NoteStoreProxy {
     if (!this._noteStore) {
       const { client } = createNoteStoreClient(this.shard, this.token);
       this._noteStore = new Store(
@@ -43,7 +68,7 @@ export class EvernoteClient {
         this.token
       );
     }
-    return this._noteStore;
+    return this._noteStore as unknown as NoteStoreProxy;
   }
 
   get userStore(): Store {
@@ -75,11 +100,11 @@ export class EvernoteClient {
   // --- Read operations ---
 
   async listNotebooks(): Promise<ThriftNotebook[]> {
-    return (await (this.noteStore as any).listNotebooks()) as ThriftNotebook[];
+    return this.ns.listNotebooks();
   }
 
   async listTags(): Promise<ThriftTag[]> {
-    return (await (this.noteStore as any).listTags()) as ThriftTag[];
+    return this.ns.listTags();
   }
 
   async searchNotes(
@@ -96,9 +121,7 @@ export class EvernoteClient {
 
     if (tagNames && tagNames.length > 0) {
       const tagQuery = tagNames.map((t) => `tag:"${t}"`).join(' ');
-      filter.words = filter.words
-        ? `${filter.words} ${tagQuery}`
-        : tagQuery;
+      filter.words = filter.words ? `${filter.words} ${tagQuery}` : tagQuery;
     }
 
     const spec = new NoteStoreTypes.NotesMetadataResultSpec();
@@ -109,50 +132,28 @@ export class EvernoteClient {
     spec.includeNotebookGuid = true;
     spec.includeTagGuids = true;
 
-    return (await (this.noteStore as any).findNotesMetadata(
-      filter,
-      offset,
-      maxResults,
-      spec
-    )) as ThriftNotesMetadataList;
+    return this.ns.findNotesMetadata(filter, offset, maxResults, spec);
   }
 
   async getNote(guid: string): Promise<ThriftNote> {
-    const note = (await (this.noteStore as any).getNote(
-      guid,
-      false,
-      false,
-      false,
-      false
-    )) as ThriftNote;
+    const note = await this.ns.getNote(guid, false, false, false, false);
 
-    const rawNames: string[] =
-      ((await (this.noteStore as any).getNoteTagNames(guid)) as
-        | string[]
-        | null) ?? [];
+    const rawNames: string[] = (await this.ns.getNoteTagNames(guid)) ?? [];
     const names = rawNames.map((n) => s(n));
     const tagMap = names.length > 0 ? await this.buildTagMap() : new Map();
 
     note.tagNames = names;
     note.tagGuids = names
-      .filter((n) => tagMap.has(n))
-      .map((n) => tagMap.get(n)!);
+      .map((n) => tagMap.get(n))
+      .filter((g): g is string => g !== undefined);
 
     return note;
   }
 
   async getNoteContent(guid: string): Promise<string> {
-    const note = (await (this.noteStore as any).getNote(
-      guid,
-      false,
-      false,
-      false,
-      true
-    )) as ThriftNote;
+    const note = await this.ns.getNote(guid, false, false, false, true);
 
-    let enml: string = (await (this.noteStore as any).getNoteContent(
-      s(note.guid) || guid
-    )) as string;
+    let enml = await this.ns.getNoteContent(s(note.guid) || guid);
 
     if (Buffer.isBuffer(enml)) {
       enml = (enml as unknown as Buffer).toString('utf-8');
@@ -165,8 +166,7 @@ export class EvernoteClient {
           ? r.data.bodyHash.toString('hex')
           : String(r.data.bodyHash);
         const mime = s(r.mime);
-        const filename =
-          r.attributes?.fileName ? s(r.attributes.fileName) : '';
+        const filename = r.attributes?.fileName ? s(r.attributes.fileName) : '';
         resources.push({ hashHex, mimeType: mime, filename });
       }
     }
@@ -210,7 +210,7 @@ export class EvernoteClient {
     if (notebookGuid) note.notebookGuid = notebookGuid;
     if (tagNames && tagNames.length > 0) note.tagNames = tagNames;
 
-    return (await (this.noteStore as any).createNote(note)) as ThriftNote;
+    return this.ns.createNote(note);
   }
 
   async tagNote(guid: string, tagNames: string[]): Promise<ThriftNote> {
@@ -219,13 +219,7 @@ export class EvernoteClient {
     const newGuids = await this.resolveTagGuids(tagNames, allTags);
     const merged = [...new Set([...existingGuids, ...newGuids])];
 
-    const note = (await (this.noteStore as any).getNote(
-      guid,
-      false,
-      false,
-      false,
-      false
-    )) as ThriftNote;
+    const note = await this.ns.getNote(guid, false, false, false, false);
     const updated = await this.updateNote(guid, s(note.title), merged);
     updated.tagGuids = merged;
     return updated;
@@ -235,17 +229,13 @@ export class EvernoteClient {
     const allTags = await this.buildTagMap();
     const existingGuids = new Set(await this.getNoteTagGuids(guid, allTags));
     const removeGuids = new Set(
-      tagNames.filter((n) => allTags.has(n)).map((n) => allTags.get(n)!)
+      tagNames
+        .map((n) => allTags.get(n))
+        .filter((g): g is string => g !== undefined)
     );
     const remaining = [...existingGuids].filter((g) => !removeGuids.has(g));
 
-    const note = (await (this.noteStore as any).getNote(
-      guid,
-      false,
-      false,
-      false,
-      false
-    )) as ThriftNote;
+    const note = await this.ns.getNote(guid, false, false, false, false);
     const updated = await this.updateNote(guid, s(note.title), remaining);
     updated.tagGuids = remaining;
     return updated;
@@ -275,13 +265,20 @@ export class EvernoteClient {
     guid: string,
     tagMap?: Map<string, string>
   ): Promise<string[]> {
-    const names: string[] =
-      ((await (this.noteStore as any).getNoteTagNames(guid)) as
-        | string[]
-        | null) ?? [];
+    const names: string[] = (await this.ns.getNoteTagNames(guid)) ?? [];
     if (names.length === 0) return [];
     const map = tagMap ?? (await this.buildTagMap());
-    return names.map((n) => s(n)).filter((n) => map.has(n)).map((n) => map.get(n)!);
+    return names
+      .map((n) => s(n))
+      .reduce<string[]>((acc, n) => {
+        const guid = map.get(n);
+        if (guid !== undefined) {
+          acc.push(guid);
+        } else {
+          logger.warn(`Tag name not found in tag map: ${n}`);
+        }
+        return acc;
+      }, []);
   }
 
   private async resolveTagGuids(
@@ -291,14 +288,13 @@ export class EvernoteClient {
     const map = tagMap ?? (await this.buildTagMap());
     const guids: string[] = [];
     for (const name of tagNames) {
-      if (map.has(name)) {
-        guids.push(map.get(name)!);
+      const existing = map.get(name);
+      if (existing !== undefined) {
+        guids.push(existing);
       } else {
         const tag = new TypesTypes.Tag();
         tag.name = name;
-        const created = (await (this.noteStore as any).createTag(
-          tag
-        )) as ThriftTag;
+        const created = await this.ns.createTag(tag);
         const newGuid = s(created.guid);
         guids.push(newGuid);
         map.set(name, newGuid);
@@ -314,13 +310,7 @@ export class EvernoteClient {
     notebookGuid?: string
   ): Promise<ThriftNote> {
     if (title === undefined) {
-      const existing = (await (this.noteStore as any).getNote(
-        guid,
-        false,
-        false,
-        false,
-        false
-      )) as ThriftNote;
+      const existing = await this.ns.getNote(guid, false, false, false, false);
       title = s(existing.title);
     }
     const update = new TypesTypes.Note();
@@ -328,7 +318,7 @@ export class EvernoteClient {
     update.title = title;
     if (tagGuids !== undefined) update.tagGuids = tagGuids;
     if (notebookGuid !== undefined) update.notebookGuid = notebookGuid;
-    return (await (this.noteStore as any).updateNote(update)) as ThriftNote;
+    return this.ns.updateNote(update);
   }
 }
 

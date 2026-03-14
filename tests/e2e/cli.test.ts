@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeAll } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { $ } from 'bun';
 
 const hasToken = !!process.env.EVERNOTE_TOKEN;
@@ -30,8 +30,7 @@ describe.skipIf(!hasToken)('e2e CLI', () => {
 
   test('note returns metadata', async () => {
     // First search to get a GUID
-    const searchResult =
-      await $`bun run src/index.ts search --max 1`.text();
+    const searchResult = await $`bun run src/index.ts search --max 1`.text();
     const searchData = JSON.parse(searchResult);
     if (searchData.notes.length === 0) return;
 
@@ -44,14 +43,12 @@ describe.skipIf(!hasToken)('e2e CLI', () => {
 
   test('content returns markdown', async () => {
     // First search to get a GUID
-    const searchResult =
-      await $`bun run src/index.ts search --max 1`.text();
+    const searchResult = await $`bun run src/index.ts search --max 1`.text();
     const searchData = JSON.parse(searchResult);
     if (searchData.notes.length === 0) return;
 
     const guid = searchData.notes[0].guid;
-    const result =
-      await $`bun run src/index.ts content ${guid}`.text();
+    const result = await $`bun run src/index.ts content ${guid}`.text();
     expect(typeof result).toBe('string');
   });
 });

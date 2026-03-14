@@ -34,16 +34,14 @@ describe('enmlToMarkdown', () => {
   });
 
   test('converts unordered list', () => {
-    const enml =
-      '<en-note><ul><li>one</li><li>two</li></ul></en-note>';
+    const enml = '<en-note><ul><li>one</li><li>two</li></ul></en-note>';
     const md = enmlToMarkdown(enml);
     expect(md).toContain('- one');
     expect(md).toContain('- two');
   });
 
   test('converts ordered list', () => {
-    const enml =
-      '<en-note><ol><li>first</li><li>second</li></ol></en-note>';
+    const enml = '<en-note><ol><li>first</li><li>second</li></ol></en-note>';
     const md = enmlToMarkdown(enml);
     expect(md).toContain('1. first');
     expect(md).toContain('2. second');
@@ -63,8 +61,7 @@ describe('enmlToMarkdown', () => {
   });
 
   test('converts code block', () => {
-    const enml =
-      '<en-note><pre><code>const x = 1;</code></pre></en-note>';
+    const enml = '<en-note><pre><code>const x = 1;</code></pre></en-note>';
     const md = enmlToMarkdown(enml);
     expect(md).toContain('```');
     expect(md).toContain('const x = 1;');

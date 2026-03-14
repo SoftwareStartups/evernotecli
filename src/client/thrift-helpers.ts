@@ -22,9 +22,10 @@ export function createNoteStoreClient(
   return createThriftClient(NoteStore, url, token);
 }
 
-export function createUserStoreClient(
-  token: string
-): { client: UserStoreClient; connection: thrift.HttpConnection } {
+export function createUserStoreClient(token: string): {
+  client: UserStoreClient;
+  connection: thrift.HttpConnection;
+} {
   const url = 'https://www.evernote.com/edam/user';
   return createThriftClient(UserStore, url, token);
 }

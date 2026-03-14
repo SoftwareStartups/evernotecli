@@ -7,7 +7,7 @@ tasks:
 
   build:
     desc: Build TypeScript
-    cmd: tsc
+    cmd: bunx tsc
 
   clean:
     desc: Remove build artifacts
@@ -39,15 +39,15 @@ tasks:
 
   test:unit:
     desc: Run unit tests only
-    cmd: bun test tests/unit
+    cmd: bun test tests/unit/
 
   test:integration:
     desc: Run integration tests only
-    cmd: bun test tests/integration
+    cmd: bun test tests/integration/
 
   test:e2e:
     desc: Run e2e tests (requires EVERNOTE_TOKEN)
-    cmd: bun test tests/e2e
+    cmd: bun test tests/e2e/
 
   test:all:
     desc: Run all tests

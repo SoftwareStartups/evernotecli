@@ -10,11 +10,3 @@ describe('getTokenShard', () => {
     expect(getTokenShard('S=s123:U=5678:E=efgh')).toBe('s123');
   });
 });
-
-describe('Store proxy', () => {
-  // Store proxy tests would require mocking the thrift connection.
-  // These are tested indirectly via integration tests.
-  test('placeholder', () => {
-    expect(true).toBe(true);
-  });
-});

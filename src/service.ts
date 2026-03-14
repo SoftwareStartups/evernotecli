@@ -1,8 +1,6 @@
+import { z } from 'zod';
 import { getToken } from './auth/oauth.js';
-import {
-  EvernoteClient,
-  type ThriftNote,
-} from './client/evernote-client.js';
+import { EvernoteClient } from './client/evernote-client.js';
 import { OperationQueue } from './client/queue.js';
 import { settings } from './config.js';
 import { PrivateNoteError } from './errors.js';
@@ -67,8 +65,7 @@ export async function searchNotes(
   }
 
   // Strip "private" from tag filters
-  const safeTags =
-    tags?.filter((t) => t.toLowerCase() !== 'private') ?? null;
+  const safeTags = tags?.filter((t) => t.toLowerCase() !== 'private') ?? null;
 
   const result = await client.searchNotes(
     query,
@@ -87,6 +84,8 @@ export async function searchNotes(
   }
   const filtered = allNotes.length - notes.length;
 
+  // NOTE: The total is approximate — we only know how many private notes were
+  // on *this* page. Other pages may contain different counts of private notes.
   return {
     notes,
     total: Math.max(0, (result.totalNotes ?? 0) - filtered),
@@ -122,26 +121,23 @@ export async function getNoteContent(guid: string): Promise<NoteContent> {
 export async function listNotebooks(): Promise<NotebookInfo[]> {
   const client = await getClient();
   const notebooks = await client.listNotebooks();
-  return notebooks
-    .filter((nb) => nb.guid != null && nb.name != null)
-    .map((nb) => ({
-      guid: nb.guid!,
-      name: nb.name!,
-      stack: nb.stack ?? null,
-    }));
+  return notebooks.flatMap((nb) =>
+    nb.guid != null && nb.name != null
+      ? [{ guid: nb.guid, name: nb.name, stack: nb.stack ?? null }]
+      : []
+  );
 }
 
 export async function listTags(): Promise<TagInfo[]> {
   const client = await getClient();
   const tags = await client.listTags();
-  return tags
-    .filter(
-      (t) =>
-        t.guid != null &&
-        t.name != null &&
-        String(t.name).toLowerCase() !== 'private'
-    )
-    .map((t) => ({ guid: t.guid!, name: t.name! }));
+  return tags.flatMap((t) =>
+    t.guid != null &&
+    t.name != null &&
+    String(t.name).toLowerCase() !== 'private'
+      ? [{ guid: t.guid, name: t.name }]
+      : []
+  );
 }
 
 // --- Write operations ---
@@ -230,17 +226,40 @@ type WriteDispatcher = Record<
   (params: Record<string, unknown>) => Promise<unknown>
 >;
 
+const CreateNoteParams = z.object({
+  title: z.string(),
+  content: z.string(),
+  notebook_name: z.string().optional().default(''),
+  tags: z.array(z.string()).nullable().optional().default(null),
+});
+
+const GuidTagsParams = z.object({
+  guid: z.string(),
+  tags: z.array(z.string()),
+});
+
+const MoveNoteParams = z.object({
+  guid: z.string(),
+  notebook_name: z.string(),
+});
+
 const WRITE_DISPATCHER: WriteDispatcher = {
-  create_note: (p) =>
-    createNote(
-      p.title as string,
-      p.content as string,
-      (p.notebook_name as string) ?? '',
-      (p.tags as string[]) ?? null
-    ),
-  tag_note: (p) => tagNote(p.guid as string, p.tags as string[]),
-  untag_note: (p) => untagNote(p.guid as string, p.tags as string[]),
-  move_note: (p) => moveNote(p.guid as string, p.notebook_name as string),
+  create_note: (p) => {
+    const v = CreateNoteParams.parse(p);
+    return createNote(v.title, v.content, v.notebook_name, v.tags);
+  },
+  tag_note: (p) => {
+    const v = GuidTagsParams.parse(p);
+    return tagNote(v.guid, v.tags);
+  },
+  untag_note: (p) => {
+    const v = GuidTagsParams.parse(p);
+    return untagNote(v.guid, v.tags);
+  },
+  move_note: (p) => {
+    const v = MoveNoteParams.parse(p);
+    return moveNote(v.guid, v.notebook_name);
+  },
 };
 
 export function enqueueWrite(

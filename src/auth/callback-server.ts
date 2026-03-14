@@ -11,7 +11,11 @@ export function waitForCallback(): Promise<CallbackResult> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       server.stop();
-      reject(new Error(`OAuth callback not received within ${CALLBACK_TIMEOUT / 1000}s`));
+      reject(
+        new Error(
+          `OAuth callback not received within ${CALLBACK_TIMEOUT / 1000}s`
+        )
+      );
     }, CALLBACK_TIMEOUT);
 
     const server = Bun.serve({

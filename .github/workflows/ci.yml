@@ -29,20 +29,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: ./.github/actions/setup-bun-env
-      - run: tsc
+      - run: bunx tsc
       - uses: actions/upload-artifact@v7.0.0
         with:
           name: build
           path: build/
 
   integration-tests:
-    needs: build
+    needs: [lint-and-typecheck, unit-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
       - uses: ./.github/actions/setup-bun-env
-      - uses: actions/download-artifact@v7.0.0
-        with:
-          name: build
-          path: build/
       - run: bun test tests/integration

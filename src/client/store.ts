@@ -27,13 +27,18 @@ function isRetriable(err: unknown): boolean {
     }
   }
   // SHARD_UNAVAILABLE is retriable
-  if (isEDAMSystemException(err) && err.errorCode === EDAMErrorCode.SHARD_UNAVAILABLE) {
+  if (
+    isEDAMSystemException(err) &&
+    err.errorCode === EDAMErrorCode.SHARD_UNAVAILABLE
+  ) {
     return true;
   }
   return false;
 }
 
-function isEDAMUserException(err: unknown): err is { errorCode: number; parameter?: string } {
+function isEDAMUserException(
+  err: unknown
+): err is { errorCode: number; parameter?: string } {
   return (
     err !== null &&
     typeof err === 'object' &&
@@ -73,9 +78,7 @@ function convertEdamError(err: unknown): EvernoteError {
   if (isEDAMSystemException(err)) {
     if (err.errorCode === EDAMErrorCode.RATE_LIMIT_REACHED) {
       const retryAfter =
-        typeof err.rateLimitDuration === 'number'
-          ? err.rateLimitDuration
-          : 60;
+        typeof err.rateLimitDuration === 'number' ? err.rateLimitDuration : 60;
       logger.warn(
         `Evernote rate limit reached (rateLimitDuration=${err.rateLimitDuration}s) — not retrying`
       );
@@ -129,7 +132,7 @@ export class Store {
     this.client = client;
     this.token = token;
 
-    // Return a proxy that intercepts method calls
+    // biome-ignore lint/correctness/noConstructorReturn: Proxy pattern requires constructor return
     return new Proxy(this, {
       get(target, prop: string) {
         if (prop in target) {
@@ -183,7 +186,9 @@ export class Store {
       }
     }
 
-    throw new EvernoteError(`${methodName} failed after ${MAX_RETRIES} retries`);
+    throw new EvernoteError(
+      `${methodName} failed after ${MAX_RETRIES} retries`
+    );
   }
 
   private callThrift(

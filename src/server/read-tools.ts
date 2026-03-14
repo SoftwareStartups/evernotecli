@@ -7,10 +7,16 @@ export function registerReadTools(server: McpServer): void {
     'search_notes',
     'Search notes using Evernote search grammar',
     {
-      query: z.string().optional().describe('Search query (Evernote search grammar)'),
+      query: z
+        .string()
+        .optional()
+        .describe('Search query (Evernote search grammar)'),
       notebook_name: z.string().optional().describe('Filter by notebook name'),
       tags: z.array(z.string()).optional().describe('Filter by tag names'),
-      max_results: z.number().optional().describe('Maximum number of results (default 20, max 100)'),
+      max_results: z
+        .number()
+        .optional()
+        .describe('Maximum number of results (default 20, max 100)'),
       offset: z.number().optional().describe('Offset for pagination'),
     },
     async (args) => {
@@ -21,7 +27,9 @@ export function registerReadTools(server: McpServer): void {
         args.max_results ?? 20,
         args.offset ?? 0
       );
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -33,7 +41,9 @@ export function registerReadTools(server: McpServer): void {
     },
     async (args) => {
       const result = await service.getNote(args.guid);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -45,7 +55,9 @@ export function registerReadTools(server: McpServer): void {
     },
     async (args) => {
       const result = await service.getNoteContent(args.guid);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
@@ -55,17 +67,16 @@ export function registerReadTools(server: McpServer): void {
     {},
     async () => {
       const result = await service.listNotebooks();
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+      };
     }
   );
 
-  server.tool(
-    'list_tags',
-    'List all tags with guid and name',
-    {},
-    async () => {
-      const result = await service.listTags();
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
-    }
-  );
+  server.tool('list_tags', 'List all tags with guid and name', {}, async () => {
+    const result = await service.listTags();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  });
 }

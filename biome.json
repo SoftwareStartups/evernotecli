@@ -1,7 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.4.7/schema.json",
-  "organizeImports": {
-    "enabled": true
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on"
+        }
+      }
+    }
   },
   "formatter": {
     "enabled": true,
@@ -23,12 +29,14 @@
     }
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "build",
-      "dist",
-      "src/edam",
-      "*.tsbuildinfo"
+    "includes": [
+      "**",
+      "!node_modules",
+      "!build",
+      "!dist",
+      "!src/edam",
+      "!*.tsbuildinfo",
+      "!resources"
     ]
   }
 }

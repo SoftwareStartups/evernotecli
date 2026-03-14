@@ -16,10 +16,13 @@ const mockClient = {
   ),
   searchNotes: mock(() =>
     Promise.resolve(
-      makeSearchResult([
-        makeNote({ guid: 'public-1', tagGuids: [] }),
-        makeNote({ guid: 'private-1', tagGuids: [PRIVATE_TAG_GUID] }),
-      ], 2)
+      makeSearchResult(
+        [
+          makeNote({ guid: 'public-1', tagGuids: [] }),
+          makeNote({ guid: 'private-1', tagGuids: [PRIVATE_TAG_GUID] }),
+        ],
+        2
+      )
     )
   ),
   getNote: mock((guid: string) => {
@@ -45,7 +48,7 @@ beforeEach(() => {
   service.resetClient();
   // Patch getClient to return our mock
   // @ts-expect-error — accessing private for testing
-  const originalGetClient = service.getClient;
+  const _originalGetClient = service.getClient;
   mock.module('../../src/service.js', () => {
     return {
       ...service,
@@ -75,8 +78,7 @@ describe('private note protection', () => {
 
   test('getNote throws PrivateNoteError for private note', async () => {
     const note = await mockClient.getNote('private-1');
-    const isPrivate =
-      (note.tagGuids ?? []).includes(PRIVATE_TAG_GUID);
+    const isPrivate = (note.tagGuids ?? []).includes(PRIVATE_TAG_GUID);
     expect(isPrivate).toBe(true);
     // Service layer would throw PrivateNoteError
     if (isPrivate) {
@@ -88,8 +90,7 @@ describe('private note protection', () => {
 
   test('getNote allows public note', async () => {
     const note = await mockClient.getNote('public-1');
-    const isPrivate =
-      (note.tagGuids ?? []).includes(PRIVATE_TAG_GUID);
+    const isPrivate = (note.tagGuids ?? []).includes(PRIVATE_TAG_GUID);
     expect(isPrivate).toBe(false);
   });
 
@@ -104,9 +105,7 @@ describe('private note protection', () => {
 
   test('cannot add private tag', () => {
     const tags = ['private'];
-    const hasPrivate = tags.some(
-      (t) => t.toLowerCase() === 'private'
-    );
+    const hasPrivate = tags.some((t) => t.toLowerCase() === 'private');
     expect(hasPrivate).toBe(true);
     expect(() => {
       if (hasPrivate) throw new PrivateNoteError("Cannot add 'private' tag");
@@ -115,9 +114,7 @@ describe('private note protection', () => {
 
   test('cannot remove private tag', () => {
     const tags = ['private'];
-    const hasPrivate = tags.some(
-      (t) => t.toLowerCase() === 'private'
-    );
+    const hasPrivate = tags.some((t) => t.toLowerCase() === 'private');
     expect(hasPrivate).toBe(true);
     expect(() => {
       if (hasPrivate) throw new PrivateNoteError("Cannot remove 'private' tag");
