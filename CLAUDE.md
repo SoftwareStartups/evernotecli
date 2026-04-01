@@ -1,8 +1,6 @@
-# CLAUDE.md
+# evercli
 
-## Project Overview
-
-Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full read access and limited write access (create notes, tag notes, move notes). No edit/delete of existing note content.
+Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full read access and limited write access (create notes, tag notes, move notes). No edit/delete of existing note content. See `.github/CLAUDE.md` for CI/release and SHA pinning policy.
 
 ## Environment Variables
 
@@ -73,18 +71,6 @@ src/
 └── cli/               # Clerc CLI: app.ts, format.ts, commands/*.ts
 ```
 
-## Test Structure
-
-```text
-tests/
-├── helpers/                 # Factories: makeNote, makeTag, makeNotebook, makeSearchResult
-│   ├── test-data.ts
-│   └── test-utils.ts
-├── unit/                    # Pure logic tests (no service layer)
-├── integration/             # Service layer with mocked client
-└── e2e/                     # Live API tests (requires EVERNOTE_TOKEN)
-```
-
 ## Key Design Decisions
 
 - Generated Thrift clients from local IDL files via Apache `thrift --gen js:node,ts`; uses `thrift` npm package as runtime
@@ -95,18 +81,3 @@ tests/
 - `noteMetadataFromThrift()` keeps Thrift→model conversion centralized
 - Rate limit errors: write commands enqueue via `service.enqueueWrite` (`evercli drain` replays); read commands surface a user-friendly message
 - ENML parsing uses `fast-xml-parser` (Bun has no built-in XML parser)
-
-## Code Style
-
-- TypeScript strict mode, ES2022 target, NodeNext modules
-- Biome for linting/formatting (indent 2, single quotes, semicolons, trailing commas es5)
-- Bun runtime and test runner
-
-## Dependency Version Pins
-
-Always use fully qualified versions — never floating major/minor tags:
-
-- **npm packages** (`package.json`): use `^X.Y.Z` (bun resolves exact into lockfile)
-- **GitHub Actions**: always pin to exact `vX.Y.Z` tags, never `@v3` or `@main`
-  - Current pins: `actions/checkout@v6.0.2`, `oven-sh/setup-bun@v2.1.3`, `actions/cache@v5.0.3`, `actions/upload-artifact@v7.0.0`, `actions/download-artifact@v8.0.1`, `softprops/action-gh-release@v2.5.0`
-  - When adding a new action or upgrading, web-search the latest release tag before pinning
