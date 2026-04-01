@@ -4,20 +4,20 @@ A Bun-native TypeScript Evernote client exposing both a CLI (`evercli`) and a Mo
 
 ## Quick Start
 
-Download the latest binary for your platform from [GitHub Releases](https://github.com/SoftwareStartups/evernote-client/releases/latest):
+Download the latest binary for your platform from [GitHub Releases](https://github.com/SoftwareStartups/evernotecli/releases/latest):
 
 ```bash
 # macOS (Apple Silicon)
-curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-darwin-arm64
+curl -Lo evercli https://github.com/SoftwareStartups/evernotecli/releases/latest/download/evercli-darwin-arm64
 
 # macOS (Intel)
-curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-darwin-x64
+curl -Lo evercli https://github.com/SoftwareStartups/evernotecli/releases/latest/download/evercli-darwin-x64
 
 # Linux (arm64)
-curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-linux-arm64
+curl -Lo evercli https://github.com/SoftwareStartups/evernotecli/releases/latest/download/evercli-linux-arm64
 
 # Linux (x64)
-curl -Lo evercli https://github.com/SoftwareStartups/evernote-client/releases/latest/download/evercli-linux-x64
+curl -Lo evercli https://github.com/SoftwareStartups/evernotecli/releases/latest/download/evercli-linux-x64
 
 chmod +x evercli
 ./evercli login
@@ -217,7 +217,7 @@ Move a note to a different notebook.
 ### Setup
 
 ```bash
-git clone https://github.com/SoftwareStartups/evernote-client.git
+git clone https://github.com/SoftwareStartups/evernotecli.git
 cd evernote-client
 bun install
 ```

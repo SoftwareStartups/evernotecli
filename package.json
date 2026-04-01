@@ -1,6 +1,25 @@
 {
   "name": "@softwarestartups/evercli",
   "version": "2.0.1",
+  "description": "Bun-native TypeScript Evernote CLI and MCP server",
+  "license": "MIT",
+  "author": "SoftwareStartups",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoftwareStartups/evernotecli.git"
+  },
+  "homepage": "https://github.com/SoftwareStartups/evernotecli#readme",
+  "bugs": {
+    "url": "https://github.com/SoftwareStartups/evernotecli/issues"
+  },
+  "keywords": [
+    "evernote",
+    "cli",
+    "mcp",
+    "model-context-protocol",
+    "bun",
+    "typescript"
+  ],
   "type": "module",
   "bin": {
     "evercli": "build/index.js"
