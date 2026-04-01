@@ -7,6 +7,9 @@ dist/
 # Claude
 /.claude/settings.local.json
 
+# Notes
+TODO.md
+
 # Worktrees
 .worktrees/
 
