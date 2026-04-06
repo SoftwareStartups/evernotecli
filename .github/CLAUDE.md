@@ -6,9 +6,19 @@ All actions pinned to **full 40-character commit SHAs**. Tags are mutable and ca
 
 Format: `uses: owner/action@<full-sha>  # v1.2.3`
 
-Find SHA for a version:
+Find version and sha:
+
 ```bash
-git ls-remote --tags https://github.com/<owner>/<repo>.git 'v4*' | sort -t/ -k3 -V | tail -1
+for repo in actions/checkout actions/upload-artifact actions/download-artifact actions/cache oven-sh/setup-bun; do
+     tag=$(gh api "repos/$repo/releases/latest" --jq '.tag_name')
+     ref=$(gh api "repos/$repo/git/ref/tags/$tag" --jq '.object')
+     type=$(echo "$ref" | jq -r '.type')
+     sha=$(echo "$ref" | jq -r '.sha')
+     if [ "$type" = "tag" ]; then
+       sha=$(gh api "repos/$repo/git/tags/$sha" --jq '.object.sha')
+     fi
+     echo "$repo@$tag → $sha"
+   done
 ```
 
 Always verify the SHA matches the expected release tag before updating.
