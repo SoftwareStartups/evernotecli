@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { existsSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { EvernoteRateLimitError } from '../../src/errors.js';
+import { join } from 'node:path';
 import { OperationQueue } from '../../src/client/queue.js';
+import { EvernoteRateLimitError } from '../../src/errors.js';
 
 const QUEUE_DIR = join(tmpdir(), 'evercli-test-queue');
 

@@ -1,18 +1,19 @@
 import { Cli } from 'clerc';
 import { EvernoteError } from '../errors.js';
-import { searchCommand } from './commands/search.js';
-import { noteCommand } from './commands/note.js';
 import { contentCommand } from './commands/content.js';
-import { notebooksCommand } from './commands/notebooks.js';
-import { tagsCommand } from './commands/tags.js';
-import { createCommand } from './commands/create.js';
-import { tagCommand } from './commands/tag.js';
-import { untagCommand } from './commands/untag.js';
-import { moveCommand } from './commands/move.js';
-import { loginCommand } from './commands/login.js';
-import { serveCommand } from './commands/serve.js';
-import { drainCommand } from './commands/drain.js';
 import { copyCommand } from './commands/copy.js';
+import { createCommand } from './commands/create.js';
+import { drainCommand } from './commands/drain.js';
+import { loginCommand } from './commands/login.js';
+import { logoutCommand } from './commands/logout.js';
+import { moveCommand } from './commands/move.js';
+import { noteCommand } from './commands/note.js';
+import { notebooksCommand } from './commands/notebooks.js';
+import { searchCommand } from './commands/search.js';
+import { serveCommand } from './commands/serve.js';
+import { tagCommand } from './commands/tag.js';
+import { tagsCommand } from './commands/tags.js';
+import { untagCommand } from './commands/untag.js';
 
 export async function run(argv: string[]): Promise<void> {
   const cli = Cli({
@@ -31,6 +32,7 @@ export async function run(argv: string[]): Promise<void> {
     .command(untagCommand)
     .command(moveCommand)
     .command(loginCommand)
+    .command(logoutCommand)
     .command(serveCommand)
     .command(drainCommand)
     .command(copyCommand)

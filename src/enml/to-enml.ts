@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { basename } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { logger } from '../logger.js';
 import type { Attachment, EnmlResult, ResourceInfo } from './types.js';
 

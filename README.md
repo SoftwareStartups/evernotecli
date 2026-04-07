@@ -222,12 +222,14 @@ cd evernote-client
 bun install
 ```
 
-Create a `.env` file in the project root:
+Authenticate with Evernote:
 
-```dotenv
-EVERNOTE_TOKEN=your-developer-token
-# LOG_LEVEL=info
+```bash
+evercli login                    # interactive (OAuth or developer token prompt)
+evercli login --token YOUR_TOKEN # non-interactive
 ```
+
+Credentials are stored in `~/.config/evercli/config.json`. Alternatively, set `EVERNOTE_TOKEN` as an environment variable.
 
 ### Development Workflow
 

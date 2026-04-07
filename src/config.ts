@@ -1,12 +1,9 @@
-import { config } from 'dotenv';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-config({ quiet: true });
-
-function dataDir(): string {
+function configDir(): string {
   try {
-    return join(homedir(), '.evercli');
+    return join(homedir(), '.config', 'evercli');
   } catch {
     return '/tmp/evercli';
   }
@@ -16,7 +13,7 @@ export interface Config {
   token: string;
   consumerKey: string;
   consumerSecret: string;
-  tokenPath: string;
+  configPath: string;
   queuePath: string;
   logLevel: string;
 }
@@ -25,7 +22,7 @@ export const settings: Config = {
   token: process.env.EVERNOTE_TOKEN ?? '',
   consumerKey: process.env.EVERNOTE_CONSUMER_KEY ?? '',
   consumerSecret: process.env.EVERNOTE_CONSUMER_SECRET ?? '',
-  tokenPath: process.env.EVERNOTE_TOKEN_PATH ?? join(dataDir(), 'token.json'),
-  queuePath: process.env.EVERNOTE_QUEUE_PATH ?? join(dataDir(), 'queue'),
+  configPath: join(configDir(), 'config.json'),
+  queuePath: process.env.EVERNOTE_QUEUE_PATH ?? join(configDir(), 'queue'),
   logLevel: process.env.LOG_LEVEL ?? 'info',
 };

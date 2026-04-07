@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
-import { makeNote, makeTag, makeSearchResult } from '../helpers/test-data.js';
 import { PrivateNoteError } from '../../src/errors.js';
+import { makeNote, makeSearchResult, makeTag } from '../helpers/test-data.js';
 
 const PRIVATE_TAG_GUID = 'private-tag-guid';
 

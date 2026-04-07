@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { enmlToMarkdown } from '../../src/enml/to-markdown.js';
 import { markdownToEnml } from '../../src/enml/to-enml.js';
+import { enmlToMarkdown } from '../../src/enml/to-markdown.js';
 
 describe('enmlToMarkdown', () => {
   test('empty input returns empty string', () => {

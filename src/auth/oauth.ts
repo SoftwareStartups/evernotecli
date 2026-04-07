@@ -1,13 +1,13 @@
 import { OAuth } from 'oauth';
-import { OAuthError } from '../errors.js';
 import type { Config } from '../config.js';
-import { loadToken, saveToken } from './token-store.js';
+import { OAuthError } from '../errors.js';
 import {
   CALLBACK_HOST,
   OAUTH_PORT,
   SERVICE_HOST,
   waitForCallback,
 } from './callback-server.js';
+import { loadToken, saveToken } from './token-store.js';
 
 const CALLBACK_URL = `http://${CALLBACK_HOST}:${OAUTH_PORT}/oauth_callback`;
 
@@ -104,7 +104,7 @@ export async function getToken(config: Config): Promise<string> {
   }
 
   // 2. Cached token file
-  const cached = loadToken(config.tokenPath);
+  const cached = loadToken(config.configPath);
   if (cached) {
     return cached;
   }
@@ -112,14 +112,14 @@ export async function getToken(config: Config): Promise<string> {
   // 3a. Run OAuth flow if credentials are configured
   if (config.consumerKey && config.consumerSecret) {
     const token = await runOAuthFlow(config.consumerKey, config.consumerSecret);
-    await saveToken(config.tokenPath, token);
+    await saveToken(config.configPath, token);
     return token;
   }
 
   // 3b. Prompt for developer token if running interactively
   if (process.stdin.isTTY) {
     const token = await promptForDeveloperToken();
-    await saveToken(config.tokenPath, token);
+    await saveToken(config.configPath, token);
     return token;
   }
 

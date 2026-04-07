@@ -5,18 +5,18 @@ import { getToken } from './auth/oauth.js';
 import { EvernoteClient } from './client/evernote-client.js';
 import { OperationQueue } from './client/queue.js';
 import { settings } from './config.js';
+import type { ResourceInfo } from './enml/types.js';
 import { PrivateNoteError } from './errors.js';
 import { logger } from './logger.js';
 import {
-  noteMetadataFromThrift,
   type CreatedNote,
   type NotebookInfo,
   type NoteContent,
   type NoteMetadata,
+  noteMetadataFromThrift,
   type SearchResult,
   type TagInfo,
 } from './models.js';
-import type { ResourceInfo } from './enml/types.js';
 
 let _client: EvernoteClient | null = null;
 

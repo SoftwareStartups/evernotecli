@@ -1,8 +1,12 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import { existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { loadToken, saveToken } from '../../src/auth/token-store.js';
+import { join } from 'node:path';
+import {
+  deleteToken,
+  loadToken,
+  saveToken,
+} from '../../src/auth/token-store.js';
 
 const TEST_DIR = join(tmpdir(), 'evercli-test-tokens');
 const TOKEN_PATH = join(TEST_DIR, 'token.json');
@@ -51,5 +55,24 @@ describe('saveToken', () => {
     // Check permissions (owner-only)
     expect(dirStat.mode & 0o777).toBe(0o700);
     expect(fileStat.mode & 0o777).toBe(0o600);
+  });
+});
+
+describe('deleteToken', () => {
+  test('returns false when file does not exist', () => {
+    expect(deleteToken('/nonexistent/path/config.json')).toBe(false);
+  });
+
+  test('deletes existing token file', async () => {
+    await saveToken(TOKEN_PATH, 'my-secret');
+    expect(existsSync(TOKEN_PATH)).toBe(true);
+    expect(deleteToken(TOKEN_PATH)).toBe(true);
+    expect(existsSync(TOKEN_PATH)).toBe(false);
+  });
+
+  test('returns false after already deleted', async () => {
+    await saveToken(TOKEN_PATH, 'my-secret');
+    deleteToken(TOKEN_PATH);
+    expect(deleteToken(TOKEN_PATH)).toBe(false);
   });
 });

@@ -1,18 +1,17 @@
+// @ts-expect-error — generated CommonJS module
+import NoteStoreTypes from '../edam/NoteStore_types.js';
+// @ts-expect-error — generated CommonJS module
+import TypesTypes from '../edam/Types_types.js';
+import { markdownToEnml } from '../enml/to-enml.js';
+import { enmlToMarkdown } from '../enml/to-markdown.js';
+import type { ResourceInfo } from '../enml/types.js';
+import { logger } from '../logger.js';
 import { Store } from './store.js';
 import {
   createNoteStoreClient,
   createUserStoreClient,
   getTokenShard,
 } from './thrift-helpers.js';
-import { enmlToMarkdown } from '../enml/to-markdown.js';
-import { markdownToEnml } from '../enml/to-enml.js';
-import type { ResourceInfo } from '../enml/types.js';
-import { logger } from '../logger.js';
-
-// @ts-expect-error — generated CommonJS module
-import NoteStoreTypes from '../edam/NoteStore_types.js';
-// @ts-expect-error — generated CommonJS module
-import TypesTypes from '../edam/Types_types.js';
 
 const PRIVATE_TAG_NAME = 'private';
 

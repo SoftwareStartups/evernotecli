@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  EvernoteError,
   EvernoteAuthError,
+  EvernoteError,
   EvernoteNotFoundError,
   EvernotePermissionError,
   EvernoteRateLimitError,
-  PrivateNoteError,
   OAuthError,
+  PrivateNoteError,
 } from '../../src/errors.js';
 
 describe('error types', () => {
@@ -58,10 +58,10 @@ describe('config', () => {
     expect(settings).toHaveProperty('token');
     expect(settings).toHaveProperty('consumerKey');
     expect(settings).toHaveProperty('consumerSecret');
-    expect(settings).toHaveProperty('tokenPath');
+    expect(settings).toHaveProperty('configPath');
     expect(settings).toHaveProperty('queuePath');
     expect(settings).toHaveProperty('logLevel');
-    expect(settings.tokenPath).toContain('.evercli');
-    expect(settings.queuePath).toContain('.evercli');
+    expect(settings.configPath).toContain('.config/evercli');
+    expect(settings.queuePath).toContain('.config/evercli');
   });
 });

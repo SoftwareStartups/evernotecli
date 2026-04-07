@@ -1,17 +1,15 @@
 import { describe, expect, test } from 'bun:test';
-import { $ } from 'bun';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { $ } from 'bun';
 
 function resolveToken(): string {
   if (process.env.EVERNOTE_TOKEN) return process.env.EVERNOTE_TOKEN;
-  const tokenPath =
-    process.env.EVERNOTE_TOKEN_PATH ??
-    join(homedir(), '.evercli', 'token.json');
-  if (!existsSync(tokenPath)) return '';
+  const configPath = join(homedir(), '.config', 'evercli', 'config.json');
+  if (!existsSync(configPath)) return '';
   try {
-    return JSON.parse(readFileSync(tokenPath, 'utf-8')).token ?? '';
+    return JSON.parse(readFileSync(configPath, 'utf-8')).token ?? '';
   } catch {
     return '';
   }

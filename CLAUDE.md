@@ -6,14 +6,13 @@ Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full 
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `EVERNOTE_TOKEN` | — | API token; required for all API calls |
-| `EVERNOTE_CONSUMER_KEY` | — | OAuth consumer key (for `evercli login`) |
-| `EVERNOTE_CONSUMER_SECRET` | — | OAuth consumer secret (for `evercli login`) |
-| `EVERNOTE_TOKEN_PATH` | `~/.evercli/token.json` | Where OAuth token is stored |
-| `EVERNOTE_QUEUE_PATH` | `~/.evercli/queue` | Write queue backing store |
+| `EVERNOTE_TOKEN` | — | API token (overrides stored credentials) |
+| `EVERNOTE_CONSUMER_KEY` | — | OAuth consumer key (for `evercli login` OAuth flow) |
+| `EVERNOTE_CONSUMER_SECRET` | — | OAuth consumer secret (for `evercli login` OAuth flow) |
+| `EVERNOTE_QUEUE_PATH` | `~/.config/evercli/queue` | Write queue backing store |
 | `LOG_LEVEL` | `info` | Pino log level (output goes to stderr) |
 
-A `.env` file in the project root is loaded automatically via dotenv.
+Credentials are stored in `~/.config/evercli/config.json` via `evercli login`.
 
 ## Commands
 
@@ -40,6 +39,11 @@ task ci                              # Full CI locally: clean→install→format
 # Release
 task compile                         # Build standalone binary for current platform
 task thrift                          # Regenerate Thrift clients (requires Apache thrift compiler)
+
+# Auth
+bun run src/index.ts login           # Interactive login (OAuth or developer token)
+bun run src/index.ts login --token T # Non-interactive login
+bun run src/index.ts logout          # Remove stored credentials
 
 # Run (dev, without compiling)
 bun run src/index.ts --help          # Show CLI help

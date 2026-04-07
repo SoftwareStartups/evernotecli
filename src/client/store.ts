@@ -1,4 +1,5 @@
-import { logger } from '../logger.js';
+// @ts-expect-error — generated CommonJS module
+import ErrorTypes from '../edam/Errors_types.js';
 import {
   EvernoteAuthError,
   EvernoteError,
@@ -6,9 +7,7 @@ import {
   EvernotePermissionError,
   EvernoteRateLimitError,
 } from '../errors.js';
-
-// @ts-expect-error — generated CommonJS module
-import ErrorTypes from '../edam/Errors_types.js';
+import { logger } from '../logger.js';
 
 const EDAMErrorCode = ErrorTypes.EDAMErrorCode;
 

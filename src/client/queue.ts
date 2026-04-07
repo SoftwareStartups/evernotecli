@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { chmod } from 'node:fs/promises';
 import { join } from 'node:path';
 import { logger } from '../logger.js';
