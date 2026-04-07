@@ -38,6 +38,15 @@ async function isPrivate(tagGuids: string[]): Promise<boolean> {
   return guid !== null && tagGuids.includes(guid);
 }
 
+async function assertNotPrivate(
+  noteGuid: string,
+  tagGuids: string[]
+): Promise<void> {
+  if (await isPrivate(tagGuids)) {
+    throw new PrivateNoteError(noteGuid);
+  }
+}
+
 async function resolveNotebookGuid(
   client: EvernoteClient,
   name: string
@@ -101,9 +110,7 @@ export async function searchNotes(
 export async function getNote(guid: string): Promise<NoteMetadata> {
   const client = await getClient();
   const note = await client.getNote(guid);
-  if (await isPrivate(note.tagGuids ?? [])) {
-    throw new PrivateNoteError(guid);
-  }
+  await assertNotPrivate(guid, note.tagGuids ?? []);
   return noteMetadataFromThrift(note);
 }
 
@@ -113,9 +120,7 @@ export async function getNoteContent(
 ): Promise<NoteContent> {
   const client = await getClient();
   const note = await client.getNote(guid);
-  if (await isPrivate(note.tagGuids ?? [])) {
-    throw new PrivateNoteError(guid);
-  }
+  await assertNotPrivate(guid, note.tagGuids ?? []);
   if (!note.guid) throw new Error('Note returned without GUID');
 
   let content = await client.getNoteContent(guid);
@@ -242,9 +247,7 @@ export async function tagNote(
   }
   const client = await getClient();
   const existing = await client.getNote(guid);
-  if (await isPrivate(existing.tagGuids ?? [])) {
-    throw new PrivateNoteError(guid);
-  }
+  await assertNotPrivate(guid, existing.tagGuids ?? []);
   const note = await client.tagNote(guid, tags);
   return noteMetadataFromThrift(note);
 }
@@ -258,9 +261,7 @@ export async function untagNote(
   }
   const client = await getClient();
   const existing = await client.getNote(guid);
-  if (await isPrivate(existing.tagGuids ?? [])) {
-    throw new PrivateNoteError(guid);
-  }
+  await assertNotPrivate(guid, existing.tagGuids ?? []);
   const note = await client.untagNote(guid, tags);
   return noteMetadataFromThrift(note);
 }
@@ -272,9 +273,7 @@ export async function moveNote(
   const client = await getClient();
   const notebookGuid = await resolveNotebookGuid(client, notebookName);
   const existing = await client.getNote(guid);
-  if (await isPrivate(existing.tagGuids ?? [])) {
-    throw new PrivateNoteError(guid);
-  }
+  await assertNotPrivate(guid, existing.tagGuids ?? []);
   const note = await client.moveNote(guid, notebookGuid);
   return noteMetadataFromThrift(note);
 }

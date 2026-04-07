@@ -1,6 +1,6 @@
 import { defineCommand } from 'clerc';
-import { EvernoteRateLimitError, PrivateNoteError } from '../../errors.js';
 import * as service from '../../service.js';
+import { handleWriteError } from '../error-handler.js';
 import { jsonOutput } from '../format.js';
 
 export const tagCommand = defineCommand(
@@ -17,21 +17,10 @@ export const tagCommand = defineCommand(
       );
       jsonOutput(result);
     } catch (err) {
-      if (err instanceof PrivateNoteError) {
-        console.error('Error: note is private.');
-        process.exit(1);
-      }
-      if (err instanceof EvernoteRateLimitError) {
-        service.enqueueWrite('tag_note', {
-          guid: ctx.parameters.guid,
-          tags: ctx.parameters.tags,
-        });
-        console.error(
-          `Rate limited (retry after ${err.retryAfter}s) — queued. Run 'evercli drain' to process.`
-        );
-        return;
-      }
-      throw err;
+      handleWriteError(err, 'tag_note', {
+        guid: ctx.parameters.guid,
+        tags: ctx.parameters.tags,
+      });
     }
   }
 );

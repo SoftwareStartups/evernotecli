@@ -1,6 +1,6 @@
 import { defineCommand } from 'clerc';
-import { EvernoteRateLimitError, PrivateNoteError } from '../../errors.js';
 import * as service from '../../service.js';
+import { handleWriteError } from '../error-handler.js';
 import { jsonOutput } from '../format.js';
 
 export const moveCommand = defineCommand(
@@ -17,21 +17,10 @@ export const moveCommand = defineCommand(
       );
       jsonOutput(result);
     } catch (err) {
-      if (err instanceof PrivateNoteError) {
-        console.error('Error: note is private.');
-        process.exit(1);
-      }
-      if (err instanceof EvernoteRateLimitError) {
-        service.enqueueWrite('move_note', {
-          guid: ctx.parameters.guid,
-          notebook_name: ctx.parameters.notebook,
-        });
-        console.error(
-          `Rate limited (retry after ${err.retryAfter}s) — queued. Run 'evercli drain' to process.`
-        );
-        return;
-      }
-      throw err;
+      handleWriteError(err, 'move_note', {
+        guid: ctx.parameters.guid,
+        notebook_name: ctx.parameters.notebook,
+      });
     }
   }
 );

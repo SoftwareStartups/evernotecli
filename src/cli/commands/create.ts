@@ -1,6 +1,6 @@
 import { defineCommand } from 'clerc';
-import { EvernoteRateLimitError } from '../../errors.js';
 import * as service from '../../service.js';
+import { handleWriteError } from '../error-handler.js';
 import { jsonOutput } from '../format.js';
 
 export const createCommand = defineCommand(
@@ -42,20 +42,13 @@ export const createCommand = defineCommand(
       );
       jsonOutput(result);
     } catch (err) {
-      if (err instanceof EvernoteRateLimitError) {
-        service.enqueueWrite('create_note', {
-          title: ctx.parameters.title,
-          content: ctx.flags.content ?? '',
-          notebook_name: ctx.flags.notebook ?? '',
-          tags: ctx.flags.tag?.length ? ctx.flags.tag : null,
-          source_note_guid: ctx.flags['source-note'],
-        });
-        console.error(
-          `Rate limited (retry after ${err.retryAfter}s) — queued. Run 'evercli drain' to process.`
-        );
-        return;
-      }
-      throw err;
+      handleWriteError(err, 'create_note', {
+        title: ctx.parameters.title,
+        content: ctx.flags.content ?? '',
+        notebook_name: ctx.flags.notebook ?? '',
+        tags: ctx.flags.tag?.length ? ctx.flags.tag : null,
+        source_note_guid: ctx.flags['source-note'],
+      });
     }
   }
 );
