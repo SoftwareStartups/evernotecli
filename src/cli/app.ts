@@ -1,4 +1,5 @@
 import { Cli } from 'clerc';
+import pkg from '../../package.json' with { type: 'json' };
 import { EvernoteError } from '../errors.js';
 import { contentCommand } from './commands/content.js';
 import { copyCommand } from './commands/copy.js';
@@ -20,7 +21,7 @@ export async function run(argv: string[]): Promise<void> {
     name: 'evercli',
     scriptName: 'evercli',
     description: 'Evernote CLI client',
-    version: '0.1.0',
+    version: pkg.version,
   })
     .command(searchCommand)
     .command(noteCommand)

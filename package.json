@@ -1,6 +1,6 @@
 {
   "name": "@softwarestartups/evercli",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Bun-native TypeScript Evernote CLI and MCP server",
   "license": "MIT",
   "author": "SoftwareStartups",
