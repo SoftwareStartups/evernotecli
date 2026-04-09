@@ -15,60 +15,71 @@ permissions:
 
 jobs:
   lint-and-typecheck:
-    name: Lint and typecheck
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Bun environment
         uses: ./.github/actions/setup-bun-env
-      - name: Check formatting
-        run: bunx biome format .
+
+      - name: Format check
+        run: task format:check
+
       - name: Lint
-        run: bunx biome lint .
+        run: task lint
+
       - name: Typecheck
-        run: bunx tsc --noEmit -p tsconfig.check.json
+        run: task typecheck
 
   unit-tests:
-    name: Unit tests
+    name: Unit Tests
+    needs: lint-and-typecheck
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Bun environment
         uses: ./.github/actions/setup-bun-env
+
       - name: Run unit tests
-        run: bun test tests/unit
+        run: task test:unit
 
   build:
     name: Build
-    needs: [lint-and-typecheck, unit-tests]
+    needs: lint-and-typecheck
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Bun environment
         uses: ./.github/actions/setup-bun-env
-      - name: Build TypeScript
-        run: bunx tsc
-      - name: Upload build artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
-        with:
-          name: build
-          path: build/
-          retention-days: 1
-          compression-level: 6
+
+      - name: Build
+        run: task build
 
   integration-tests:
-    name: Integration tests
-    needs: [lint-and-typecheck, unit-tests]
+    name: Integration Tests
+    needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Bun environment
         uses: ./.github/actions/setup-bun-env
+
+      - name: Build
+        run: task build
+
       - name: Run integration tests
-        run: bun test tests/integration
         env:
           LOG_LEVEL: error
+        run: task test:integration
