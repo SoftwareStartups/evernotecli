@@ -7,7 +7,7 @@ import {
   SERVICE_HOST,
   waitForCallback,
 } from './callback-server.js';
-import { loadToken, saveToken } from './token-store.js';
+import { getSecret, setSecret } from './keychain.js';
 
 const CALLBACK_URL = `http://${CALLBACK_HOST}:${OAUTH_PORT}/oauth_callback`;
 
@@ -103,8 +103,8 @@ export async function getToken(config: Config): Promise<string> {
     return config.token;
   }
 
-  // 2. Cached token file
-  const cached = loadToken(config.configPath);
+  // 2. OS keychain
+  const cached = await getSecret('EVERNOTE_TOKEN');
   if (cached) {
     return cached;
   }
@@ -112,14 +112,14 @@ export async function getToken(config: Config): Promise<string> {
   // 3a. Run OAuth flow if credentials are configured
   if (config.consumerKey && config.consumerSecret) {
     const token = await runOAuthFlow(config.consumerKey, config.consumerSecret);
-    await saveToken(config.configPath, token);
+    await setSecret('EVERNOTE_TOKEN', token);
     return token;
   }
 
   // 3b. Prompt for developer token if running interactively
   if (process.stdin.isTTY) {
     const token = await promptForDeveloperToken();
-    await saveToken(config.configPath, token);
+    await setSecret('EVERNOTE_TOKEN', token);
     return token;
   }
 

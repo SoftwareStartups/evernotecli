@@ -58,10 +58,8 @@ describe('config', () => {
     expect(settings).toHaveProperty('token');
     expect(settings).toHaveProperty('consumerKey');
     expect(settings).toHaveProperty('consumerSecret');
-    expect(settings).toHaveProperty('configPath');
     expect(settings).toHaveProperty('queuePath');
     expect(settings).toHaveProperty('logLevel');
-    expect(settings.configPath).toContain('.config/evercli');
     expect(settings.queuePath).toContain('.config/evercli');
   });
 });

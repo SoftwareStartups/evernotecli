@@ -1,14 +1,13 @@
 import { defineCommand } from 'clerc';
-import { deleteToken } from '../../auth/token-store.js';
-import { settings } from '../../config.js';
+import { deleteSecret } from '../../auth/keychain.js';
 
 export const logoutCommand = defineCommand(
   {
     name: 'logout',
     description: 'Remove stored credentials',
   },
-  () => {
-    const deleted = deleteToken(settings.configPath);
+  async () => {
+    const deleted = await deleteSecret('EVERNOTE_TOKEN');
 
     if (!deleted) {
       console.log('No stored credentials found. Already logged out.');

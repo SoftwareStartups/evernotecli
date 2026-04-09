@@ -1,6 +1,10 @@
 import { defineCommand } from 'clerc';
+import {
+  deleteSecret,
+  sanitizeCredential,
+  setSecret,
+} from '../../auth/keychain.js';
 import { getToken } from '../../auth/oauth.js';
-import { deleteToken, saveToken } from '../../auth/token-store.js';
 import { EvernoteClient } from '../../client/evernote-client.js';
 import { settings } from '../../config.js';
 
@@ -33,14 +37,17 @@ export const loginCommand = defineCommand(
     let token: string;
 
     if (ctx.flags.token) {
-      token = ctx.flags.token.trim();
-      if (!token) {
-        console.error('Error: Token cannot be empty.');
+      try {
+        token = sanitizeCredential(ctx.flags.token);
+      } catch (err: unknown) {
+        console.error(
+          `Error: ${err instanceof Error ? err.message : 'Invalid credential.'}`
+        );
         process.exit(1);
       }
     } else {
-      // Clear cached token to force re-authentication
-      deleteToken(settings.configPath);
+      // Clear cached keychain entry to force re-authentication
+      await deleteSecret('EVERNOTE_TOKEN');
       // Temporarily clear env token so auth flow runs
       const origToken = settings.token;
       settings.token = '';
@@ -61,7 +68,15 @@ export const loginCommand = defineCommand(
       }
     }
 
-    await saveToken(settings.configPath, token);
-    console.log(`Credentials saved to ${settings.configPath}`);
+    try {
+      await setSecret('EVERNOTE_TOKEN', token);
+    } catch {
+      console.error(
+        'Error: OS keychain not available. Set EVERNOTE_TOKEN environment variable instead.'
+      );
+      process.exit(1);
+    }
+
+    console.log('Credentials saved to OS keychain.');
   }
 );
