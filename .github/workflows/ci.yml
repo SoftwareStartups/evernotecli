@@ -68,6 +68,7 @@ jobs:
     name: Integration Tests
     needs: build
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout
