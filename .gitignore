@@ -1,17 +1,38 @@
+# Canonical .gitignore for SoftwareStartups CLI tools.
+# Tool-specific entries may be added at the end.
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Dependencies
 node_modules/
+
+# Build output
 build/
 dist/
 *.tsbuildinfo
+
+# Environment
 .env
+.env.*
 
-# Claude
-/.claude/settings.local.json
-
-# Notes
-TODO.md
+# Lefthook
+lefthook-local.yml
 
 # Worktrees
 .worktrees/
 
-# Reference projects
+# Claude Code
+.claude/settings.local.json
+
+# Notes
+TODO.md
+docs/TODO.md
+docs/plans/
+
+# Tool-specific: reference projects
 /resources/
