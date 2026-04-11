@@ -1,6 +1,6 @@
 # evercli
 
-Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full read access and limited write access (create notes, tag notes, move notes). No edit/delete of existing note content. See `.github/CLAUDE.md` for CI/release and SHA pinning policy.
+Bun-native TypeScript Evernote client with MCP server and CLI (`evercli`). Full read access and limited write access (create notes, tag notes, move notes). No edit/delete of existing note content.
 
 ## Environment Variables
 
