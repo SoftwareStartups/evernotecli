@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { basename, isAbsolute, resolve } from 'node:path';
 import { logger } from '../logger.js';
 import type { Attachment, EnmlResult, ResourceInfo } from './types.js';
 
@@ -209,6 +209,9 @@ function renderImage(
 
   let data: Uint8Array;
   try {
+    if (path.includes('..') || isAbsolute(path)) {
+      throw new Error('Invalid file path');
+    }
     data = readFileSync(path);
   } catch (err) {
     logger.warn(`Cannot read image file ${path}: ${err}`);
