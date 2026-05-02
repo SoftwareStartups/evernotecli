@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import { z } from 'zod';
 import { getToken } from './auth/oauth.js';
 import { EvernoteClient } from './client/evernote-client.js';
@@ -130,9 +130,14 @@ export async function getNoteContent(
     await mkdir(options.resourceDir, { recursive: true });
     for (const r of resources) {
       if (!r.data || !r.filename) continue;
-      const filePath = join(options.resourceDir, r.filename);
-      await writeFile(filePath, r.data);
-      content = content.replaceAll(`evernote-resource:${r.hashHex}`, filePath);
+      const base = path.resolve(options.resourceDir);
+      const target = path.resolve(base, r.filename);
+      const relative = path.relative(base, target);
+      if (relative.startsWith('..') || path.isAbsolute(relative)) {
+        throw new Error('Invalid file path');
+      }
+      await writeFile(target, r.data);
+      content = content.replaceAll(`evernote-resource:${r.hashHex}`, target);
     }
   }
 
