@@ -1,5 +1,4 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { z } from 'zod';
 import { getToken } from './auth/oauth.js';
 import { EvernoteClient, PRIVATE_TAG_NAME } from './client/evernote-client.js';
@@ -8,6 +7,7 @@ import { settings } from './config.js';
 import type { ResourceInfo } from './enml/types.js';
 import { PrivateNoteError } from './errors.js';
 import { logger } from './logger.js';
+import { safeJoin } from './path-utils.js';
 import {
   type CreatedNote,
   type NotebookInfo,
@@ -137,12 +137,7 @@ export async function getNoteContent(
     await mkdir(options.resourceDir, { recursive: true });
     for (const r of resources) {
       if (!r.data || !r.filename) continue;
-      const base = path.resolve(options.resourceDir);
-      const target = path.resolve(base, r.filename);
-      const relative = path.relative(base, target);
-      if (relative.startsWith('..') || path.isAbsolute(relative)) {
-        throw new Error('Invalid file path');
-      }
+      const target = safeJoin(options.resourceDir, r.filename);
       await writeFile(target, r.data);
       content = content.replaceAll(`evernote-resource:${r.hashHex}`, target);
     }

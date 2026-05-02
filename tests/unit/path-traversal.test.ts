@@ -1,73 +1,41 @@
-import { afterEach, describe, expect, test } from 'bun:test';
-import { mkdtemp, readdir } from 'node:fs/promises';
+import { describe, expect, test } from 'bun:test';
+import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  makeNoteStoreMock,
-  mockOAuth,
-  setupTestClient,
-} from '../helpers/mock-note-store.js';
+import { safeJoin } from '../../src/path-utils.js';
 
-mockOAuth();
+const base = mkdtempSync(join(tmpdir(), 'evercli-safejoin-'));
 
-const serviceModule = await import('../../src/service.js');
-
-const hashHex = '55aa55aa55aa55aa55aa55aa55aa55aa';
-const imgData = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
-
-async function setupWithFilename(filename: string) {
-  const noteStore = makeNoteStoreMock({
-    resource: { filename, hashHex, body: imgData },
-  });
-  await setupTestClient(noteStore);
-  return mkdtemp(join(tmpdir(), 'evercli-test-'));
-}
-
-describe('Path Traversal Vulnerability Mitigation', () => {
-  afterEach(() => {
-    serviceModule.resetClient();
+describe('safeJoin', () => {
+  test('rejects parent-directory traversal', () => {
+    expect(() => safeJoin(base, '../../../etc/passwd')).toThrow(
+      'Invalid file path'
+    );
   });
 
-  describe('getNoteContent rejects malicious filenames', () => {
-    test('rejects ../ traversal', async () => {
-      const dir = await setupWithFilename('../../../etc/passwd');
-      await expect(
-        serviceModule.getNoteContent('note-1', { resourceDir: dir })
-      ).rejects.toThrow('Invalid file path');
-    });
+  test('rejects backslash traversal', () => {
+    expect(() =>
+      safeJoin(base, '..\\..\\..\\windows\\system32\\config')
+    ).toThrow('Invalid file path');
+  });
 
-    test('rejects ..\\..\\ traversal', async () => {
-      const dir = await setupWithFilename(
-        '..\\..\\..\\windows\\system32\\config'
-      );
-      await expect(
-        serviceModule.getNoteContent('note-1', { resourceDir: dir })
-      ).rejects.toThrow('Invalid file path');
-    });
+  test('rejects absolute Unix paths', () => {
+    expect(() => safeJoin(base, '/etc/passwd')).toThrow('Invalid file path');
+  });
 
-    test('rejects absolute Unix path', async () => {
-      const dir = await setupWithFilename('/etc/passwd');
-      await expect(
-        serviceModule.getNoteContent('note-1', { resourceDir: dir })
-      ).rejects.toThrow('Invalid file path');
-    });
+  test('rejects mixed traversal patterns', () => {
+    expect(() => safeJoin(base, 'subdir/../../../etc/passwd')).toThrow(
+      'Invalid file path'
+    );
+  });
 
-    test('rejects mixed traversal patterns', async () => {
-      const dir = await setupWithFilename('subdir/../../../etc/passwd');
-      await expect(
-        serviceModule.getNoteContent('note-1', { resourceDir: dir })
-      ).rejects.toThrow('Invalid file path');
-    });
+  test('returns absolute target for safe relative filename', () => {
+    expect(safeJoin(base, 'photo.png')).toBe(join(base, 'photo.png'));
+  });
 
-    test('allows safe filename in root directory', async () => {
-      const dir = await setupWithFilename('safe-image.png');
-      const result = await serviceModule.getNoteContent('note-1', {
-        resourceDir: dir,
-      });
-      const expectedPath = join(dir, 'safe-image.png');
-      expect(result.content).toContain(expectedPath);
-      const files = await readdir(dir);
-      expect(files).toContain('safe-image.png');
-    });
+  test('allows safe nested path within base', () => {
+    expect(safeJoin(base, 'images/photo.png')).toBe(
+      join(base, 'images/photo.png')
+    );
   });
 });
