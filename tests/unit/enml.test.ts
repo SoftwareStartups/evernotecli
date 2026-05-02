@@ -259,3 +259,50 @@ describe('markdownToEnml', () => {
     expect(result.enml).toContain('img2.png');
   });
 });
+
+describe('markdownToEnml - path traversal security', () => {
+  test('rejects path with .. (parent directory traversal)', () => {
+    const md = '![alt](../../../etc/passwd)';
+    const result = markdownToEnml(md);
+    // Should not create attachment, should render as link instead
+    expect(result.attachments).toHaveLength(0);
+    expect(result.enml).toContain('<a href=');
+    expect(result.enml).not.toContain('<en-media');
+  });
+
+  test('rejects path with ../ in middle (directory traversal)', () => {
+    const md = '![alt](images/../../secrets/file.png)';
+    const result = markdownToEnml(md);
+    // Should not create attachment
+    expect(result.attachments).toHaveLength(0);
+    expect(result.enml).toContain('<a href=');
+    expect(result.enml).not.toContain('<en-media');
+  });
+
+  test('rejects absolute path (Unix-style)', () => {
+    const md = '![alt](/etc/passwd)';
+    const result = markdownToEnml(md);
+    // Should not create attachment
+    expect(result.attachments).toHaveLength(0);
+    expect(result.enml).toContain('<a href=');
+    expect(result.enml).not.toContain('<en-media');
+  });
+
+  test('rejects absolute path (Windows-style)', () => {
+    const md = '![alt](C:\\Windows\\System32\\config\\sam)';
+    const result = markdownToEnml(md);
+    // Should not create attachment
+    expect(result.attachments).toHaveLength(0);
+    expect(result.enml).toContain('<a href=');
+    expect(result.enml).not.toContain('<en-media');
+  });
+
+  test('rejects encoded path traversal (%2e%2e)', () => {
+    // URL-encoded .. should still be caught after resolution
+    const md = '![alt](%2e%2e/%2e%2e/etc/passwd)';
+    const result = markdownToEnml(md);
+    // Should not create attachment
+    expect(result.attachments).toHaveLength(0);
+    expect(result.enml).toContain('<a href=');
+  });
+});
