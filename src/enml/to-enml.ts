@@ -1,6 +1,3 @@
-import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { basename, isAbsolute, resolve } from 'node:path';
 import { logger } from '../logger.js';
 import type { Attachment, EnmlResult, ResourceInfo } from './types.js';
 
@@ -193,72 +190,14 @@ function renderImage(
     return `[image: ${escapeXml(display)}]`;
   }
 
-  // HTTP/HTTPS — render as link
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    const display = escapeXml(alt || url);
-    return `<a href="${escapeXml(url)}">${display}</a>`;
+  // Non-resource URLs (http(s), file://, relative paths) — render as link.
+  // Local-file embedding is not supported: reading arbitrary files from
+  // user-supplied markdown is unsafe in MCP/CLI contexts.
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    logger.warn(`Image URL not embedded (not an evernote-resource): ${url}`);
   }
-
-  // Local file
-  const path = resolveLocalPath(url);
-  if (!path || !existsSync(path)) {
-    logger.warn(`Image path not found: ${url}`);
-    const display = escapeXml(alt || url);
-    return `<a href="${escapeXml(url)}">${display}</a>`;
-  }
-
-  let data: Uint8Array;
-  try {
-    if (path.includes('..') || isAbsolute(path)) {
-      throw new Error('Invalid file path');
-    }
-    data = readFileSync(path);
-  } catch (err) {
-    logger.warn(`Cannot read image file ${path}: ${err}`);
-    const display = escapeXml(alt || url);
-    return `<a href="${escapeXml(url)}">${display}</a>`;
-  }
-
-  const hashBytes = createHash('md5').update(data).digest();
-  const hashHex = hashBytes.toString('hex');
-
-  // Guess mime type
-  const ext = path.split('.').pop()?.toLowerCase() ?? '';
-  const mimeMap: Record<string, string> = {
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    svg: 'image/svg+xml',
-    pdf: 'application/pdf',
-  };
-  const mimeType = mimeMap[ext] ?? 'application/octet-stream';
-
-  if (!seenHashes.has(hashHex)) {
-    seenHashes.add(hashHex);
-    attachments.push({
-      hashHex,
-      hashBytes: new Uint8Array(hashBytes),
-      mimeType,
-      data: new Uint8Array(data),
-      filename: basename(path),
-      sourcePath: path,
-    });
-  }
-
-  return `<en-media type="${mimeType}" hash="${hashHex}"/>`;
-}
-
-function resolveLocalPath(url: string): string | null {
-  if (url.startsWith('file://')) url = url.substring(7);
-  try {
-    return resolve(
-      url.startsWith('~') ? url.replace('~', process.env.HOME ?? '') : url
-    );
-  } catch {
-    return null;
-  }
+  const display = escapeXml(alt || url);
+  return `<a href="${escapeXml(url)}">${display}</a>`;
 }
 
 function parseImageLine(

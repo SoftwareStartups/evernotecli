@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import * as service from '../service.js';
+import { jsonResult } from './response.js';
 
 export function registerWriteTools(server: McpServer): void {
   server.tool(
@@ -21,17 +22,15 @@ export function registerWriteTools(server: McpServer): void {
         .optional()
         .describe('List of tag names to apply'),
     },
-    async (args) => {
-      const result = await service.createNote(
-        args.title,
-        args.content ?? '',
-        args.notebook_name ?? '',
-        args.tags ?? null
-      );
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async (args) =>
+      jsonResult(
+        await service.createNote(
+          args.title,
+          args.content ?? '',
+          args.notebook_name ?? '',
+          args.tags ?? null
+        )
+      )
   );
 
   server.tool(
@@ -41,12 +40,7 @@ export function registerWriteTools(server: McpServer): void {
       guid: z.string().describe('Note GUID'),
       tags: z.array(z.string()).describe('Tag names to add'),
     },
-    async (args) => {
-      const result = await service.tagNote(args.guid, args.tags);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async (args) => jsonResult(await service.tagNote(args.guid, args.tags))
   );
 
   server.tool(
@@ -56,12 +50,7 @@ export function registerWriteTools(server: McpServer): void {
       guid: z.string().describe('Note GUID'),
       tags: z.array(z.string()).describe('Tag names to remove'),
     },
-    async (args) => {
-      const result = await service.untagNote(args.guid, args.tags);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async (args) => jsonResult(await service.untagNote(args.guid, args.tags))
   );
 
   server.tool(
@@ -71,11 +60,7 @@ export function registerWriteTools(server: McpServer): void {
       guid: z.string().describe('Note GUID'),
       notebook_name: z.string().describe('Target notebook name'),
     },
-    async (args) => {
-      const result = await service.moveNote(args.guid, args.notebook_name);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async (args) =>
+      jsonResult(await service.moveNote(args.guid, args.notebook_name))
   );
 }

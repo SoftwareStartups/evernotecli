@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod/v4';
 import * as service from '../service.js';
+import { jsonResult } from './response.js';
 
 export function registerReadTools(server: McpServer): void {
   server.tool(
@@ -19,64 +20,40 @@ export function registerReadTools(server: McpServer): void {
         .describe('Maximum number of results (default 20, max 100)'),
       offset: z.number().optional().describe('Offset for pagination'),
     },
-    async (args) => {
-      const result = await service.searchNotes(
-        args.query ?? '',
-        args.notebook_name ?? '',
-        args.tags ?? null,
-        args.max_results ?? 20,
-        args.offset ?? 0
-      );
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async (args) =>
+      jsonResult(
+        await service.searchNotes(
+          args.query ?? '',
+          args.notebook_name ?? '',
+          args.tags ?? null,
+          args.max_results ?? 20,
+          args.offset ?? 0
+        )
+      )
   );
 
   server.tool(
     'get_note',
     'Get note metadata (title, tags, notebook, dates)',
-    {
-      guid: z.string().describe('Note GUID'),
-    },
-    async (args) => {
-      const result = await service.getNote(args.guid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    { guid: z.string().describe('Note GUID') },
+    async (args) => jsonResult(await service.getNote(args.guid))
   );
 
   server.tool(
     'get_note_content',
     'Get full note content as Markdown',
-    {
-      guid: z.string().describe('Note GUID'),
-    },
-    async (args) => {
-      const result = await service.getNoteContent(args.guid);
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    { guid: z.string().describe('Note GUID') },
+    async (args) => jsonResult(await service.getNoteContent(args.guid))
   );
 
   server.tool(
     'list_notebooks',
     'List all notebooks with guid, name, and stack',
     {},
-    async () => {
-      const result = await service.listNotebooks();
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-      };
-    }
+    async () => jsonResult(await service.listNotebooks())
   );
 
-  server.tool('list_tags', 'List all tags with guid and name', {}, async () => {
-    const result = await service.listTags();
-    return {
-      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
-    };
-  });
+  server.tool('list_tags', 'List all tags with guid and name', {}, async () =>
+    jsonResult(await service.listTags())
+  );
 }

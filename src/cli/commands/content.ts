@@ -1,6 +1,6 @@
 import { defineCommand } from 'clerc';
-import { PrivateNoteError } from '../../errors.js';
 import * as service from '../../service.js';
+import { handleReadError } from '../error-handler.js';
 
 export const contentCommand = defineCommand(
   {
@@ -22,11 +22,7 @@ export const contentCommand = defineCommand(
       });
       console.log(result.content);
     } catch (err) {
-      if (err instanceof PrivateNoteError) {
-        console.error('Error: note is private.');
-        process.exit(1);
-      }
-      throw err;
+      handleReadError(err);
     }
   }
 );

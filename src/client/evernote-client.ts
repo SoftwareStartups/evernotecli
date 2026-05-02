@@ -13,7 +13,7 @@ import {
   getTokenShard,
 } from './thrift-helpers.js';
 
-const PRIVATE_TAG_NAME = 'private';
+export const PRIVATE_TAG_NAME = 'private';
 
 /** Typed façade for the Thrift NoteStore proxy methods we use. */
 export interface NoteStoreProxy {

@@ -1,6 +1,6 @@
 import { defineCommand } from 'clerc';
-import { PrivateNoteError } from '../../errors.js';
 import * as service from '../../service.js';
+import { handleReadError } from '../error-handler.js';
 import { jsonOutput } from '../format.js';
 
 export const noteCommand = defineCommand(
@@ -14,11 +14,7 @@ export const noteCommand = defineCommand(
       const result = await service.getNote(ctx.parameters.guid);
       jsonOutput(result);
     } catch (err) {
-      if (err instanceof PrivateNoteError) {
-        console.error('Error: note is private.');
-        process.exit(1);
-      }
-      throw err;
+      handleReadError(err);
     }
   }
 );

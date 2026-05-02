@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import path, { join } from 'node:path';
+import path from 'node:path';
 import { z } from 'zod';
 import { getToken } from './auth/oauth.js';
-import { EvernoteClient } from './client/evernote-client.js';
+import { EvernoteClient, PRIVATE_TAG_NAME } from './client/evernote-client.js';
 import { OperationQueue } from './client/queue.js';
 import { settings } from './config.js';
 import type { ResourceInfo } from './enml/types.js';
@@ -60,6 +60,13 @@ async function resolveNotebookGuid(
   throw new Error(`Notebook not found: ${name}`);
 }
 
+async function resolveNotebookGuidIfProvided(
+  client: EvernoteClient,
+  name: string
+): Promise<string | null> {
+  return name ? resolveNotebookGuid(client, name) : null;
+}
+
 // --- Read operations ---
 
 export async function searchNotes(
@@ -72,18 +79,18 @@ export async function searchNotes(
   const client = await getClient();
   maxResults = Math.min(maxResults, 100);
 
-  let notebookGuid: string | null = null;
-  if (notebookName) {
-    notebookGuid = await resolveNotebookGuid(client, notebookName);
-  }
+  const notebookGuid = await resolveNotebookGuidIfProvided(
+    client,
+    notebookName
+  );
 
-  // Strip "private" from tag filters
-  const safeTags = tags?.filter((t) => t.toLowerCase() !== 'private') ?? null;
+  const safeTags = tags?.filter((t) => t.toLowerCase() !== PRIVATE_TAG_NAME);
+  const tagFilter = safeTags?.length ? safeTags : null;
 
   const result = await client.searchNotes(
     query,
     notebookGuid,
-    safeTags && safeTags.length > 0 ? safeTags : null,
+    tagFilter,
     maxResults,
     offset
   );
@@ -164,7 +171,7 @@ export async function listTags(): Promise<TagInfo[]> {
   return tags.flatMap((t) =>
     t.guid != null &&
     t.name != null &&
-    String(t.name).toLowerCase() !== 'private'
+    String(t.name).toLowerCase() !== PRIVATE_TAG_NAME
       ? [{ guid: t.guid, name: t.name }]
       : []
   );
@@ -181,10 +188,10 @@ export async function createNote(
 ): Promise<CreatedNote> {
   const client = await getClient();
 
-  let notebookGuid: string | null = null;
-  if (notebookName) {
-    notebookGuid = await resolveNotebookGuid(client, notebookName);
-  }
+  const notebookGuid = await resolveNotebookGuidIfProvided(
+    client,
+    notebookName
+  );
 
   let existingResources: ResourceInfo[] | undefined;
   if (sourceNoteGuid) {
@@ -243,32 +250,31 @@ export async function copyNote(
   };
 }
 
-export async function tagNote(
+async function modifyNoteTags(
   guid: string,
-  tags: string[]
+  tags: string[],
+  op: 'add' | 'remove'
 ): Promise<NoteMetadata> {
-  if (tags.some((t) => t.toLowerCase() === 'private')) {
-    throw new PrivateNoteError("Cannot add 'private' tag");
+  if (tags.some((t) => t.toLowerCase() === PRIVATE_TAG_NAME)) {
+    const verb = op === 'add' ? 'add' : 'remove';
+    throw new PrivateNoteError(`Cannot ${verb} '${PRIVATE_TAG_NAME}' tag`);
   }
   const client = await getClient();
   const existing = await client.getNote(guid);
   await assertNotPrivate(guid, existing.tagGuids ?? []);
-  const note = await client.tagNote(guid, tags);
+  const note =
+    op === 'add'
+      ? await client.tagNote(guid, tags)
+      : await client.untagNote(guid, tags);
   return noteMetadataFromThrift(note);
 }
 
-export async function untagNote(
-  guid: string,
-  tags: string[]
-): Promise<NoteMetadata> {
-  if (tags.some((t) => t.toLowerCase() === 'private')) {
-    throw new PrivateNoteError("Cannot remove 'private' tag");
-  }
-  const client = await getClient();
-  const existing = await client.getNote(guid);
-  await assertNotPrivate(guid, existing.tagGuids ?? []);
-  const note = await client.untagNote(guid, tags);
-  return noteMetadataFromThrift(note);
+export function tagNote(guid: string, tags: string[]): Promise<NoteMetadata> {
+  return modifyNoteTags(guid, tags, 'add');
+}
+
+export function untagNote(guid: string, tags: string[]): Promise<NoteMetadata> {
+  return modifyNoteTags(guid, tags, 'remove');
 }
 
 export async function moveNote(
