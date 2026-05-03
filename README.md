@@ -23,6 +23,17 @@ chmod +x evercli
 ./evercli login
 ```
 
+## Use with Claude Code
+
+This repo is a Claude Code plugin marketplace. Install the companion skill so Claude Code can drive `evercli` for you:
+
+```bash
+/plugin marketplace add SoftwareStartups/evernotecli
+/plugin install evercli@softwarestartups-evercli
+```
+
+Once installed, just ask Claude in plain language (e.g., "Search my Evernote notes for the Q3 planning meeting") and the skill will activate automatically. The plugin tracks this repo's releases — run `/plugin marketplace update softwarestartups-evercli` to get the latest skill revisions.
+
 ## Authentication
 
 Run `evercli login` to authenticate. If no OAuth consumer credentials are configured, you'll be prompted to paste a developer token — get one at [dev.evernote.com/get-token](https://dev.evernote.com/get-token/).
