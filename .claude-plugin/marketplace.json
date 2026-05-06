@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "evercli",
-      "source": ".",
+      "source": { "source": "github", "repo": "SoftwareStartups/evernotecli" },
       "description": "Evernote note management via CLI. Activate when user mentions \"Evernote\", \"notes\", \"notebooks\", or wants to search, read, create, tag, or organize notes."
     }
   ]
