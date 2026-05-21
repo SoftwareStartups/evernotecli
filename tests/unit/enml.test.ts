@@ -148,6 +148,21 @@ describe('markdownToEnml', () => {
     expect(result.enml).toContain('<a href="https://example.com">text</a>');
   });
 
+  test('converts literature-reference link with brackets in text', () => {
+    const result = markdownToEnml('[[13]](https://theorg.com/org/utiligize)');
+    expect(result.enml).toContain(
+      '<a href="https://theorg.com/org/utiligize">[13]</a>'
+    );
+  });
+
+  test('converts consecutive literature-reference links on one line', () => {
+    const result = markdownToEnml(
+      'See [[13]](https://a.com) and [[14]](https://b.com)'
+    );
+    expect(result.enml).toContain('<a href="https://a.com">[13]</a>');
+    expect(result.enml).toContain('<a href="https://b.com">[14]</a>');
+  });
+
   test('converts inline code', () => {
     const result = markdownToEnml('`code`');
     expect(result.enml).toContain('<code>code</code>');

@@ -24,7 +24,9 @@ const RE_TABLE_SEPARATOR = /^:?-+:?$/;
 // produce incorrect nesting — a full markdown parser would be needed to fix.
 const RE_BOLD = /\*\*(.+?)\*\*/g;
 const RE_ITALIC = /\*(.+?)\*/g;
-const RE_LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
+// Link text may itself contain one level of bracketed text, e.g. the
+// literature-reference style `[[13]](url)` where the text is `[13]`.
+const RE_LINK = /\[((?:[^[\]]|\[[^[\]]*\])+)\]\(([^)]+)\)/g;
 const RE_INLINE_CODE = /`([^`]+)`/g;
 const RE_IMAGE = /!\[([^\]]*)\]\(([^)]+)\)/g;
 const RE_IMAGE_FULL = /^!\[([^\]]*)\]\(([^)]+)\)$/;
