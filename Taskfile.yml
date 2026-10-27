@@ -78,6 +78,10 @@ tasks:
     cmds:
       - mkdir -p dist
       - bun build src/index.ts --compile --outfile dist/evercli
+      - cmd: codesign --force --sign - dist/evercli
+        platforms: [darwin]
+      - cmd: codesign --verify --verbose dist/evercli
+        platforms: [darwin]
 
   compile:all:
     desc: Compile for all platforms
