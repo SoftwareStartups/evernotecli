@@ -1,4 +1,5 @@
 import { defineCommand } from 'clerc';
+import pkg from '../../../package.json' with { type: 'json' };
 
 export const serveCommand = defineCommand(
   {
@@ -7,6 +8,6 @@ export const serveCommand = defineCommand(
   },
   async () => {
     const { startServer } = await import('../../server/index.js');
-    await startServer();
+    await startServer(pkg.version);
   }
 );
