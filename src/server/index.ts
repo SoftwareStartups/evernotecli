@@ -3,10 +3,10 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerReadTools } from './read-tools.js';
 import { registerWriteTools } from './write-tools.js';
 
-export async function startServer(): Promise<void> {
+export async function startServer(version: string): Promise<void> {
   const server = new McpServer({
     name: 'evercli',
-    version: '0.1.0',
+    version,
   });
 
   registerReadTools(server);

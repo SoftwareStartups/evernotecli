@@ -1,11 +1,12 @@
 import thrift from 'thrift';
+import pkg from '../../package.json' with { type: 'json' };
 // @ts-expect-error — generated CommonJS module
 import NoteStore from '../edam/NoteStore.js';
 // @ts-expect-error — generated CommonJS module
 import UserStore from '../edam/UserStore.js';
 
 const HTTP_TIMEOUT_MS = 30_000;
-const USER_AGENT = 'evercli/0.1.0';
+const USER_AGENT = `evercli/${pkg.version}`;
 
 const CUSTOM_HEADERS = {
   'User-Agent': USER_AGENT,
